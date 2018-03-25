@@ -1,10 +1,15 @@
 # === Extra Rules
 workspace.py
 extract.py
-Python34.zip
+
 14bit_0.py
 14bit_Cavity.py
 transfile/*Xmon*
+
+Python34.zip
+.vscode
+*.url
+
 *\[*\]*
 *\[*\]*/*
 
