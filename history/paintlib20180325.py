@@ -57,7 +57,7 @@ class BasicPainter:#用于画基础图形的静态类
     @staticmethod
     def arc_NewtonInterpolation(n,r1):#(n,r1,r2):
         #
-        thetax=0.53977
+        thetax=0.53977;
         thetay=-thetax*tan(pi/180*67.5)
         X=[-1,-1,-1,-thetax,0,thetax,1,1,1]
         Y=[-1,-1,-1,thetay,-sqrt(2),thetay,-1,-1,-1]
@@ -275,43 +275,6 @@ class LinePainter(Painter):
         self.centerlinepts=[]
         return cpts
         
-class CavityBrush(object):
-    def __init__(self,*args):
-        if isinstance(args[0],pya.DPoint) and (type(args[1]) in [int,float]):
-            self.constructors1(*args)
-        if isinstance(args[0],pya.DEdge):
-            self.constructors2(*args)
-        if isinstance(args[0],pya.DPoint):
-            self.constructors3(*args)
-        if type(args[0]) in [list,tuple]:
-            self.constructors3(*args[0])
-        if abs(self.edgeout.distance_abs(self.edgein.p1)-self.edgeout.distance_abs(self.edgein.p2))>10:
-            raise RuntimeError('not parallel')
-    def constructors1(self,pointc=pya.DPoint(0,0),angle=0,widout=20000,widin=0,bgn_ext=0):
-        tr=pya.DCplxTrans(1,angle,False,pointc)
-        self.edgeout=pya.DEdge(0,-widout/2,0,widout/2).transformed(tr)
-        self.edgein=pya.DEdge(bgn_ext,-widin/2,bgn_ext,widin/2).transformed(tr)
-    def constructors2(self,edgeout=pya.DEdge(0,-20000/2,0,20000/2),edgein=pya.DEdge(0,0,0,0)):
-        self.edgeout=edgeout
-        self.edgein=edgein
-    def constructors3(self,pointoutl,pointinl,pointinr,pointoutr):
-        self.edgeout=pya.DEdge(pointoutl,pointoutr)
-        self.edgein=pya.DEdge(pointinl,pointinr)
-    def transformed(self,tr):
-        self.edgeout.transformed(tr)
-        self.edgein.transformed(tr)
-        return self
-    @property
-    def bgn_ext(self):
-        return self.edgeout.distance_abs(self.edgein.p1)
-    def Getinfo(self):        
-        centerx=(self.edgeout.p2.x+self.edgeout.p1.x)/2
-        centery=(self.edgeout.p2.y+self.edgeout.p1.y)/2
-        angle=90+180/pi*atan2(self.edgeout.p2.y-self.edgeout.p1.y,self.edgeout.p2.x-self.edgeout.p1.x)
-        widout=self.edgeout.p2.distance(self.edgeout.p1)
-        widout=int(round(widout/10))*10
-        return [centerx,centery,angle,widout]
-
 class CavityPainter(Painter):
     def __init__(self,pointc=pya.DPoint(0,8000),angle=0,widout=20000,widin=10000,bgn_ext=0,end_ext=0):
         self.regionlistout=[]
@@ -384,7 +347,7 @@ class PcellPainter(Painter):
     def __init__(self):
         self.outputlist=[]
         self.Basic = pya.Library.library_by_name("Basic")
-        self.TEXT_decl = self.Basic.layout().pcell_declaration("TEXT")
+        self.TEXT_decl = self.Basic.layout().pcell_declaration("TEXT");
     def DrawText(self,cell,layer1,textstr,DCplxTrans1):
         #左下角坐标,每个字宽0.6*倍数高0.7*倍数线宽0.1*倍数  
         #tr=pya.DCplxTrans(10,0,False,0,0)
