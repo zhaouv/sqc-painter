@@ -276,16 +276,18 @@ class LinePainter(Painter):
         return cpts
         
 class CavityBrush(object):
-    def __init__(self,*args):
-        if isinstance(args[0],pya.DPoint) and (type(args[1]) in [int,float]):
-            self.constructors1(*args)
-        if isinstance(args[0],pya.DEdge):
-            self.constructors2(*args)
-        if isinstance(args[0],pya.DPoint):
-            self.constructors3(*args)
-        if type(args[0]) in [list,tuple]:
-            self.constructors3(*args[0])
-        if abs(self.edgeout.distance_abs(self.edgein.p1)-self.edgeout.distance_abs(self.edgein.p2))>10:
+    def __init__(self,*args,**keys):
+        if 'pointc' in keys or (isinstance(args[0],pya.DPoint) and ('angle' in keys or type(args[1]) in [int,float])):
+            self.constructors1(*args,**keys)
+        elif 'edgeout' in keys or isinstance(args[0],pya.DEdge):
+            self.constructors2(*args,**keys)
+        elif 'pts' in keys or isinstance(args[0],pya.DPoint):
+            self.constructors3(*args,**keys)
+        elif type(args[0]) in [list,tuple]:
+            self.constructors3(*args[0],**keys)
+        else:
+            raise TypeError('Invalid input')
+        if abs(self.edgeout.distance(self.edgein.p1)-self.edgeout.distance(self.edgein.p2))>10:
             raise RuntimeError('not parallel')
     def constructors1(self,pointc=pya.DPoint(0,0),angle=0,widout=20000,widin=0,bgn_ext=0):
         tr=pya.DCplxTrans(1,angle,False,pointc)
@@ -297,41 +299,59 @@ class CavityBrush(object):
     def constructors3(self,pointoutl,pointinl,pointinr,pointoutr):
         self.edgeout=pya.DEdge(pointoutl,pointoutr)
         self.edgein=pya.DEdge(pointinl,pointinr)
-    def transformed(self,tr):
-        self.edgeout.transformed(tr)
-        self.edgein.transformed(tr)
+    def transform(self,tr):
+        self.edgeout=self.edgeout.transformed(tr)
+        self.edgein=self.edgein.transformed(tr)
         return self
     @property
     def bgn_ext(self):
-        return self.edgeout.distance_abs(self.edgein.p1)
-    def Getinfo(self):        
-        centerx=(self.edgeout.p2.x+self.edgeout.p1.x)/2
-        centery=(self.edgeout.p2.y+self.edgeout.p1.y)/2
-        angle=90+180/pi*atan2(self.edgeout.p2.y-self.edgeout.p1.y,self.edgeout.p2.x-self.edgeout.p1.x)
-        widout=self.edgeout.p2.distance(self.edgeout.p1)
-        widout=int(round(widout/10))*10
+        return int(round(self.edgeout.distance_abs(self.edgein.p1)/10))*10
+    @property
+    def centerx(self):
+        return (self.edgeout.p2.x+self.edgeout.p1.x)/2
+    @property
+    def centery(self):
+        return (self.edgeout.p2.y+self.edgeout.p1.y)/2
+    @property
+    def angle(self):
+        return 90+180/pi*atan2(self.edgeout.p2.y-self.edgeout.p1.y,self.edgeout.p2.x-self.edgeout.p1.x)
+    @property
+    def widout(self):
+        return int(round(self.edgeout.length()/10))*10
+    def Getinfo(self):
+        centerx=self.centerx
+        centery=self.centery
+        angle=self.angle
+        widout=self.widout
         return [centerx,centery,angle,widout]
 
 class CavityPainter(Painter):
-    def __init__(self,pointc=pya.DPoint(0,8000),angle=0,widout=20000,widin=10000,bgn_ext=0,end_ext=0):
+    def __init__(self,*args,**keys):
+        if 'pointc' in keys or (isinstance(args[0],pya.DPoint) and ('angle' in keys or type(args[1]) in [int,float])):
+            self.constructors1(*args,**keys)
+        elif 'brush' in keys or isinstance(args[0],CavityBrush):
+            self.constructors2(*args,**keys)
+        else:
+            raise TypeError('Invalid input')
+    def constructors1(self,pointc=pya.DPoint(0,8000),angle=0,widout=20000,widin=10000,bgn_ext=0,end_ext=0):
+        self.__init__(CavityBrush(pointc,angle,widout,widin,bgn_ext),end_ext)
+    def constructors2(self,brush,end_ext=0):
         self.regionlistout=[]
-        self.regionlistin=[]        
+        self.regionlistin=[]
         self.path=lambda painter:None
-        self.bgn_ext=bgn_ext
+        self.bgn_ext=brush.bgn_ext
         self.end_ext=end_ext
-        tr=pya.DCplxTrans(1,angle,False,pointc)
-        edgeout=pya.DEdge(0,-widout/2,0,widout/2).transformed(tr)
-        edgein=pya.DEdge(bgn_ext,-widin/2,bgn_ext,widin/2).transformed(tr)
+        edgeout=brush.edgeout
+        edgein=brush.edgein
         self.painterout=LinePainter(edgeout.p1,edgeout.p2)
         self.painterin=LinePainter(edgein.p1,edgein.p2)
         self.centerlineinfos=[]
-    def Getinfo(self):        
-        centerx=(self.painterout.pointr.x+self.painterout.pointl.x)/2
-        centery=(self.painterout.pointr.y+self.painterout.pointl.y)/2
-        angle=90+180/pi*atan2(self.painterout.pointr.y-self.painterout.pointl.y,self.painterout.pointr.x-self.painterout.pointl.x)
-        widout=self.painterout.pointr.distance(self.painterout.pointl)
-        widout=int(round(widout/10))*10
-        return [centerx,centery,angle,widout]           
+    @property
+    def brush(self):
+        return CavityBrush(self.painterout.pointl,self.painterin.pointl,self.painterin.pointr,self.painterout.pointr)
+    def Getinfo(self):
+        # return [centerx,centery,angle,widout]
+        return self.brush.Getinfo()
     def Run(self,path=None):
         if path==None:
             path=self.path
@@ -519,6 +539,7 @@ class IO:#处理输入输出的静态类
 # -*- coding: utf-8 -*-
 
 #初始化
+import pya
 import paintlib
 layout,top = paintlib.IO.Start("guiopen")#在当前的图上继续画,如果没有就创建一个新的
 layout.dbu = 0.001#设置单位长度为1nm

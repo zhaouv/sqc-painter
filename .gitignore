@@ -3,8 +3,7 @@ temp.py
 workspace.py
 extract.py
 
-14bit_0.py
-14bit_Cavity.py
+14bit_*
 transfile/*Xmon*
 
 Python34.zip
