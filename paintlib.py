@@ -303,6 +303,11 @@ class CavityBrush(object):
         self.edgeout=self.edgeout.transformed(tr)
         self.edgein=self.edgein.transformed(tr)
         return self
+    def transformed(self,tr):
+        edgeout=self.edgeout.transformed(tr)
+        edgein=self.edgein.transformed(tr)
+        newCavityBrush = CavityBrush(edgeout,edgein)
+        return newCavityBrush
     @property
     def bgn_ext(self):
         return int(round(self.edgeout.distance_abs(self.edgein.p1)/10))*10
@@ -324,6 +329,9 @@ class CavityBrush(object):
         angle=self.angle
         widout=self.widout
         return [centerx,centery,angle,widout]
+    @property
+    def DCplxTrans(self):
+        return pya.DCplxTrans(1,self.angle,False,self.centerx,self.centery)
 
 class CavityPainter(Painter):
     def __init__(self,*args,**keys):
@@ -485,6 +493,8 @@ class TransfilePainter(Painter):
                 i.flatten(True)
                 i.delete()
         return resultcell        
+
+
 class IO:#处理输入输出的静态类
     #IO:字母 In Out
     layout=None
