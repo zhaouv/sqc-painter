@@ -83,7 +83,16 @@ class BasicPainter:#用于画基础图形的静态类
         polygons.append(polygon1.transformed(pya.Trans(pya.Trans.R270)))
         return pya.Region(polygons)
     @staticmethod
-    def Electrode(x,y,angle,widout=20000,widin=10000,wid=368000,length=360000,midwid=200000,midlength=200000,narrowlength=120000):
+    def Electrode(*args,**keys):
+        if 'brush' in keys or isinstance(args[0],CavityBrush):
+            return BasicPainter.Electrode_2(*args,**keys)
+        elif 'angle' in keys or (type(args[0]) in [int,float]):
+            return BasicPainter.Electrode_1(*args,**keys)
+        else:
+            raise TypeError('Invalid input')
+        return []
+    @staticmethod
+    def Electrode_1(x,y,angle,widout=20000,widin=10000,wid=368000,length=360000,midwid=200000,midlength=200000,narrowlength=120000):
         tr=pya.DCplxTrans(1,angle,False,x,y)
         pts=[]
         pts.append(pya.DPoint(0,widout/2))
@@ -101,8 +110,33 @@ class BasicPainter:#用于画基础图形的静态类
         polygon1=pya.DPolygon(pts).transformed(tr)
         return polygon1
     @staticmethod
-    def Connection(x,y,angle,mod=48):
-        tr=pya.DCplxTrans(1,angle,False,x,y)
+    def Electrode_2(brush,wid=368000,length=360000,midwid=200000,midlength=200000,narrowlength=120000):
+        widout=brush.widout
+        widin=brush.widin
+        tr=brush.DCplxTrans
+        pts=[]
+        pts.append(pya.DPoint(0,widout/2))
+        pts.append(pya.DPoint(0,widin/2))
+        pts.append(pya.DPoint(narrowlength,midwid/2))
+        pts.append(pya.DPoint(narrowlength+midlength,midwid/2))
+        pts.append(pya.DPoint(narrowlength+midlength,-midwid/2))
+        pts.append(pya.DPoint(narrowlength,-midwid/2))
+        pts.append(pya.DPoint(0,-widin/2))
+        pts.append(pya.DPoint(0,-widout/2))
+        pts.append(pya.DPoint(narrowlength,-wid/2))
+        pts.append(pya.DPoint(length,-wid/2))
+        pts.append(pya.DPoint(length,wid/2))
+        pts.append(pya.DPoint(narrowlength,wid/2))
+        polygon1=pya.DPolygon(pts).transformed(tr)
+        return polygon1
+    @staticmethod
+    def Connection(x,y=0,angle=0,mod=48):
+        if isinstance(x,CavityBrush):
+            brush=x
+            tr=brush.DCplxTrans
+            mod=brush.widout
+        else:
+            tr=pya.DCplxTrans(1,angle,False,x,y)
         pts=[]
         if mod==48:
             pts.append(pya.DPoint(0,-57000))
@@ -375,12 +409,11 @@ class CavityPainter(Painter):
         self.regionlistin.extend(self.painterin.outputlist)
         self.painterin.outputlist=[]
         #把中心线的(点列表,宽度)成组添加
-        self.centerlineinfos.append((self.painterin.Getcenterline(),self.Getinfo()[3]))
+        self.centerlineinfos.append((self.painterin.Getcenterline(),self.brush.angle))
         return result
     def Narrow(self,widout,widin,length=6000):
         assert(self.end_ext==0)
-        centerx,centery,angle=self.Getinfo()[0:3]
-        tr=pya.DCplxTrans(1,angle,False,centerx,centery)
+        tr=self.brush.DCplxTrans
         edgeout=pya.DEdge(length,-widout/2,length,widout/2).transformed(tr)
         edgein=pya.DEdge(length,-widin/2,length,widin/2).transformed(tr)
         self.regionlistout.append(pya.DPolygon([self.painterout.pointl,self.painterout.pointr,edgeout.p1,edgeout.p2]))
