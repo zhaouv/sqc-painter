@@ -23,7 +23,7 @@ KLayout提供了库pya作为python绘图的API, spc-painter用paintlib进行了�
 KLayout中,一个gds文件对应一个Layout,其中的图形放置在cell构成的树结构中  
 每个图形自身有layer属性  
 
-+ `layout,top = paintlib.IO.Start("guiopen")` 获取layout以及最外层的cell  
++ `layout,top = paintlib.IO.Start("guiopen")` 获取Layout以及最外层的cell  
 + `cell1 = layout.create_cell("Cavity1")` 创建cell
 + `layer1 = layout.layer(10, 15)` 创建layer
 
@@ -46,10 +46,19 @@ pya中涉及到具体图形的class分成了两大类:
 
 ### pya中部分class及其方法
 
+DPoint
+
+DEdge
+
+DPolygon
+
+DCplxTrans
+
+Region
 
 
 - - -
 
 - [Start Page](README.md)  
 - **脚本绘图基础**  
-- [b](b.md)  
+- [demo](demo.md)  
