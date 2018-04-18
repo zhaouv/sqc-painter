@@ -27,6 +27,8 @@ KLayout中,一个gds文件对应一个Layout,其中的图形放置在cell构成�
 + `cell1 = layout.create_cell("Cavity1")` 创建cell
 + `layer1 = layout.layer(10, 15)` 创建layer
 
+`layout.dbu = 0.001`设置单位长度为1nm
+
 `top.insert(pya.CellInstArray(cell1.cell_index(),pya.Trans()))` 把cell插入到另一个cell中
 
 ### 作图精度
@@ -80,16 +82,7 @@ pya中涉及到具体图形的class分成了两大类:
 + 方法`region=region1+region2`产生两个区域的和作为新区域  
 
 ## paintlib中部分class及其方法
-```
-+ BasicPainter : 用于画基础图形的静态类
-+ Painter : 画图工具的基类
-+ LinePainter : 用来画线的工具
-+ CavityBrush : 腔的画笔
-+ CavityPainter : 用来画腔的工具
-+ PcellPainter : 用来画文字的工具
-+ TransfilePainter : 用来导入已有gds的工具
-+ IO : 处理输入输出的静态类
-```
+
 **BasicPainter**  
 用于画基础图形的静态类,不需要产生实例,以`paintlib.BasicPainter.func()`的形式直接执行其方法  
 + 方法`Border(leng=3050000,siz=3050000,wed=50000)`  
@@ -116,8 +109,8 @@ radius为正时是右转,为负时是左转
 
 **CavityBrush**  
 腔的画笔,用来描述腔起始,终点,与其他图形拼接位置的类  
-+ 构造`brush=paintlib.CavityBrush(pointc=pya.DPoint(0,0),angle=0,widout=20000,widin=0,bgn_ext=0)`  
-+ 构造`brush=paintlib.CavityBrush(edgeout=pya.DEdge(0,-20000/2,0,20000/2),edgein=pya.DEdge(0,0,0,0))`  
++ 构造`brush=paintlib.CavityBrush(pointc=pya.DPoint(0,0),` `angle=0,widout=20000,widin=0,bgn_ext=0)`  
++ 构造`brush=paintlib.CavityBrush(edgeout=pya.DEdge(0,-20000/2,0,20000/2),` `edgein=pya.DEdge(0,0,0,0))`  
 + 构造`brush=paintlib.CavityBrush(pointoutl,pointinl,pointinr,pointoutr)`  
 + 方法`brush.transformed(tr:pya.DCplxTrans)`使用给定的转换产生一个新画笔(原画笔不变)  
 + 方法`brush.transform(tr:pya.DCplxTrans)`把给定的转换作用到画笔上(返回改变后的画笔)  
@@ -130,14 +123,56 @@ radius为正时是右转,为负时是左转
 + 成员`brush.angle`  
 + 成员`brush.widout`  
 + 成员`brush.DCplxTrans`从原点朝右变换到当前位置的pya.DCplxTrans  
-+ 方法`brush.Getinfo`放回[centerx,centery,angle,widout]
++ 方法`brush.Getinfo()`放回[centerx,centery,angle,widout]
 
 
 **CavityPainter**  
 用来画腔的类  
-+ 构造`painter=paintlib.CavityPainter(pointc=pya.DPoint(0,8000),angle=0,widout=20000,widin=10000,bgn_ext=0,end_ext=0)`  
++ 构造`painter=paintlib.CavityPainter(pointc=pya.DPoint(0,8000),` `angle=0,widout=20000,widin=10000,bgn_ext=0,end_ext=0)`  
 + 构造`painter=paintlib.CavityPainter(brush:paintlib.CavityBrush,end_ext=0)`  
 + 成员`painter.brush`当前的画笔  
++ 方法`painter.Run(path)`  
+path(painter)是通过painter.Straight和painter.Turning描述LinePainter的运动从而画腔的函数,Run返回path的返回值(长度)  
+使用详见demo  
++ 方法`painter.Narrow(widout,widin,length=6000)`  
+在当前位置画变化宽度的结构  
++ 方法`painter.Draw(cell,layer)`  
+把腔画到指定的cell和layer中  
++ 方法`painter.Getcenterlineinfo()`  
+得到当前腔的中心线(用于画airbrige)  
+
+**PcellPainter**  
+用来画文字的类  
++ 构造`painter=paintlib.PcellPainter()`  
++ 方法`painter.Draw(cell,layer,textstr:str,tr:pya.DCplxTrans)`  
+把字符textstr加以转置tr画到指定的cell和layer中  
+返回作为字符图形对应的矩形的末端的两个点  
+
+**TransfilePainter**  
+用来导入已有gds文件的类  
++ 构造`painter=paintlib.PcellPainter(filename="[insert].gds",insertcellname="insert")`  
+文件名为[insert].gds,此文件的唯一顶部的cell名为insert  
++ 方法`painter.DrawAirbrige(cell,centerlinelist,newcellname="Airbige")`  
+把文件沿着中心线centerlinelist画到指定的cell中(文件会沿着路线旋转),并把cell命名为newcellname  
++ 方法`painter.DrawMark(cell,pts,newcellname="Mark")`  
+把文件画到pts中的每个点上,置入指定的cell中(文件不会旋转),并把cell命名为newcellname  
++ 方法`painter.DrawGds(cell,newcellname,tr:pya.DCplxTrans)`  
+把文件加以转置tr画到指定的中  
+
+**IO**  
+处理输入输出的静态类  
++ 方法`paintlib.IO.Start("guiopen")`  
+在当前的选项卡中继续画图(没有则创建)  
++ 方法`paintlib.IO.Start("guinew")`  
+打开一个新的选项卡并画图  
++ 方法`paintlib.IO.Start("gds")`  
+创建文件画图(不输出到屏幕上)  
++ 成员`paintlib.IO.pointdistance`  
+腔的精度,腔在转弯处相邻两点的距离不会大于这个值
++ 方法`paintlib.IO.Show()`  
+把当前的图显示到屏幕上  
++ 方法`paintlib.IO.Write(filename=None)`  
+把当前的图写入到文件,如果不输入文件名,则按默认格式生成与日期的有关的文件名  
 
 - - -
 
