@@ -342,6 +342,14 @@ class CavityBrush(object):
         edgein=self.edgein.transformed(tr)
         newCavityBrush = CavityBrush(edgeout,edgein)
         return newCavityBrush
+    def reversed(self):
+        pts=[]
+        pts.append(self.edgeout.p2)
+        pts.append(self.edgein.p2)
+        pts.append(self.edgein.p1)
+        pts.append(self.edgeout.p1)
+        newCavityBrush = CavityBrush(pts)
+        return newCavityBrush
     @property
     def bgn_ext(self):
         return int(round(self.edgeout.distance_abs(self.edgein.p1)/10))*10
