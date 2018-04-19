@@ -87,6 +87,7 @@ pya中涉及到具体图形的class分成了两大类:
 用于画基础图形的静态类,不需要产生实例,以`paintlib.BasicPainter.func()`的形式直接执行其方法  
 + 方法`Border(leng=3050000,siz=3050000,wed=50000)`  
 产生给定尺寸的边界,返回一个pya.Region  
+![](img_md/2018-04-19-18-39-56.png)
 + 方法`Electrode(x,y,angle,widout=20000,widin=10000,` `wid=368000,length=360000,midwid=200000,midlength=200000,narrowlength=120000)`  
 产生给定尺寸的电极,返回一个pya.DPolygon  
 + 方法`Electrode(brush:paintlib.CavityBrush,` `wid=368000,length=360000,midwid=200000,midlength=200000,narrowlength=120000)`  
@@ -117,13 +118,13 @@ radius为正时是右转,为负时是左转
 + 方法`brush.reversed()`产生一个位置相同方向相反的新画笔(原画笔不变)  
 + 成员`brush.edgeout`  
 + 成员`brush.edgein`  
-+ 成员`brush.bgn_ext`  
++ 成员`brush.bgn_ext`说明见CavityPainter`painter.bgn_ext`  
 + 成员`brush.centerx`  
 + 成员`brush.centery`  
 + 成员`brush.angle`  
 + 成员`brush.widout`  
 + 成员`brush.DCplxTrans`从原点朝右变换到当前位置的pya.DCplxTrans  
-+ 方法`brush.Getinfo()`放回[centerx,centery,angle,widout]
++ 方法`brush.Getinfo()`返回[centerx,centery,angle,widout]
 
 
 **CavityPainter**  
@@ -131,6 +132,9 @@ radius为正时是右转,为负时是左转
 + 构造`painter=paintlib.CavityPainter(pointc=pya.DPoint(0,8000),` `angle=0,widout=20000,widin=10000,bgn_ext=0,end_ext=0)`  
 + 构造`painter=paintlib.CavityPainter(brush:paintlib.CavityBrush,end_ext=0)`  
 + 成员`painter.brush`当前的画笔  
++ 成员`painter.bgn_ext`  
++ 成员`painter.end_ext`  
+![](img_md/2018-04-19-18-29-12.png)  
 + 方法`painter.Run(path)`  
 path(painter)是通过painter.Straight和painter.Turning描述LinePainter的运动从而画腔的函数,Run返回path的返回值(长度)  
 使用详见demo  
@@ -146,7 +150,7 @@ path(painter)是通过painter.Straight和painter.Turning描述LinePainter的运�
 + 构造`painter=paintlib.PcellPainter()`  
 + 方法`painter.Draw(cell,layer,textstr:str,tr:pya.DCplxTrans)`  
 把字符textstr加以转置tr画到指定的cell和layer中  
-返回作为字符图形对应的矩形的末端的两个点  
+返回字符图形对应的矩形的末端的两个点  
 
 **TransfilePainter**  
 用来导入已有gds文件的类  
