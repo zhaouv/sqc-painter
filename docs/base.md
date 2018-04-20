@@ -92,10 +92,12 @@ pya中涉及到具体图形的class分成了两大类:
 产生给定尺寸的电极,返回一个pya.DPolygon  
 + 方法`Electrode(brush:paintlib.CavityBrush,` `wid=368000,length=360000,midwid=200000,midlength=200000,narrowlength=120000)`  
 产生给定尺寸的电极,返回一个pya.DPolygon  
+![](img_md/2018-04-20-22-38-14.png)
 + 方法`Connection(x,y=0,angle=0,mod=48)`  
 产生给定尺寸的与Qubit的连接,mod取48或8表示连线的外部宽度  
 + 方法`Connection(brush:paintlib.CavityBrush)`,返回一个pya.DPolygon  
 产生给定尺寸的与Qubit的连接,brush.widout需要是48或8表示连线的外部宽度  
+![](img_md/2018-04-20-22-43-34.png)
 + 方法`Draw(cell,layer,x)`,返回一个pya.DPolygon  
 把给定的图形x画到指定的cell和layer中  
 x可以是pya.DPolygon或pya.Region或pya.Polygon  
@@ -140,6 +142,7 @@ path(painter)是通过painter.Straight和painter.Turning描述LinePainter的运�
 使用详见demo  
 + 方法`painter.Narrow(widout,widin,length=6000)`  
 在当前位置画变化宽度的结构  
+![](img_md/2018-04-20-22-40-58.png)
 + 方法`painter.Draw(cell,layer)`  
 把腔画到指定的cell和layer中  
 + 方法`painter.Getcenterlineinfo()`  

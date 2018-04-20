@@ -2,6 +2,8 @@
 
 ## 密度均匀变化的airbrige
 
+![](img_md/tmp1.png)
+
 ## 辐射状状排布的14bit
 
 - - -
