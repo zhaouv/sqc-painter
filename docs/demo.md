@@ -6,6 +6,8 @@
 
 ## 辐射状状排布的14bit
 
+![](img_md/tmp2.png)
+
 - - -
 
 - [Start Page](README.md)  
