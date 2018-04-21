@@ -1,4 +1,4 @@
-# spc-painter 说明文档
+# sqc-painter 说明文档
 
 Superconducting Quantum Chip Painter
 
@@ -14,7 +14,7 @@ Superconducting Quantum Chip Painter
 
 ![](img_md/2018-04-15-15-33-35.png)
 
-弹出的窗口中, 先点击左上的Python, 选中Python的环境, 在下方右键Add Location, 选中spc-painter的路径添加到环境中
+弹出的窗口中, 先点击左上的Python, 选中Python的环境, 在下方右键Add Location, 选中sqc-painter的路径添加到环境中
 
 双击paintlib, 点击右侧上方的![](img_md/2018-04-15-15-41-16.png), 之后重启KLayout, 完成环境的配置
 
