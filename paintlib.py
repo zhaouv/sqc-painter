@@ -489,11 +489,17 @@ class TransfilePainter(Painter):
             if (icell.name == self.insertcellname):
                 icell.name=newcellname
                 for cpts in centerlinelist:
-                    distance=self.airbrigedistance*0.25
+                    distance=0
+                    if not hasattr(self.airbrigedistance,'__call__'):
+                        distance=self.airbrigedistance*0.25
                     dt_int=0
                     for i,pt in enumerate(cpts[1:-1],1):
                         distance=distance+pt.distance(cpts[i-1])
-                        if distance//self.airbrigedistance !=dt_int:
+                        if hasattr(self.airbrigedistance,'__call__'):
+                            calt_int=self.airbrigedistance(distance)
+                        else:
+                            calt_int=distance//self.airbrigedistance
+                        if calt_int !=dt_int:
                             dx=cpts[i+1].x-cpts[i-1].x
                             dy=cpts[i+1].y-cpts[i-1].y
                             tr=pya.CplxTrans(1,atan2(dy,dx)/pi*180,False,pt.x,pt.y)
