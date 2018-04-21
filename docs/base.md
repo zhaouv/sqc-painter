@@ -10,12 +10,11 @@ KLayout提供了库pya作为python绘图的API, spc-painter用paintlib进行了�
 
 **paintlib** 中提供了:
 + BasicPainter : 用于画基础图形的静态类
-+ Painter : 画图工具的基类
-+ LinePainter : 用来画线的工具
++ LinePainter : 用来画线的类
 + CavityBrush : 腔的画笔
-+ CavityPainter : 用来画腔的工具
-+ PcellPainter : 用来画文字的工具
-+ TransfilePainter : 用来导入已有gds的工具
++ CavityPainter : 用来画腔的类
++ PcellPainter : 用来画文字的类
++ TransfilePainter : 用来导入已有gds的类
 + IO : 处理输入输出的静态类
 
 ## layout, cell和layer
@@ -77,7 +76,7 @@ pya中涉及到具体图形的class分成了两大类:
 ### Region  
 图形实体:区域,整数形式的图形集合  
 + 构造`region=pya.Region(polygons:list)`用整数多边形的列表创建新区域  
-整数多边形用`pya.Polygon.from_dpoly(x:pya.polygon)`产生  
+整数多边形用`pya.Polygon.from_dpoly(x:pya.DPolygon)`产生  
 + 方法`region=region1-region2`产生两个区域的差作为新区域  
 + 方法`region=region1+region2`产生两个区域的和作为新区域  
 
@@ -161,6 +160,8 @@ path(painter)是通过painter.Straight和painter.Turning描述LinePainter的运�
 文件名为[insert].gds,此文件的唯一顶部的cell名为insert  
 + 方法`painter.DrawAirbrige(cell,centerlinelist,newcellname="Airbige")`  
 把文件沿着中心线centerlinelist画到指定的cell中(文件会沿着路线旋转),并把cell命名为newcellname  
++ 成员`painter.airbrigedistance=100000`  
+airbrige的间隔,也可以是函数:输入是distance,输出是distance内包含的airbrige的数量  
 + 方法`painter.DrawMark(cell,pts,newcellname="Mark")`  
 把文件画到pts中的每个点上,置入指定的cell中(文件不会旋转),并把cell命名为newcellname  
 + 方法`painter.DrawGds(cell,newcellname,tr:pya.DCplxTrans)`  
