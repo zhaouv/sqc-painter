@@ -34,7 +34,7 @@ KLayout中,一个gds文件对应一个Layout,其中的图形放置在cell构成�
 
 `layout.dbu = 0.001` 设置单位长度为1nm
 
-`paintlib.IO.pointdistance=500` 设置腔的精度,转弯处相邻两点的距离不会超过500nm
+`paintlib.IO.pointdistance=2000` 设置腔的精度,转弯处相邻两点的距离不会超过2000nm
 
 **整数与浮点数** :
 
@@ -111,8 +111,8 @@ radius为正时是右转,为负时是左转
 
 ### CavityBrush  
 腔的画笔,用来描述腔起始,终点,与其他图形拼接位置的类  
-+ 构造`brush=paintlib.CavityBrush(pointc=pya.DPoint(0,0),` `angle=0,widout=20000,widin=0,bgn_ext=0)`  
-+ 构造`brush=paintlib.CavityBrush(edgeout=pya.DEdge(0,-20000/2,0,20000/2),` `edgein=pya.DEdge(0,0,0,0))`  
++ 构造`brush=paintlib.CavityBrush(pointc=pya.DPoint(0,0),` `angle=0,widout=20000,widin=10000,bgn_ext=0)`  
++ 构造`brush=paintlib.CavityBrush(edgeout=pya.DEdge(0,20000/2,0,-20000/2),` `edgein=pya.DEdge(0,0,0,0))`  
 + 构造`brush=paintlib.CavityBrush(pointoutl,pointinl,pointinr,pointoutr)`  
 + 方法`brush.transformed(tr:pya.DCplxTrans)`使用给定的转换产生一个新画笔(原画笔不变)  
 + 方法`brush.transform(tr:pya.DCplxTrans)`把给定的转换作用到画笔上(返回改变后的画笔)  
@@ -138,6 +138,7 @@ radius为正时是右转,为负时是左转
 ![](img_md/2018-04-19-18-29-12.png)  
 + 方法`painter.Run(path)`  
 path(painter)是通过painter.Straight和painter.Turning描述LinePainter的运动从而画腔的函数,Run返回path的返回值(长度)  
+`Run`执行后,`bgn_ext`和`end_ext`会被置为0, 如果一个腔由多次`Run`构成, 需要把`end_ext`设为0, 直到最后一次`Run`之前再把`end_ext`设为想要的值  
 使用详见demo  
 + 方法`painter.Narrow(widout,widin,length=6000)`  
 在当前位置画变化宽度的结构  

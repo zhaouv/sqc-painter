@@ -195,7 +195,7 @@ class Painter(object):
     pass
     
 class LinePainter(Painter):
-    def __init__(self,pointl=pya.DPoint(0,1000),pointr=pya.DPoint(0,0)):
+    def __init__(self,pointr=pya.DPoint(0,1000),pointl=pya.DPoint(0,0)):
         self.outputlist=[]        
         self.pointr=pointr
         self.pointl=pointl
@@ -203,7 +203,7 @@ class LinePainter(Painter):
         #pointdistance=IO.pointdistance
         self.centerlinepts=[]
         #沿着前进方向，右边pointr，左边pointl
-    def Setpoint(self,pointl=pya.DPoint(0,1000),pointr=pya.DPoint(0,0)):       
+    def Setpoint(self,pointr=pya.DPoint(0,1000),pointl=pya.DPoint(0,0)):       
         self.pointr=pointr
         self.pointl=pointl
         self.centerlinepts=[]
@@ -323,11 +323,11 @@ class CavityBrush(object):
             raise TypeError('Invalid input')
         if abs(self.edgeout.distance(self.edgein.p1)-self.edgeout.distance(self.edgein.p2))>10:
             raise RuntimeError('not parallel')
-    def constructors1(self,pointc=pya.DPoint(0,0),angle=0,widout=20000,widin=10000,bgn_ext=0):
+    def constructors1(self,pointc=pya.DPoint(0,0),angle=0,widout=20000,widin=0,bgn_ext=0):
         tr=pya.DCplxTrans(1,angle,False,pointc)
-        self.edgeout=pya.DEdge(0,widout/2,0,-widout/2).transformed(tr)
-        self.edgein=pya.DEdge(bgn_ext,widin/2,bgn_ext,-widin/2).transformed(tr)
-    def constructors2(self,edgeout=pya.DEdge(0,20000/2,0,-20000/2),edgein=pya.DEdge(0,0,0,0)):
+        self.edgeout=pya.DEdge(0,-widout/2,0,widout/2).transformed(tr)
+        self.edgein=pya.DEdge(bgn_ext,-widin/2,bgn_ext,widin/2).transformed(tr)
+    def constructors2(self,edgeout=pya.DEdge(0,-20000/2,0,20000/2),edgein=pya.DEdge(0,0,0,0)):
         self.edgeout=edgeout
         self.edgein=edgein
     def constructors3(self,pointoutl,pointinl,pointinr,pointoutr):
@@ -422,10 +422,10 @@ class CavityPainter(Painter):
     def Narrow(self,widout,widin,length=6000):
         assert(self.end_ext==0)
         tr=self.brush.DCplxTrans
-        edgeout=pya.DEdge(length,widout/2,length,-widout/2).transformed(tr)
-        edgein=pya.DEdge(length,widin/2,length,-widin/2).transformed(tr)
-        self.regionlistout.append(pya.DPolygon([self.painterout.pointl,self.painterout.pointr,edgeout.p2,edgeout.p1]))
-        self.regionlistin.append(pya.DPolygon([self.painterin.pointl,self.painterin.pointr,edgein.p2,edgein.p1]))
+        edgeout=pya.DEdge(length,-widout/2,length,widout/2).transformed(tr)
+        edgein=pya.DEdge(length,-widin/2,length,widin/2).transformed(tr)
+        self.regionlistout.append(pya.DPolygon([self.painterout.pointl,self.painterout.pointr,edgeout.p1,edgeout.p2]))
+        self.regionlistin.append(pya.DPolygon([self.painterin.pointl,self.painterin.pointr,edgein.p1,edgein.p2]))
         self.painterout.Setpoint(edgeout.p1,edgeout.p2)
         self.painterin.Setpoint(edgein.p1,edgein.p2)        
         return length   
@@ -548,7 +548,7 @@ class IO:#处理输入输出的静态类
     main_window=None
     layout_view=None
     top=None
-    pointdistance=2000
+    pointdistance=500
     @staticmethod
     def Start(mod="guiopen"):
         if mod=="gds":
@@ -600,7 +600,7 @@ import pya
 import paintlib
 layout,top = paintlib.IO.Start("guiopen")#在当前的图上继续画,如果没有就创建一个新的
 layout.dbu = 0.001#设置单位长度为1nm
-paintlib.IO.pointdistance=2000#设置腔的精度,转弯处相邻两点的距离
+paintlib.IO.pointdistance=500#设置腔的精度,转弯处相邻两点的距离
 
 #画腔
 painter3=paintlib.CavityPainter(pya.DPoint(0,24000),angle=180,widout=48000,widin=16000,bgn_ext=48000,end_ext=16000)
