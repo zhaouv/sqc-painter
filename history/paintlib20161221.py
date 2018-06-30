@@ -178,7 +178,7 @@ class ObjectPainter(object):
         pts.append(pya.DPoint(108316,-225000))
         self.outputlist.append(pya.DPolygon(pts))
 
-class AirbrigePainter(object):
+class AirbridgePainter(object):
     def __init__(self,CenterlineList):
         self.CenterlineList=CenterlineList
         pass

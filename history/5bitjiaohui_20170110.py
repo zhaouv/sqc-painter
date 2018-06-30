@@ -317,19 +317,19 @@ class TransfilePainter(Painter):
         self.outputlist=[]
         self.filename=filename
         self.insertcellname=insertcellname
-        self.airbrigedistance=100000
-    def DrawAirbrige(self,cell,centerlinelist,newcellname="Airbige"):
+        self.airbridgedistance=100000
+    def DrawAirbridge(self,cell,centerlinelist,newcellname="Airbige"):
         #CavityPainter生成的centerline未测试
         for cpts in centerlinelist:
-            IO.layout.read(self.filename)#每个腔用一个不同的cell装airbrige原型
+            IO.layout.read(self.filename)#每个腔用一个不同的cell装airbridge原型
             for icell in IO.layout.top_cells():
                 if (icell.name == self.insertcellname):
                     icell.name=newcellname
-                    distance=self.airbrigedistance//2
+                    distance=self.airbridgedistance//2
                     dt_int=0
                     for i,pt in enumerate(cpts[1:-1],1):
                         distance=distance+pt.distance(cpts[i-1])
-                        if distance//self.airbrigedistance !=dt_int:
+                        if distance//self.airbridgedistance !=dt_int:
                             dx=cpts[i+1].x-cpts[i-1].x
                             dy=cpts[i+1].y-cpts[i-1].y
                             tr=pya.CplxTrans(1,atan2(dy,dx)/pi*180,False,pt.x,pt.y)
@@ -469,8 +469,8 @@ centerlinelist=[]#画腔的中心线并根据中心线画Crossover
 for i in painter3.Getcenterlineinfo():
     centerlinelist.append(i[0])
 painter4=TransfilePainter("[Crossover48].gds","insert")
-painter4.airbrigedistance=100000#设置Crossover的间距
-painter4.DrawAirbrige(cell2,centerlinelist,"Crossover1")
+painter4.airbridgedistance=100000#设置Crossover的间距
+painter4.DrawAirbridge(cell2,centerlinelist,"Crossover1")
 
 
 #画边界

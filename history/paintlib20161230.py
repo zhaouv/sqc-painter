@@ -251,11 +251,11 @@ class TransfilePainter(Painter):
         self.layout=layout
         self.filename=filename
         self.insertcellname=insertcellname
-        self.airbrigedistance=100000
-    def DrawAirbrige(self,cell,centerlinelist,newcellname="Airbige"):
+        self.airbridgedistance=100000
+    def DrawAirbridge(self,cell,centerlinelist,newcellname="Airbige"):
         #CavityPainter生成的centerline未测试
         for cpts in centerlinelist:
-            self.layout.read(self.filename)#每个腔用一个不同的cell装airbrige原型
+            self.layout.read(self.filename)#每个腔用一个不同的cell装airbridge原型
             for icell in self.layout.top_cells():
                 if (icell.name == self.insertcellname):
                     icell.name=newcellname
@@ -263,7 +263,7 @@ class TransfilePainter(Painter):
                     dt_int=0
                     for i,pt in enumerate(cpts[1:-1],1):
                         distance=distance+pt.distance(cpts[i-1])
-                        if distance//self.airbrigedistance !=dt_int:
+                        if distance//self.airbridgedistance !=dt_int:
                             dx=cpts[i+1].x-cpts[i-1].x
                             dy=cpts[i+1].y-cpts[i-1].y
                             tr=pya.CplxTrans(1,atan2(dy,dx)/pi*180,False,pt.x,pt.y)
@@ -374,8 +374,8 @@ paintlib.BasicPainter.Output(cell2,layer1,region1-region2)
 
 centerlinelist=[]
 centerlinelist.append(painter3.Getcenterline())
-painter4=paintlib.TransfilePainter(layout,"[Airbrige].gds","insert")
-painter4.DrawAirbrige(cell,centerlinelist,"Airbige1")
+painter4=paintlib.TransfilePainter(layout,"[Airbridge].gds","insert")
+painter4.DrawAirbridge(cell,centerlinelist,"Airbige1")
 
 
 layer2 = layout.layer(1, 1)

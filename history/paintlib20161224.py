@@ -216,7 +216,7 @@ class TransfilePainter(Painter):
         self.layout=layout
         self.filename="[insert].gds"
         self.insertcellname="insert"
-    def DrawAirbrige(self,cell,Centerlinelist):
+    def DrawAirbridge(self,cell,Centerlinelist):
         pass
     def DrawMark(self,cell,pts):
         self.layout.read(self.filename)

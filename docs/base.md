@@ -146,7 +146,7 @@ path(painter)是通过painter.Straight和painter.Turning描述LinePainter的运�
 + 方法`painter.Draw(cell,layer)`  
 把腔画到指定的cell和layer中  
 + 方法`painter.Getcenterlineinfo()`  
-得到当前腔的中心线(用于画airbrige)  
+得到当前腔的中心线(用于画airbridge)  
 
 ### PcellPainter  
 用来画文字的类  
@@ -159,10 +159,10 @@ path(painter)是通过painter.Straight和painter.Turning描述LinePainter的运�
 用来导入已有gds文件的类  
 + 构造`painter=paintlib.PcellPainter(filename="[insert].gds",insertcellname="insert")`  
 文件名为[insert].gds,此文件的唯一顶部的cell名为insert  
-+ 方法`painter.DrawAirbrige(cell,centerlinelist,newcellname="Airbige")`  
++ 方法`painter.DrawAirbridge(cell,centerlinelist,newcellname="Airbige")`  
 把文件沿着中心线centerlinelist画到指定的cell中(文件会沿着路线旋转),并把cell命名为newcellname  
-+ 成员`painter.airbrigedistance=100000`  
-airbrige的间隔,也可以是函数:输入是distance,输出是distance内包含的airbrige的数量  
++ 成员`painter.airbridgedistance=100000`  
+airbridge的间隔,也可以是函数:输入是distance,输出是distance内包含的airbridge的数量  
 + 方法`painter.DrawMark(cell,pts,newcellname="Mark")`  
 把文件画到pts中的每个点上,置入指定的cell中(文件不会旋转),并把cell命名为newcellname  
 + 方法`painter.DrawGds(cell,newcellname,tr:pya.DCplxTrans)`  

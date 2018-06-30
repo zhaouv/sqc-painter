@@ -1,10 +1,10 @@
 # demo
 
-## 密度均匀变化的airbrige
+## 密度均匀变化的airbridge
 
 ``` python
-def airbrigeDistance(distance,first=500000,second=470000,staticList=[0,0,0]):
-    # staticList 第一个是上一个airbrige的距离,第二个是当前是第几个点,第三个是下一次的间隔
+def airbridgeDistance(distance,first=500000,second=470000,staticList=[0,0,0]):
+    # staticList 第一个是上一个airbridge的距离,第二个是当前是第几个点,第三个是下一次的间隔
     # 这里利用了默认参数只初始化一次
     # 效果 : 1/length(i) 是等差数列
     if (distance<staticList[0]):
@@ -31,9 +31,9 @@ length=painter1.Run(path)
 
 painter1.Draw(cell3,layer1)#把画好的腔置入
 
-painter2=paintlib.TransfilePainter("[Airbrige].gds","insert")
-painter2.airbrigedistance=airbrigeDistance
-painter2.DrawAirbrige(cell2,painter1.Getcenterlineinfo(),"Airbrige")
+painter2=paintlib.TransfilePainter("[Airbridge].gds","insert")
+painter2.airbridgedistance=airbridgeDistance
+painter2.DrawAirbridge(cell2,painter1.Getcenterlineinfo(),"Airbridge")
 
 paintlib.IO.Show()
 ```

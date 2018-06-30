@@ -67,7 +67,7 @@ class CavityPainter(object):
         for x in self.outputlist:
             cell.shapes(layer).insert(pya.Polygon.from_dpoly(x))
 
-class AirbrigePainter(object):
+class AirbridgePainter(object):
     def __init__(self,CenterlineList):
         self.CenterlineList=CenterlineList
         pass

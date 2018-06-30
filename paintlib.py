@@ -482,23 +482,23 @@ class TransfilePainter(Painter):
         self.outputlist=[]
         self.filename=filename
         self.insertcellname=insertcellname
-        self.airbrigedistance=100000
-    def DrawAirbrige(self,cell,centerlinelist,newcellname="Airbige"):
+        self.airbridgedistance=100000
+    def DrawAirbridge(self,cell,centerlinelist,newcellname="Airbige"):
         IO.layout.read(self.filename)
         for icell in IO.layout.top_cells():
             if (icell.name == self.insertcellname):
                 icell.name=newcellname
                 for cpts in centerlinelist:
                     distance=0
-                    if not hasattr(self.airbrigedistance,'__call__'):
-                        distance=self.airbrigedistance*0.25
+                    if not hasattr(self.airbridgedistance,'__call__'):
+                        distance=self.airbridgedistance*0.25
                     dt_int=0
                     for i,pt in enumerate(cpts[1:-1],1):
                         distance=distance+pt.distance(cpts[i-1])
-                        if hasattr(self.airbrigedistance,'__call__'):
-                            calt_int=self.airbrigedistance(distance)
+                        if hasattr(self.airbridgedistance,'__call__'):
+                            calt_int=self.airbridgedistance(distance)
                         else:
-                            calt_int=distance//self.airbrigedistance
+                            calt_int=distance//self.airbridgedistance
                         if calt_int !=dt_int:
                             dx=cpts[i+1].x-cpts[i-1].x
                             dy=cpts[i+1].y-cpts[i-1].y
@@ -628,8 +628,8 @@ painter3.Draw(cell2,layer1)#把画好的腔置入
 centerlinelist=[]#画腔的中心线并根据中心线画Crossover
 centerlinelist.append(painter3.Getcenterlineinfo()[0][0])
 painter4=paintlib.TransfilePainter("[Crossover48].gds","insert")
-painter4.airbrigedistance=100000#设置Crossover的间距
-painter4.DrawAirbrige(top,centerlinelist,"Crossover1")
+painter4.airbridgedistance=100000#设置Crossover的间距
+painter4.DrawAirbridge(top,centerlinelist,"Crossover1")
 
 #画电极传输线
 cell3 = layout.create_cell("TR1")#创建一个子cell
