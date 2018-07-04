@@ -372,6 +372,9 @@ class CavityBrush(object):
         widout=self.widout
         return [centerx,centery,angle,widout]
     @property
+    def widin(self):
+        return int(round(self.edgein.length()/10))*10
+    @property
     def DCplxTrans(self):
         return pya.DCplxTrans(1,self.angle,False,self.centerx,self.centery)
 
@@ -429,6 +432,43 @@ class CavityPainter(Painter):
         self.painterout.Setpoint(edgeout.p1,edgeout.p2)
         self.painterin.Setpoint(edgein.p1,edgein.p2)        
         return length   
+    def InterdigitedCapacitor(self,number):
+        '''
+        capacitor (spacing, number of fingers, size of a single finger)
+        paitner.drawinterdigitedCapacitor(number)# odd
+        http://www.rfwireless-world.com/calculators/interdigital-capacitor-calculator.html
+        '''
+        if number%2!=1:raise RuntimeError('number must be odd')
+        oldbrush=self.brush
+        tr=oldbrush.DCplxTrans
+        newwidin=3000+(4000+2000)*number+2000+3000
+        newwidout=newwidin+31000*2
+        outPolygon=pya.DPolygon([
+            pya.DPoint(45000,newwidout/2),pya.DPoint(45000,-newwidout/2),
+            pya.DPoint(45000+85000,-newwidout/2),pya.DPoint(45000+85000,newwidout/2)
+            ]).transformed(tr)
+        inPolygons=[]
+        xx=85000-3000
+        yy=4000
+        ly=4000+2000
+        for ii in range(1+number>>1):
+            dx=0 if ii%2==0 else 3000
+            inPolygons.append(pya.DPolygon([
+                pya.DPoint(45000+dx,yy/2+ii*ly),pya.DPoint(45000+dx,-yy/2+ii*ly),
+                pya.DPoint(45000+dx+xx,-yy/2+ii*ly),pya.DPoint(45000+dx+xx,yy/2+ii*ly)
+                ]).transformed(tr))
+            if ii==0:continue
+            inPolygons.append(pya.DPolygon([
+                pya.DPoint(45000+dx,yy/2-ii*ly),pya.DPoint(45000+dx,-yy/2-ii*ly),
+                pya.DPoint(45000+dx+xx,-yy/2-ii*ly),pya.DPoint(45000+dx+xx,yy/2-ii*ly)
+                ]).transformed(tr))
+        self.regionlistout.append(outPolygon)
+        self.regionlistin.extend(inPolygons)
+        self.Narrow(newwidout,newwidin,45000)
+        self.Run(lambda painter:painter.Straight(85000))
+        self.regionlistout.pop()
+        self.regionlistin.pop()
+        self.Narrow(oldbrush.widout,oldbrush.widin,45000)
     def Output_Region(self):
         polygonsout=[]
         for x in self.regionlistout:
@@ -598,6 +638,8 @@ class IO:#处理输入输出的静态类
 #初始化
 import pya
 import paintlib
+from imp import reload
+reload(paintlib)
 layout,top = paintlib.IO.Start("guiopen")#在当前的图上继续画,如果没有就创建一个新的
 layout.dbu = 0.001#设置单位长度为1nm
 paintlib.IO.pointdistance=2000#设置腔的精度,转弯处相邻两点的距离
@@ -637,7 +679,11 @@ top.insert(pya.CellInstArray(cell3.cell_index(),pya.Trans()))
 polygon1=paintlib.BasicPainter.Electrode(-500000,24000,angle=0,widout=20000,widin=10000,wid=368000,length=360000,midwid=200000,midlength=200000,narrowlength=120000)
 paintlib.BasicPainter.Draw(cell3,layer1,polygon1)
 painter5=paintlib.CavityPainter(pya.DPoint(-500000,24000),angle=180,widout=20000,widin=10000,bgn_ext=0,end_ext=0)
-painter5.Run(lambda painter:painter.Straight(50000))
+painter5.Run(lambda painter:painter.Straight(100000))
+painter5.Run(lambda painter:painter.Turning(50000))
+painter5.Run(lambda painter:painter.Straight(20000))
+painter5.InterdigitedCapacitor(9)
+painter5.Run(lambda painter:painter.Straight(200000))
 painter5.Narrow(8000,4000,6000)
 painter5.end_ext=2000
 painter5.Run(lambda painter:painter.Straight(50000))
