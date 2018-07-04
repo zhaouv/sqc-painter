@@ -517,10 +517,15 @@ class PcellPainter(Painter):
         return [edge1.p1,edge1.p2]
     
 class TransfilePainter(Painter):
-    def __init__(self,filename="[insert].gds",insertcellname="insert"):
+    def __init__(self,filename="[insert].gds"):
         self.outputlist=[]
         self.filename=filename
-        self.insertcellname=insertcellname
+        layout=pya.Layout()
+        layout.read(filename)
+        names=[i.name for i in layout.top_cells()]
+        if(len(names)!=1):raise RuntimeError('insert file must have only one cell')
+        if(names[0]=='TOP'):raise RuntimeError("the name of insert file's cell can not be TOP")
+        self.insertcellname=names[0]
         self.airbridgedistance=100000
     def DrawAirbridge(self,cell,centerlinelist,newcellname="Airbige"):
         IO.layout.read(self.filename)
@@ -669,7 +674,7 @@ painter3.Draw(cell2,layer1)#把画好的腔置入
     #画Crossover
 centerlinelist=[]#画腔的中心线并根据中心线画Crossover
 centerlinelist.append(painter3.Getcenterlineinfo()[0][0])
-painter4=paintlib.TransfilePainter("[Crossover48].gds","insert")
+painter4=paintlib.TransfilePainter("[Crossover48].gds")
 painter4.airbridgedistance=100000#设置Crossover的间距
 painter4.DrawAirbridge(top,centerlinelist,"Crossover1")
 
@@ -699,12 +704,12 @@ painter2=paintlib.PcellPainter()
 painter2.DrawText(top,layer2,"Python",pya.DCplxTrans(100,15,False,1000000,0))
 
 #画Mark
-painter1=paintlib.TransfilePainter("[Mark3inch_jiguangzhixie].gds","Markinsert")
+painter1=paintlib.TransfilePainter("[Mark3inch_jiguangzhixie].gds")
 pts=[pya.Point(1000000,500000),pya.Point(-500000,-500000),pya.Point(1000000,-1000000)]
 painter1.DrawMark(top,pts,"Mark_laserwrite")
 
 #
-painter6=paintlib.TransfilePainter("[Xmon_20170112].gds","insert")
+painter6=paintlib.TransfilePainter("[Xmon_20170112].gds")
 tr=pya.DCplxTrans(1,-90,False,400000,-400000)
 painter6.DrawGds(top,"Qubit",tr)
 
