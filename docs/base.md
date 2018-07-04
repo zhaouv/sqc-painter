@@ -124,6 +124,7 @@ radius为正时是右转,为负时是左转
 + 成员`brush.centery`  
 + 成员`brush.angle`  
 + 成员`brush.widout`  
++ 成员`brush.widin`  
 + 成员`brush.DCplxTrans`从原点朝右变换到当前位置的pya.DCplxTrans  
 + 方法`brush.Getinfo()`返回[centerx,centery,angle,widout]
 
@@ -143,6 +144,10 @@ path(painter)是通过painter.Straight和painter.Turning描述LinePainter的运�
 + 方法`painter.Narrow(widout,widin,length=6000)`  
 在当前位置画变化宽度的结构  
 ![](img_md/2018-04-20-22-40-58.png)
++ 方法`painter.InterdigitedCapacitor(number,` `arg1=85000,arg2=45000,arg3=31000,arg4=4000,arg5=3000,arg6=3000,arg7=2000)`  
+在当前位置画电容  
+参数对应如图, 第一个参数number是白色的条的总数, 只允许奇数  
+![](img_md/2018-07-04-22-30-27.png)
 + 方法`painter.Draw(cell,layer)`  
 把腔画到指定的cell和layer中  
 + 方法`painter.Getcenterlineinfo()`  

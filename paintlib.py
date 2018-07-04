@@ -432,43 +432,42 @@ class CavityPainter(Painter):
         self.painterout.Setpoint(edgeout.p1,edgeout.p2)
         self.painterin.Setpoint(edgein.p1,edgein.p2)        
         return length   
-    def InterdigitedCapacitor(self,number):
+    def InterdigitedCapacitor(self,number,arg1=85000,arg2=45000,arg3=31000,arg4=4000,arg5=3000,arg6=3000,arg7=2000):
         '''
-        capacitor (spacing, number of fingers, size of a single finger)
-        paitner.drawinterdigitedCapacitor(number)# odd
+        number must be odd
         http://www.rfwireless-world.com/calculators/interdigital-capacitor-calculator.html
         '''
         if number%2!=1:raise RuntimeError('number must be odd')
         oldbrush=self.brush
         tr=oldbrush.DCplxTrans
-        newwidin=3000+(4000+2000)*number+2000+3000
-        newwidout=newwidin+31000*2
+        newwidin=arg5*2+(arg4+arg7)*number+arg7
+        newwidout=newwidin+arg3*2
         outPolygon=pya.DPolygon([
-            pya.DPoint(45000,newwidout/2),pya.DPoint(45000,-newwidout/2),
-            pya.DPoint(45000+85000,-newwidout/2),pya.DPoint(45000+85000,newwidout/2)
+            pya.DPoint(arg2,newwidout/2),pya.DPoint(arg2,-newwidout/2),
+            pya.DPoint(arg2+arg1,-newwidout/2),pya.DPoint(arg2+arg1,newwidout/2)
             ]).transformed(tr)
         inPolygons=[]
-        xx=85000-3000
-        yy=4000
-        ly=4000+2000
+        xx=arg1-arg6
+        yy=arg4
+        ly=arg4+arg7
         for ii in range(1+number>>1):
-            dx=0 if ii%2==0 else 3000
+            dx=0 if ii%2==0 else arg6
             inPolygons.append(pya.DPolygon([
-                pya.DPoint(45000+dx,yy/2+ii*ly),pya.DPoint(45000+dx,-yy/2+ii*ly),
-                pya.DPoint(45000+dx+xx,-yy/2+ii*ly),pya.DPoint(45000+dx+xx,yy/2+ii*ly)
+                pya.DPoint(arg2+dx,yy/2+ii*ly),pya.DPoint(arg2+dx,-yy/2+ii*ly),
+                pya.DPoint(arg2+dx+xx,-yy/2+ii*ly),pya.DPoint(arg2+dx+xx,yy/2+ii*ly)
                 ]).transformed(tr))
             if ii==0:continue
             inPolygons.append(pya.DPolygon([
-                pya.DPoint(45000+dx,yy/2-ii*ly),pya.DPoint(45000+dx,-yy/2-ii*ly),
-                pya.DPoint(45000+dx+xx,-yy/2-ii*ly),pya.DPoint(45000+dx+xx,yy/2-ii*ly)
+                pya.DPoint(arg2+dx,yy/2-ii*ly),pya.DPoint(arg2+dx,-yy/2-ii*ly),
+                pya.DPoint(arg2+dx+xx,-yy/2-ii*ly),pya.DPoint(arg2+dx+xx,yy/2-ii*ly)
                 ]).transformed(tr))
         self.regionlistout.append(outPolygon)
         self.regionlistin.extend(inPolygons)
-        self.Narrow(newwidout,newwidin,45000)
-        self.Run(lambda painter:painter.Straight(85000))
+        self.Narrow(newwidout,newwidin,arg2)
+        self.Run(lambda painter:painter.Straight(arg1))
         self.regionlistout.pop()
         self.regionlistin.pop()
-        self.Narrow(oldbrush.widout,oldbrush.widin,45000)
+        self.Narrow(oldbrush.widout,oldbrush.widin,arg2)
     def Output_Region(self):
         polygonsout=[]
         for x in self.regionlistout:
@@ -605,8 +604,9 @@ class IO:#处理输入输出的静态类
                 IO.layout=IO.layout_view.cellview(IO.layout_view.active_cellview_index()).layout()
             except AttributeError as e:
                 IO.layout,IO.top=IO.Start("guinew")
-        IO.top=IO.layout.top_cell()
-        if IO.top==None:
+        if len(IO.layout.top_cells())>0:
+            IO.top=IO.layout.top_cells()[0]
+        else:
             IO.top = IO.layout.create_cell("TOP")
         return IO.layout,IO.top    
         ##layout = main_window.load_layout(string filename,int mode)
