@@ -162,8 +162,8 @@ path(painter)是通过painter.Straight和painter.Turning描述LinePainter的运�
 
 ### TransfilePainter  
 用来导入已有gds文件的类  
-+ 构造`painter=paintlib.PcellPainter(filename="[insert].gds",insertcellname="insert")`  
-文件名为[insert].gds,此文件的唯一顶部的cell名为insert  
++ 构造`painter=paintlib.PcellPainter(filename="[insert].gds")`  
+文件名为[insert].gds, 此文件只能有一个顶部的cell, 且名字不能为'TOP'  
 + 方法`painter.DrawAirbridge(cell,centerlinelist,newcellname="Airbige")`  
 把文件沿着中心线centerlinelist画到指定的cell中(文件会沿着路线旋转),并把cell命名为newcellname  
 + 成员`painter.airbridgedistance=100000`  
