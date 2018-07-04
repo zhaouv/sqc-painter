@@ -523,7 +523,7 @@ class TransfilePainter(Painter):
         layout=pya.Layout()
         layout.read(filename)
         names=[i.name for i in layout.top_cells()]
-        if(len(names)!=1):raise RuntimeError('insert file must have only one cell')
+        if(len(names)!=1):raise RuntimeError('insert file must have only one top cell')
         if(names[0]=='TOP'):raise RuntimeError("the name of insert file's cell can not be TOP")
         self.insertcellname=names[0]
         self.airbridgedistance=100000
