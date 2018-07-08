@@ -5,12 +5,15 @@ import pya
 from math import *
 import time
 
-class BasicPainter:#用于画基础图形的静态类
+class BasicPainter:
+    '''用于画基础图形的静态类'''
     @staticmethod
     def rectangle(pointr,pointl,length):
-        #给定矩形的右下pointr左下pointl画出指定长度矩形
-        #pointr,pointl,pointl2,pointr2        
-        #x1,y1,x2,y2,length,path
+        '''
+        给定矩形的右下pointr左下pointl画出指定长度矩形
+        pointr,pointl,pointl2,pointr2        
+        x1,y1,x2,y2,length,path
+        '''
         delta=pointr.distance(pointl)
         xx=length/delta*(pointl.y-pointr.y)
         yy=length/delta*(pointr.x-pointl.x)
@@ -196,13 +199,13 @@ class Painter(object):
     
 class LinePainter(Painter):
     def __init__(self,pointl=pya.DPoint(0,1000),pointr=pya.DPoint(0,0)):
+        '''沿着前进方向，右边pointr，左边pointl'''
         self.outputlist=[]        
         self.pointr=pointr
         self.pointl=pointl
         self.Turning=self.TurningArc
         #pointdistance=IO.pointdistance
         self.centerlinepts=[]
-        #沿着前进方向，右边pointr，左边pointl
     def Setpoint(self,pointl=pya.DPoint(0,1000),pointr=pya.DPoint(0,0)):       
         self.pointr=pointr
         self.pointl=pointl
@@ -224,7 +227,7 @@ class LinePainter(Painter):
             self.centerlinepts.extend(cpts[1:])
         return length
     def TurningArc(self,radius,angle=90):
-        #radius非负向右，负是向左
+        '''radius非负向右，负是向左'''
         if angle<0:
             angle=-angle
             radius=-radius
@@ -251,7 +254,7 @@ class LinePainter(Painter):
             self.centerlinepts.extend(cpts[1:])
         return pi*angle/180*abs(radius)
     def TurningInterpolation(self,radius,angle=90):#有待改进
-        #radius非负向右，负是向左
+        '''radius非负向右，负是向左'''
         pass
         if angle<0:
             angle=-angle
@@ -494,9 +497,11 @@ class PcellPainter(Painter):
         self.Basic = pya.Library.library_by_name("Basic")
         self.TEXT_decl = self.Basic.layout().pcell_declaration("TEXT")
     def DrawText(self,cell,layer1,textstr,DCplxTrans1):
-        #左下角坐标,每个字宽0.6*倍数高0.7*倍数线宽0.1*倍数  
-        #tr=pya.DCplxTrans(10,0,False,0,0)
-        #倍数,逆时针度数,是否绕x翻转,平移x,平移y
+        '''
+        左下角坐标,每个字宽0.6*倍数高0.7*倍数线宽0.1*倍数  
+        tr=pya.DCplxTrans(10,0,False,0,0)
+        倍数,逆时针度数,是否绕x翻转,平移x,平移y
+        '''
         tr=pya.CplxTrans.from_dtrans(DCplxTrans1)
         textstr="%s"%(textstr)
         param = { 
@@ -568,8 +573,10 @@ class TransfilePainter(Painter):
                 i.flatten(True)
                 i.delete()
     def DrawGds(self,cell,newcellname,DCplxTrans1):
-        #tr=pya.DCplxTrans(1,0,False,0,0)
-        #倍数,逆时针度数,是否绕x翻转,平移x,平移y
+        '''
+        tr=pya.DCplxTrans(1,0,False,0,0)
+        倍数,逆时针度数,是否绕x翻转,平移x,平移y
+        '''
         tr=pya.CplxTrans.from_dtrans(DCplxTrans1)
         resultcell=None
         IO.layout.read(self.filename)
@@ -585,8 +592,84 @@ class TransfilePainter(Painter):
                 i.delete()
         return resultcell        
 
+class Collision(object):
+    '''处理图形冲突的类'''
+    def __init__(self):
+        self.regionlistout=[]
+        self.regionlistin=[]
+    def region(self):
+        polygonsout=[]
+        for x in self.regionlistout:
+            if isinstance(x,pya.DPolygon):
+                polygonsout.append(pya.Polygon.from_dpoly(x))
+        self.regionlistout=[]
+        polygonsin=[]
+        for x in self.regionlistin:
+            if isinstance(x,pya.DPolygon):
+                polygonsin.append(pya.Polygon.from_dpoly(x))
+        self.regionlistin=[]
+        return pya.Region(polygonsout)-pya.Region(polygonsin)
 
-class IO:#处理输入输出的静态类
+class TBD:
+    '''处理待定数值的静态类'''
+    id='not init'
+    filename='TBD.txt'
+    values=[]
+    index=0
+    inf=999999
+    eps=0.01
+    @staticmethod
+    def init(id,_str=None):
+        if _str==None:
+            TBD.id=str(id)
+            try:
+                with open(TBD.filename) as fid:
+                    ss=fid.read()
+            except FileNotFoundError as ee:
+                with open(TBD.filename,'w') as fid:
+                    ss=TBD.id
+                    fid.write(ss)
+            lines=ss.split('\n')
+            if TBD.id != lines[0]:lines=[TBD.id]
+        if _str!=None:
+            def _set(value,index=-1):
+                pass
+            TBD.set=_set
+            ss=_str
+            lines=ss.split('\n')
+            lines[0]='not file'
+        TBD.id=lines[0]
+        TBD.values=[[float(value) for value in line.split(',')] for line in lines[1:]]
+        return TBD
+    @staticmethod
+    def get(index=-1):
+        TBD.index+=1
+        if TBD.index+index>=len(TBD.values):
+            TBD.values.append([0,TBD.inf])
+        return TBD.values[TBD.index+index][0]
+    @staticmethod
+    def set(value,index=-1):
+        TBD.values[TBD.index+index][1]=value
+        TBD.values[TBD.index+index][0]+=value
+        if(value < -TBD.eps):print('Warning : minus value in TBD number '+str(TBD.index))
+        return value
+    @staticmethod
+    def isFinish():
+        if TBD.id == 'not init':raise RuntimeError('TBD not init')
+        finish=True
+        for ii in TBD.values:
+            if abs(ii[1]) > TBD.eps:
+                finish=False
+                break
+        if TBD.id == 'not file':return finish
+        with open(TBD.filename,'w') as fid:
+            ss=TBD.id+'\n'+'\n'.join([','.join([str(jj) for jj in ii]) for ii in TBD.values])
+            print('TBD :\n'+ss+'\nTBD END')
+            fid.write(ss)
+        return finish
+
+class IO:
+    '''处理输入输出的静态类'''
     #IO:字母 In Out
     layout=None
     main_window=None
@@ -648,6 +731,7 @@ reload(paintlib)
 layout,top = paintlib.IO.Start("guiopen")#在当前的图上继续画,如果没有就创建一个新的
 layout.dbu = 0.001#设置单位长度为1nm
 paintlib.IO.pointdistance=2000#设置腔的精度,转弯处相邻两点的距离
+TBD=paintlib.TBD.init(683587)
 
 #画腔
 painter3=paintlib.CavityPainter(pya.DPoint(0,24000),angle=180,widout=48000,widin=16000,bgn_ext=48000,end_ext=16000)
@@ -681,14 +765,18 @@ painter4.DrawAirbridge(top,centerlinelist,"Crossover1")
 #画电极传输线
 cell3 = layout.create_cell("TR1")#创建一个子cell
 top.insert(pya.CellInstArray(cell3.cell_index(),pya.Trans()))
-polygon1=paintlib.BasicPainter.Electrode(-500000,24000,angle=0,widout=20000,widin=10000,wid=368000,length=360000,midwid=200000,midlength=200000,narrowlength=120000)
+polygon1=paintlib.BasicPainter.Electrode(-600000,24000,angle=0,widout=20000,widin=10000,wid=368000,length=360000,midwid=200000,midlength=200000,narrowlength=120000)
 paintlib.BasicPainter.Draw(cell3,layer1,polygon1)
-painter5=paintlib.CavityPainter(pya.DPoint(-500000,24000),angle=180,widout=20000,widin=10000,bgn_ext=0,end_ext=0)
+painter5=paintlib.CavityPainter(pya.DPoint(-600000,24000),angle=180,widout=20000,widin=10000,bgn_ext=0,end_ext=0)
 painter5.Run(lambda painter:painter.Straight(100000))
 painter5.Run(lambda painter:painter.Turning(50000))
 painter5.Run(lambda painter:painter.Straight(20000))
 painter5.InterdigitedCapacitor(9)
 painter5.Run(lambda painter:painter.Straight(200000))
+painter5.Run(lambda painter:painter.Turning(50000))
+dx=TBD.get()
+painter5.Run(lambda painter:painter.Straight(dx))
+TBD.set(-500000-(6000+2000+50000)-painter5.brush.centerx)
 painter5.Narrow(8000,4000,6000)
 painter5.end_ext=2000
 painter5.Run(lambda painter:painter.Straight(50000))
@@ -714,6 +802,7 @@ tr=pya.DCplxTrans(1,-90,False,400000,-400000)
 painter6.DrawGds(top,"Qubit",tr)
 
 #输出
+print(TBD.isFinish())
 paintlib.IO.Show()#输出到屏幕上
 paintlib.IO.Write()#输出到文件中
 #
