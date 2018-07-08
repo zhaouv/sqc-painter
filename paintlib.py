@@ -731,7 +731,7 @@ reload(paintlib)
 layout,top = paintlib.IO.Start("guiopen")#在当前的图上继续画,如果没有就创建一个新的
 layout.dbu = 0.001#设置单位长度为1nm
 paintlib.IO.pointdistance=2000#设置腔的精度,转弯处相邻两点的距离
-TBD=paintlib.TBD.init(683587)
+TBD=paintlib.TBD.init(68587)
 
 #画腔
 painter3=paintlib.CavityPainter(pya.DPoint(0,24000),angle=180,widout=48000,widin=16000,bgn_ext=48000,end_ext=16000)
@@ -772,11 +772,13 @@ painter5.Run(lambda painter:painter.Straight(100000))
 painter5.Run(lambda painter:painter.Turning(50000))
 painter5.Run(lambda painter:painter.Straight(20000))
 painter5.InterdigitedCapacitor(9)
-painter5.Run(lambda painter:painter.Straight(200000))
+dy=TBD.get()
+painter5.Run(lambda painter:painter.Straight(200000+dy))
 painter5.Run(lambda painter:painter.Turning(50000))
 dx=TBD.get()
 painter5.Run(lambda painter:painter.Straight(dx))
 TBD.set(-500000-(6000+2000+50000)-painter5.brush.centerx)
+TBD.set(600000-painter5.brush.centery,-2)
 painter5.Narrow(8000,4000,6000)
 painter5.end_ext=2000
 painter5.Run(lambda painter:painter.Straight(50000))
