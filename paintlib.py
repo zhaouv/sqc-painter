@@ -644,14 +644,16 @@ class TBD:
     @staticmethod
     def get(index=-1):
         TBD.index+=1
-        if TBD.index+index>=len(TBD.values):
+        _index=TBD.index+index if index < 0 else index
+        if _index>=len(TBD.values):
             TBD.values.append([0,TBD.inf])
-        return TBD.values[TBD.index+index][0]
+        return TBD.values[_index][0]
     @staticmethod
     def set(value,index=-1):
-        TBD.values[TBD.index+index][1]=value
-        TBD.values[TBD.index+index][0]+=value
-        if(value < -TBD.eps):print('Warning : minus value in TBD number '+str(TBD.index))
+        _index=TBD.index+index if index < 0 else index
+        TBD.values[_index][1]=value
+        TBD.values[_index][0]+=value
+        if(value < -TBD.eps):print('Warning : minus value in TBD number '+str(_index))
         return value
     @staticmethod
     def isFinish():
