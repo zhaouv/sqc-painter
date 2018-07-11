@@ -2,6 +2,7 @@
 temp.py
 workspace.py
 extract.py
+.antlr
 
 14bit_*
 transfile/*Xmon*

@@ -173,6 +173,19 @@ airbridge的间隔,也可以是函数:输入是distance,输出是distance内包�
 + 方法`painter.DrawGds(cell,newcellname,tr:pya.DCplxTrans)`  
 把文件加以转置tr画到指定的中  
 
+### TBD
+处理待定数值的类
++ 方法`TBD=paintlib.TBD.init(id)`  
+初始化待定变量的类, id用来区分不同的文件, 更换id可以重置所有待定量
++ 方法`TBD.get(index=None)`  
+取待定量, 当index为None时会创建新量, 并把内部计数加1, index非负时会取第index的量, index为负时会基于内部计数向前取待定量
++ 方法`TBD.set(value,index=-1)`  
+设置待定量, index非负时会设置第index的量, index为负时会基于内部计数向前设置待定量  
+会把对应待定量增加value的增量, 其设置原则是value从正的方向接近0, value为负时会打印警告
++ 方法`TBD.isFinish()`  
+检查是否所有的待定量都符合set为0的要求, 满足时返回True, 否则返回False  
+执行此函数时才会储存变量到文件, 请务必执行一次
+
 ### IO  
 处理输入输出的静态类  
 + 方法`paintlib.IO.Start("guiopen")`  

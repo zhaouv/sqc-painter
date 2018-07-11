@@ -1,0 +1,227 @@
+<!doctype html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<title>PathGenerator --sqc-painter</title>
+<!-- <link rel="shortcut icon" type="image/png" href="../../docs/img/ab2.png"> -->
+</head><body>
+
+<p>
+路径函数生成器
+<button onclick="path_generator.showXML()">Show XML</button>
+<!-- <button onclick="path_generator.runCode()">console.log(obj=code)</button> -->
+<button onclick="path_generator.loadXML()">Load XML</button>
+</p>
+<div id="blocklyDiv" style="height: 480px; width: 940px;"></div>
+<textarea id="codeArea" style="width: 100%; height: 17.2em;overflow:y;/* resize:none; */" spellcheck="false"></textarea>
+
+<xml id="toolbox" style="display:none">
+
+</xml>
+
+
+<!-- <script src="../../src/lib/require.js"></script>
+<script>
+Converter = require('../../src/Converter').Converter;
+</script> -->
+<script src="https://zhaouv.github.io/antlr-blockly/Converter.bundle.min.js"></script>
+
+<script src="https://zhaouv.github.io/antlr-blockly/blockly_compressed.js"></script>
+<script src="https://zhaouv.github.io/antlr-blockly/blocks_compressed.js"></script>
+<script src="https://zhaouv.github.io/antlr-blockly/javascript_compressed.js"></script>
+<script src="https://zhaouv.github.io/antlr-blockly/zh-hans.js"></script>
+<script>
+//__all__=['path_generator','PathGeneratorBlocks','PathGeneratorFunctions','ActionParser','converter','antlr4','Converter'];
+path_generator = function(Converter){
+path_generator = {};
+path_generator.initscript=String.raw`
+(function(){
+  var getCategory = function(name){
+    for(var node of document.getElementById('toolbox').children) {
+      if(node.getAttribute('name')==name) return node;
+    }
+    var node = document.createElement('category');
+    node.setAttribute('name',name);
+    document.getElementById('toolbox').appendChild(node);
+    return node;
+  }
+
+  var toolboxObj = {
+    'statement':[
+      '<label text="语句"></label>',
+      PathGeneratorBlocks['pathgenerator'].xmlText(),
+      PathGeneratorBlocks['go'].xmlText(),
+      PathGeneratorBlocks['leftright'].xmlText(),
+      PathGeneratorBlocks['leftright'].xmlText(['right']),
+      PathGeneratorBlocks['repeat'].xmlText(),
+    ],
+
+  }
+  var toolboxgap = '<sep gap="5"></sep>'
+  //xml_text = PathGeneratorFunctions.actionParser.parse(obj,type||'event')
+  //PathGeneratorBlocks['idString_e'].xmlText()
+
+  for (var name in toolboxObj){
+    getCategory(name).innerHTML = toolboxObj[name].join(toolboxgap);
+  }
+  
+  var workspace = Blockly.inject('blocklyDiv',{
+  media: 'https://zhaouv.github.io/antlr-blockly/media/',
+  toolbox: document.getElementById('toolbox'),
+  zoom:{
+    controls: true,
+    wheel: false,//滚轮改为上下(shift:左右)翻滚
+    startScale: 1.0,
+    maxScale: 3,
+    minScale: 0.3,
+    scaleSpeed: 1.08
+  },
+  trashcan: false,
+  });
+
+  Blockly.bindEventWithChecks_(workspace.svgGroup_,"wheel",workspace,function(e){
+    //console.log(e);
+    e.preventDefault();
+    var hvScroll = e.shiftKey?'hScroll':'vScroll';
+    workspace.scrollbar[hvScroll].handlePosition_+=( ((e.deltaY||0)+(e.detail||0)) >0?20:-20);
+    workspace.scrollbar[hvScroll].onScroll_();
+    workspace.setScale(workspace.scale);
+  });
+
+  var doubleClickCheck=[[0,'abc']];
+  function omitedcheckUpdateFunction(event) {
+  console.log(event);
+  if(event.type==='ui'){
+    var newClick = [new Date().getTime(),event.blockId];
+    var lastClick = doubleClickCheck.shift();
+    doubleClickCheck.push(newClick);
+    if(newClick[0]-lastClick[0]<500){
+      if(newClick[1]===lastClick[1]){
+        path_generator.doubleClickBlock(newClick[1]);
+      }
+    }
+  }
+  try {
+    //var code = Blockly.JavaScript.workspaceToCode(workspace);
+    //document.getElementById('codeArea').value = code;
+    path_generator.runCode()
+  } catch (error) {
+    document.getElementById('codeArea').value = String(error);
+    if (error instanceof OmitedError){
+    var blockName = error.blockName;
+    var varName = error.varName;
+    var block = error.block;
+    }
+    console.log(error);
+  }
+  }
+
+  workspace.addChangeListener(omitedcheckUpdateFunction);
+
+  workspace.addChangeListener(Blockly.Events.disableOrphans);
+
+  path_generator.workspace = workspace;
+
+  PathGeneratorFunctions.workspace = function(){
+    return path_generator.workspace;
+  }
+})();
+`;
+
+var input_='';
+path_generator.runOne = function (){
+    var printf = console.log;
+    var grammerFile = input_;
+    converter = new Converter().init();
+    converter.generBlocks(grammerFile);
+    printf(converter.blocks);
+    converter.renderGrammerName();
+    //converter.generToolbox();
+    converter.generMainFile();
+    printf(converter.mainFile.join(''));
+    console.log(converter);
+
+
+
+    var script = document.createElement('script');
+    //var initscript = document.getElementById('initscript').innerText;
+    script.innerHTML = converter.mainFile[5]+path_generator.initscript;
+    document.body.appendChild(script);
+}
+var xhr=new XMLHttpRequest();
+xhr.onreadystatechange = function (){
+    if(xhr.readyState!=4) return;
+    if(xhr.status!=200) {
+        alert("语法文件加载失败(无法在file://下加载)");
+        return;
+    }
+    input_=xhr.responseText;
+    path_generator.runOne();
+}
+xhr.open('GET','./PathGenerator.g4',true);
+xhr.send(null);
+
+path_generator.showXML = function () {
+  var setoutput=function(ss){document.getElementById("codeArea").value = ss}
+  xml = Blockly.Xml.workspaceToDom(path_generator.workspace);
+  xml_text = Blockly.Xml.domToPrettyText(xml);
+  console.log(xml_text);
+  setoutput(xml_text)
+  xml_text = Blockly.Xml.domToText(xml);
+  console.log(xml_text);
+  console.log(xml);
+}
+
+path_generator.loadXML = function() {
+  var xml_text=document.getElementById('codeArea').value//.replace(/[<>&]/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;'}[c];})
+  var xml = Blockly.Xml.textToDom(xml_text);
+  PathGeneratorFunctions.workspace().clear();
+  Blockly.Xml.domToWorkspace(xml, PathGeneratorFunctions.workspace());
+}
+
+path_generator.runCode = function () {
+  // Generate JavaScript code and run it.
+  window.LoopTrap = 1000;
+  Blockly.JavaScript.INFINITE_LOOP_TRAP =
+    'if (--window.LoopTrap == 0) throw "Infinite loop.";\n';
+  code = Blockly.JavaScript.workspaceToCode(path_generator.workspace);
+  Blockly.JavaScript.INFINITE_LOOP_TRAP = null;
+  //try {
+    eval('var setoutput=function(ss){document.getElementById("codeArea").value = ss}\nobj=' + code);
+    console.log(obj);
+  //} catch (e) {
+  //  alert(e);
+  //}
+}
+
+path_generator.parse = function () {
+    PathGeneratorFunctions.parse(
+        eval('obj=' + document.getElementById('codeArea').value.replace(/[<>&]/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;'}[c];}))
+    );
+}
+
+path_generator.doubleClickBlock = function (blockId){
+    var b=path_generator.workspace.getBlockById(blockId);
+    console.log(b);
+    var textStringDict = {
+        'text_0_s':'EvalString_0',
+        'text_1_s':'EvalString_2',
+        'autoText_s':'EvalString_2',
+        'choices_s':'EvalString_0',
+        'function_s':'RawEvalString_0',
+        'shopsub': 'EvalString_3',
+    }
+    var f=b?textStringDict[b.type]:null;
+    if(f){
+        var value = b.getFieldValue(f);
+        console.log('未绑定多行文本编辑器');//需实现下一行的函数
+        //func(value,b,f,function(newvalue,b,f){b.setFieldValue(newvalue,f);})
+    }
+}
+
+return path_generator;
+}
+path_generator=path_generator(Converter);
+</script>
+</body>
+</html>
