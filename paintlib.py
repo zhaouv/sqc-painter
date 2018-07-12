@@ -464,10 +464,11 @@ class CavityPainter(Painter):
                 pya.DPoint(arg2+dx,yy/2-ii*ly),pya.DPoint(arg2+dx,-yy/2-ii*ly),
                 pya.DPoint(arg2+dx+xx,-yy/2-ii*ly),pya.DPoint(arg2+dx+xx,yy/2-ii*ly)
                 ]).transformed(tr))
+        self.Narrow(newwidout,newwidin,arg2)
         self.regionlistout.append(outPolygon)
         self.regionlistin.extend(inPolygons)
-        self.Narrow(newwidout,newwidin,arg2)
         self.Run(lambda painter:painter.Straight(arg1))
+        self.centerlineinfos.pop()
         self.regionlistout.pop()
         self.regionlistin.pop()
         self.Narrow(oldbrush.widout,oldbrush.widin,arg2)
@@ -653,9 +654,12 @@ class TBD:
     def get(index=None):
         if index==None:
             TBD.index+=1
-            TBD.values.append([0,TBD.inf])
             index=-1
         _index=TBD.index+index if index < 0 else index
+        whileBool = len(TBD.values[_index:_index+1])==0
+        while whileBool:
+            TBD.values.append([0,TBD.inf])
+            whileBool = len(TBD.values[_index:_index+1])==0
         return TBD.values[_index][0]
     @staticmethod
     def set(value,index=-1):
@@ -742,7 +746,7 @@ reload(paintlib)
 layout,top = paintlib.IO.Start("guiopen")#在当前的图上继续画,如果没有就创建一个新的
 layout.dbu = 0.001#设置单位长度为1nm
 paintlib.IO.pointdistance=2000#设置腔的精度,转弯处相邻两点的距离
-TBD=paintlib.TBD.init(68587)
+TBD=paintlib.TBD.init(6876587)
 
 #画腔
 painter3=paintlib.CavityPainter(pya.DPoint(0,24000),angle=180,widout=48000,widin=16000,bgn_ext=48000,end_ext=16000)
@@ -779,20 +783,28 @@ top.insert(pya.CellInstArray(cell3.cell_index(),pya.Trans()))
 polygon1=paintlib.BasicPainter.Electrode(-600000,24000,angle=0,widout=20000,widin=10000,wid=368000,length=360000,midwid=200000,midlength=200000,narrowlength=120000)
 paintlib.BasicPainter.Draw(cell3,layer1,polygon1)
 painter5=paintlib.CavityPainter(pya.DPoint(-600000,24000),angle=180,widout=20000,widin=10000,bgn_ext=0,end_ext=0)
-painter5.Run(lambda painter:painter.Straight(100000))
-painter5.Run(lambda painter:painter.Turning(50000))
-painter5.Run(lambda painter:painter.Straight(20000))
+def path(painter):
+    length=0
+    length+=painter.Straight(100000)
+    length+=painter.Turning(50000)
+    length+=painter.Straight(20000)
+    return length
+painter5.Run(path)
 painter5.InterdigitedCapacitor(9)
 dy=TBD.get()
-painter5.Run(lambda painter:painter.Straight(200000+dy))
-painter5.Run(lambda painter:painter.Turning(50000))
 dx=TBD.get()
-painter5.Run(lambda painter:painter.Straight(dx))
-TBD.set(-500000-(6000+2000+50000)-painter5.brush.centerx)
-TBD.set(600000-painter5.brush.centery,-2)
+def path(painter):
+    length=0
+    length+=painter.Straight(200000+dy)
+    length+=painter.Turning(50000)
+    length+=painter.Straight(dx)
+    return length
+painter5.Run(path)
 painter5.Narrow(8000,4000,6000)
 painter5.end_ext=2000
 painter5.Run(lambda painter:painter.Straight(50000))
+TBD.set(-500000-painter5.brush.centerx)
+TBD.set(600000-painter5.brush.centery,-2)
 painter5.Draw(cell3,layer1)
 
 #画边界
