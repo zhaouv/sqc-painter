@@ -158,7 +158,7 @@ xhr.onreadystatechange = function (){
     input_=xhr.responseText;
     path_generator.runOne();
 }
-xhr.open('GET','./PathGenerator.g4',true);
+xhr.open('GET','./pathGenerator.g4',true);
 xhr.send(null);
 
 path_generator.showXML = function () {
