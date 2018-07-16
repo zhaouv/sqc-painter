@@ -418,13 +418,22 @@ class CavityPainter(Painter):
         self.painterout.outputlist=[]
         self.bgn_ext=0
         self.end_ext=0
-        #
+        #1,-1修复最后可能留下1nm线的bug
+        self.painterin.Straight(-1)
+        self.painterin.Straight(1)
         path(self.painterin)
+        self.painterin.Straight(1)
+        self.painterin.Straight(-1)
         self.regionlistin.extend(self.painterin.outputlist)
         self.painterin.outputlist=[]
         #把中心线的(点列表,宽度)成组添加
         self.centerlineinfos.append((self.painterin.Getcenterline(),self.brush.angle))
         return result
+    def Electrode(self,wid=368000,length=360000,midwid=200000,midlength=200000,narrowlength=120000,reverse=False):
+        assert(self.end_ext==0)
+        brush=self.brush.reversed() if reverse else self.brush
+        polygon=BasicPainter.Electrode(brush,wid=wid,length=length,midwid=midwid,midlength=midlength,narrowlength=narrowlength)
+        self.regionlistout.append(polygon)
     def Narrow(self,widout,widin,length=6000):
         assert(self.end_ext==0)
         tr=self.brush.DCplxTrans
@@ -440,6 +449,7 @@ class CavityPainter(Painter):
         number must be odd
         http://www.rfwireless-world.com/calculators/interdigital-capacitor-calculator.html
         '''
+        assert(self.end_ext==0)
         if number%2!=1:raise RuntimeError('number must be odd')
         oldbrush=self.brush
         tr=oldbrush.DCplxTrans

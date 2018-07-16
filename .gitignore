@@ -4,7 +4,7 @@ workspace.py
 extract.py
 .antlr
 
-14bit_*
+*bit*
 transfile/*Xmon*
 
 Python34.zip
