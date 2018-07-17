@@ -477,8 +477,7 @@ class CavityPainter(Painter):
         self.Narrow(newwidout,newwidin,arg2)
         self.regionlistout.append(outPolygon)
         self.regionlistin.extend(inPolygons)
-        self.Run(lambda painter:painter.Straight(arg1))
-        self.centerlineinfos.pop()
+        self.Narrow(newwidout,newwidin,arg1)
         self.regionlistout.pop()
         self.regionlistin.pop()
         self.Narrow(oldbrush.widout,oldbrush.widin,arg2)
@@ -648,14 +647,14 @@ class TBD:
                 with open(TBD.filename,'w') as fid:
                     ss=TBD.id
                     fid.write(ss)
-            lines=ss.split('\n')
+            lines=[ln for ln in ss.split('\n') if len(ln.strip())>1 and ln.strip()[0] in '-.0123456789']
             if TBD.id != lines[0]:lines=[TBD.id]
         if _str!=None:
             def _set(value,index=-1):
                 pass
             TBD.set=_set
             ss=_str
-            lines=ss.split('\n')
+            lines=[ln for ln in ss.split('\n') if len(ln.strip())>1 and ln.strip()[0] in '-.0123456789']
             lines[0]='not file'
         TBD.id=lines[0]
         TBD.values=[[float(value) for value in line.split(',')] for line in lines[1:]]
@@ -790,9 +789,9 @@ painter4.DrawAirbridge(top,centerlinelist,"Crossover1")
 #画电极传输线
 cell3 = layout.create_cell("TR1")#创建一个子cell
 top.insert(pya.CellInstArray(cell3.cell_index(),pya.Trans()))
-polygon1=paintlib.BasicPainter.Electrode(-600000,24000,angle=0,widout=20000,widin=10000,wid=368000,length=360000,midwid=200000,midlength=200000,narrowlength=120000)
-paintlib.BasicPainter.Draw(cell3,layer1,polygon1)
+
 painter5=paintlib.CavityPainter(pya.DPoint(-600000,24000),angle=180,widout=20000,widin=10000,bgn_ext=0,end_ext=0)
+painter5.Electrode(reverse=True)
 def path(painter):
     length=0
     length+=painter.Straight(100000)
