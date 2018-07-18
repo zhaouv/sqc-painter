@@ -216,9 +216,12 @@ class LinePainter(Painter):
         if n==1:n=2
         p1x=self.pointr.x/2+self.pointl.x/2
         p1y=self.pointr.y/2+self.pointl.y/2
-        #接下来两行是画矩形，其它行是画中心线
-        rectangle1,self.pointr,self.pointl=BasicPainter.rectangle(self.pointr,self.pointl,length)
+        #接下来是画矩形，再之后是画中心线
+        #修复1nm线的bug
+        rectangle1,_,_=BasicPainter.rectangle(self.pointr,self.pointl,length+(length>0)-(length<0))
+        _,self.pointr,self.pointl=BasicPainter.rectangle(self.pointr,self.pointl,length)
         self.outputlist.append(rectangle1)
+        #
         dx=self.pointr.x/2+self.pointl.x/2-p1x
         dy=self.pointr.y/2+self.pointl.y/2-p1y
         cpts=[pya.DPoint(p1x+1.0*pt/(n-1)*dx,p1y+1.0*pt/(n-1)*dy) for pt in range(n)]
@@ -253,6 +256,9 @@ class LinePainter(Painter):
             self.centerlinepts=cpts
         else:
             self.centerlinepts.extend(cpts[1:])
+        #修复1nm线的bug
+        self.Straight(1)
+        self.Straight(-1)
         return pi*angle/180*abs(radius)
     def TurningInterpolation(self,radius,angle=90):#有待改进
         '''radius非负向右，负是向左'''
@@ -422,12 +428,10 @@ class CavityPainter(Painter):
         self.painterout.outputlist=[]
         self.bgn_ext=0
         self.end_ext=0
-        #1,-1修复最后可能留下1nm线的bug
+        #修复1nm线的bug
         self.painterin.Straight(-1)
         self.painterin.Straight(1)
         result=path(self.painterin)
-        self.painterin.Straight(1)
-        self.painterin.Straight(-1)
         self.regionlistin.extend(self.painterin.outputlist)
         self.painterin.outputlist=[]
         #把中心线的(点列表,宽度)成组添加
