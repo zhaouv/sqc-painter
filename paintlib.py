@@ -432,6 +432,8 @@ class CavityPainter(Painter):
         self.painterin.Straight(-1)
         self.painterin.Straight(1)
         result=path(self.painterin)
+        self.painterin.Straight(1)
+        self.painterin.Straight(-1)
         self.regionlistin.extend(self.painterin.outputlist)
         self.painterin.outputlist=[]
         #把中心线的(点列表,宽度)成组添加
@@ -702,14 +704,56 @@ class TBD(object):
 
 class Interactive:
     '''处理交互的类'''
+    deltaangle=45
+    maxlength=1073741824
+    turningr=50000
+    indent='    '
+    brushlist=[]
+    searchr=500000
+
     @staticmethod
-    def link(brush1,brush2=None):
+    def show(brush):
+        Interactive.brushlist.append(brush)
+        polygon=BasicPainter.Electrode(brush.reversed())
+        BasicPainter.Draw(IO.cell,IO.layer,polygon)
+        return brush
+    
+    @staticmethod
+    def _show_path(brush,pathstr):
+        l={'path':None}
+        exec(pathstr,None,l)
+        painter=CavityPainter(brush)
+        painter.Run(l['path'])
+        painter.Draw(IO.cell,IO.layer)
+
+
+    @staticmethod
+    def _get_nearest_brush(x,y):
+        bestbrush=None
+        bestr=Interactive.searchr
+        pt=pya.DPoint(x,y)
+        for brush in Interactive.brushlist:
+            r=brush.edgein.p1.distance(pt)
+            if r<bestr:
+                bestr=r
+                bestbrush=brush
+        return bestbrush
+
+    @staticmethod
+    def link(brush1=None,brush2=None):
         '''
         输入两个CavityBrush作为参数, 并点击图中的一个路径, 生成一个连接两个brush的路径的函数  
-        第二个brush可缺省, 此时取path的终点作为路径终点
+        缺省时会在Interactive.searchr内搜索最近的brush
+        第二个brush可为None, 此时取path的终点作为路径终点
         '''
-        deltaangle=45
-        maxlength=1073741824
+        deltaangle=Interactive.deltaangle
+        maxlength=Interactive.maxlength
+
+        spts=Interactive._pts_path_selected()
+        if spts==False:return
+        if brush1==None:brush1=Interactive._get_nearest_brush(spts[0].x,spts[0].y)
+        if brush2==None:brush2=Interactive._get_nearest_brush(spts[-1].x,spts[-1].y)
+
         if not isinstance(brush1,CavityBrush):
             pya.MessageBox.warning("paintlib.Interactive.link", "Argument 1 must be CavityBrush", pya.MessageBox.Ok)
             return
@@ -721,50 +765,64 @@ class Interactive:
         edges=[pya.DEdge(pts[0].x,pts[0].y,pts[0].x+maxlength*cos(angles[0]/180*pi),pts[0].y+maxlength*sin(angles[0]/180*pi))]
         das=[]
         lastpt=None
-        for obj in IO.layout_view.each_object_selected():
-            shape=obj.shape
-            if not shape.is_path():break
-            spts=list(shape.path.each_point())
-            for ii in range(1,len(spts)):
-                pt=spts[ii]
-                pt0=spts[ii-1]
-                angle0=angles[-1]
-                edge0=edges[-1]
-                angle=atan2(pt.y-pt0.y,pt.x-pt0.x)/pi*180
-                angle=round(angle/deltaangle)*deltaangle
-                if(angle==angle0):continue
-                da=-((angle+3600-angle0)%360)
-                if(da==-180):
-                    pya.MessageBox.warning("paintlib.Interactive.link", "Error : Turn 180 degrees", pya.MessageBox.Ok)
-                    return
-                if(da<-180):da=360+da
-                lastpt=[pt.x,pt.y]
-                angles.append(angle)
-                edge=pya.DEdge(pt.x+maxlength*cos(angle/180*pi),pt.y+maxlength*sin(angle/180*pi),pt.x-maxlength*cos(angle/180*pi),pt.y-maxlength*sin(angle/180*pi))
-                das.append(da)
-                pts.append(edge.crossing_point(edge0))
-                edges.append(edge)
-            break #只检查第一个选中的对象
-        if(len(angles)==1):
-            pya.MessageBox.warning("paintlib.Interactive.link", "Please select a Path", pya.MessageBox.Ok)
-            return
-        if(brush2!=None):
+
+        for ii in range(1,len(spts)):
+            pt=spts[ii]
+            pt0=spts[ii-1]
             angle0=angles[-1]
             edge0=edges[-1]
-            angle=brush2.angle+180
-            pt=pya.DPoint(brush2.centerx,brush2.centery)
-            if(angle==angle0):
-                pya.MessageBox.warning("paintlib.Interactive.link", "Error : Parallel in terminal point", pya.MessageBox.Ok)
-                return
-            angles.append(angle)
+            angle=atan2(pt.y-pt0.y,pt.x-pt0.x)/pi*180
+            angle=round(angle/deltaangle)*deltaangle
+            angle=0 if angle==360.0 else angle
+            if(angle==angle0):continue
             da=-((angle+3600-angle0)%360)
             if(da==-180):
                 pya.MessageBox.warning("paintlib.Interactive.link", "Error : Turn 180 degrees", pya.MessageBox.Ok)
                 return
             if(da<-180):da=360+da
             lastpt=[pt.x,pt.y]
-            edge=pya.DEdge(pt.x,pt.y,pt.x-maxlength*cos(angle/180*pi),pt.y-maxlength*sin(angle/180*pi))
+            angles.append(angle)
+            edge=pya.DEdge(pt.x+maxlength*cos(angle/180*pi),pt.y+maxlength*sin(angle/180*pi),pt.x-maxlength*cos(angle/180*pi),pt.y-maxlength*sin(angle/180*pi))
             das.append(da)
+            if not edge.crossed_by(edge0):
+                print('point ',ii)
+                print(angle)
+                print(angle0)
+                pya.MessageBox.warning("paintlib.Interactive.link", "Error : Invalid path leads to no crossing point", pya.MessageBox.Ok)
+                return
+            pts.append(edge.crossing_point(edge0))
+            edges.append(edge)
+
+        if(brush2!=None):
+            angle0=angles[-1]
+            edge0=edges[-1]
+            angle=brush2.angle+180
+            pt=pya.DPoint(brush2.centerx,brush2.centery)
+            _angle=round(angle/deltaangle)*deltaangle
+            _angle=0 if _angle==360.0 else _angle
+            if(_angle==angle0):
+                angles.pop()
+                das.pop()
+                pts.pop()
+                edges.pop()
+                angle0=angles[-1]
+                edge0=edges[-1]
+            da=-((angle+3600-angle0)%360)
+            _da=-((_angle+3600-angle0)%360)
+            if(_da==-180):
+                pya.MessageBox.warning("paintlib.Interactive.link", "Error : Turn 180 degrees", pya.MessageBox.Ok)
+                return
+            if(da<-180):da=360+da
+            lastpt=[pt.x,pt.y]
+            edge=pya.DEdge(pt.x,pt.y,pt.x-maxlength*cos(angle/180*pi),pt.y-maxlength*sin(angle/180*pi))
+            angles.append(angle)
+            das.append(da)
+            if not edge.crossed_by(edge0):
+                print('brush2')
+                print(angle)
+                print(angle0)
+                pya.MessageBox.warning("paintlib.Interactive.link", "Error : Invalid path leads to no crossing point", pya.MessageBox.Ok)
+                return
             pts.append(edge.crossing_point(edge0))
             edges.append(edge)
         pts.append(pya.DPoint(lastpt[0],lastpt[1]))
@@ -772,11 +830,23 @@ class Interactive:
         print('##################################')
         print(ss)
         print('##################################')
+        Interactive._show_path(brush1,ss)
     
     @staticmethod
+    def _pts_path_selected():
+        for obj in IO.layout_view.each_object_selected():
+            #只检查第一个选中的对象
+            shape=obj.shape
+            if not shape.is_path():break
+            spts=list(shape.path.each_point())
+            return spts
+        pya.MessageBox.warning("paintlib.Interactive.link", "Please select a Path", pya.MessageBox.Ok)
+        return False
+
+    @staticmethod
     def _generatepath(pts,das):
-        turningr=50000
-        indent='    '
+        turningr=Interactive.turningr
+        indent=Interactive.indent
         output=['def path(painter):','length=0']
         last=0
         for ii,da in enumerate(das):
@@ -796,11 +866,12 @@ class Interactive:
 
 class IO:
     '''处理输入输出的静态类'''
-    #IO:字母 In Out
+    #IO:字母 Input Output
     layout=None
     main_window=None
     layout_view=None
     top=None
+    cell=None
     layer=None
     pointdistance=2000
     @staticmethod
@@ -819,10 +890,13 @@ class IO:
                 IO.layout=IO.layout_view.cellview(IO.layout_view.active_cellview_index()).layout()
             except AttributeError as e:
                 IO.layout,IO.top=IO.Start("guinew")
+                return IO.layout,IO.top
         if len(IO.layout.top_cells())>0:
             IO.top=IO.layout.top_cells()[0]
         else:
             IO.top = IO.layout.create_cell("TOP")
+        IO.cell = IO.layout.create_cell("auxiliary")
+        IO.top.insert(pya.CellInstArray(IO.cell.cell_index(),pya.Trans()))
         IO.layer=IO.layout.layer(0, 0)
         return IO.layout,IO.top    
         ##layout = main_window.load_layout(string filename,int mode)
@@ -837,8 +911,8 @@ class IO:
     @staticmethod
     def Write(filename=None):
         if filename==None:
-            print("[pythonout%s].gds"%(time.strftime("%Y%m%d_%H%M%S")))
             filename="[pythonout%s].gds"%(time.strftime("%Y%m%d_%H%M%S"))
+        print(filename)
         IO.layout.write(filename)
 
 #v =pya.MessageBox.warning("Dialog Title", "Something happened. Continue?", pya.MessageBox.Yes + pya.MessageBox.No)

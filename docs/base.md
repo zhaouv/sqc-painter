@@ -91,6 +91,7 @@ pya中涉及到具体图形的class分成了两大类:
 产生给定尺寸的电极,返回一个pya.DPolygon  
 + 方法`Electrode(brush:paintlib.CavityBrush,` `wid=368000,length=360000,midwid=200000,midlength=200000,narrowlength=120000)`  
 产生给定尺寸的电极,返回一个pya.DPolygon  
+CavityPainter中也提供了相应的接口  
 ![](img_md/2018-04-20-22-38-14.png)
 + 方法`Connection(x,y=0,angle=0,mod=48)`  
 产生给定尺寸的与Qubit的连接,mod取48或8表示连线的外部宽度  
@@ -141,6 +142,8 @@ radius为正时是右转,为负时是左转
 path(painter)是通过painter.Straight和painter.Turning描述LinePainter的运动从而画腔的函数,Run返回path的返回值(长度)  
 `Run`执行后,`bgn_ext`和`end_ext`会被置为0, 如果一个腔由多次`Run`构成, 需要把`end_ext`设为0, 直到最后一次`Run`之前再把`end_ext`设为想要的值  
 使用详见demo  
++ 方法`painter.Electrode(wid=368000,length=360000,midwid=200000,midlength=200000,narrowlength=120000,reverse=False)`  
+在当前位置画电极, 参数reverse表示是否沿着反向画, 用与创建一个painter后立刻在起点画一个电极后再Run, 其他参数详见BasicPainter中的说明  
 + 方法`painter.Narrow(widout,widin,length=6000)`  
 在当前位置画变化宽度的结构  
 ![](img_md/2018-04-20-22-40-58.png)
