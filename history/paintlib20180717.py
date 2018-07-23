@@ -213,15 +213,11 @@ class LinePainter(Painter):
         self.outputlist=[]
     def Straight(self,length):
         n=int(ceil(length/IO.pointdistance))+2
-        if n==1:n=2
         p1x=self.pointr.x/2+self.pointl.x/2
         p1y=self.pointr.y/2+self.pointl.y/2
-        #接下来是画矩形，再之后是画中心线
-        #修复1nm线的bug
-        rectangle1,_,_=BasicPainter.rectangle(self.pointr,self.pointl,length+(length>0)-(length<0))
-        _,self.pointr,self.pointl=BasicPainter.rectangle(self.pointr,self.pointl,length)
+        #接下来两行是画矩形，其它行是画中心线
+        rectangle1,self.pointr,self.pointl=BasicPainter.rectangle(self.pointr,self.pointl,length)
         self.outputlist.append(rectangle1)
-        #
         dx=self.pointr.x/2+self.pointl.x/2-p1x
         dy=self.pointr.y/2+self.pointl.y/2-p1y
         cpts=[pya.DPoint(p1x+1.0*pt/(n-1)*dx,p1y+1.0*pt/(n-1)*dy) for pt in range(n)]
@@ -256,9 +252,6 @@ class LinePainter(Painter):
             self.centerlinepts=cpts
         else:
             self.centerlinepts.extend(cpts[1:])
-        #修复1nm线的bug
-        self.Straight(2)
-        self.Straight(-2)
         return pi*angle/180*abs(radius)
     def TurningInterpolation(self,radius,angle=90):#有待改进
         '''radius非负向右，负是向左'''
@@ -320,7 +313,6 @@ class LinePainter(Painter):
         return cpts
         
 class CavityBrush(object):
-    last=[None,None]
     def __init__(self,*args,**keys):
         if 'pointc' in keys or (isinstance(args[0],pya.DPoint) and ('angle' in keys or type(args[1]) in [int,float])):
             self.constructors1(*args,**keys)
@@ -334,8 +326,6 @@ class CavityBrush(object):
             raise TypeError('Invalid input')
         if abs(self.edgeout.distance(self.edgein.p1)-self.edgeout.distance(self.edgein.p2))>10:
             raise RuntimeError('not parallel')
-        CavityBrush.last.pop()
-        CavityBrush.last.insert(0,self)
     def constructors1(self,pointc=pya.DPoint(0,0),angle=0,widout=20000,widin=10000,bgn_ext=0):
         tr=pya.DCplxTrans(1,angle,False,pointc)
         self.edgeout=pya.DEdge(0,widout/2,0,-widout/2).transformed(tr)
@@ -365,7 +355,7 @@ class CavityBrush(object):
         return newCavityBrush
     @property
     def bgn_ext(self):
-        return int(round(self.edgeout.distance(self.edgein.p1)/10))*10
+        return int(round(self.edgeout.distance_abs(self.edgein.p1)/10))*10
     @property
     def centerx(self):
         return (self.edgeout.p2.x+self.edgeout.p1.x)/2
@@ -422,30 +412,30 @@ class CavityPainter(Painter):
         if path==None:
             path=self.path
         self.painterout.Straight(self.bgn_ext)
-        path(self.painterout)
+        result=path(self.painterout)
         self.painterout.Straight(self.end_ext)
         self.regionlistout.extend(self.painterout.outputlist)
         self.painterout.outputlist=[]
         self.bgn_ext=0
         self.end_ext=0
-        #修复1nm线的bug
-        self.painterin.Straight(-3)
-        self.painterin.Straight(3)
-        result=path(self.painterin)
-        self.painterin.Straight(3)
-        self.painterin.Straight(-3)
+        #1,-1修复最后可能留下1nm线的bug
+        self.painterin.Straight(-1)
+        self.painterin.Straight(1)
+        path(self.painterin)
+        self.painterin.Straight(1)
+        self.painterin.Straight(-1)
         self.regionlistin.extend(self.painterin.outputlist)
         self.painterin.outputlist=[]
         #把中心线的(点列表,宽度)成组添加
         self.centerlineinfos.append((self.painterin.Getcenterline(),self.brush.angle))
         return result
     def Electrode(self,wid=368000,length=360000,midwid=200000,midlength=200000,narrowlength=120000,reverse=False):
-        assert((reverse==False and self.end_ext==0) or (reverse==True and self.bgn_ext==0))
+        assert(self.end_ext==0)
         brush=self.brush.reversed() if reverse else self.brush
         polygon=BasicPainter.Electrode(brush,wid=wid,length=length,midwid=midwid,midlength=midlength,narrowlength=narrowlength)
         self.regionlistout.append(polygon)
     def Narrow(self,widout,widin,length=6000):
-        assert(self.end_ext==0 and self.bgn_ext==0)
+        assert(self.end_ext==0)
         tr=self.brush.DCplxTrans
         edgeout=pya.DEdge(length,widout/2,length,-widout/2).transformed(tr)
         edgein=pya.DEdge(length,widin/2,length,-widin/2).transformed(tr)
@@ -459,7 +449,7 @@ class CavityPainter(Painter):
         number must be odd
         http://www.rfwireless-world.com/calculators/interdigital-capacitor-calculator.html
         '''
-        assert(self.end_ext==0 and self.bgn_ext==0)
+        assert(self.end_ext==0)
         if number%2!=1:raise RuntimeError('number must be odd')
         oldbrush=self.brush
         tr=oldbrush.DCplxTrans
@@ -638,7 +628,7 @@ class Collision(object):
             return self.region.interacting(region)
         raise TypeError('Invalid input')
 
-class TBD(object):
+class TBD:
     '''处理待定数值的静态类'''
     id='not init'
     filename='TBD.txt'
@@ -702,177 +692,13 @@ class TBD(object):
             fid.write(ss)
         return finish
 
-class Interactive:
-    '''处理交互的类'''
-    deltaangle=45
-    maxlength=1073741824
-    turningr=50000
-    indent='    '
-    brushlist=[]
-    searchr=500000
-
-    @staticmethod
-    def show(brush):
-        Interactive.brushlist.append(brush)
-        polygon=BasicPainter.Electrode(brush.reversed())
-        BasicPainter.Draw(IO.cell,IO.layer,polygon)
-        return brush
-    
-    @staticmethod
-    def _show_path(brush,pathstr):
-        l={'path':None}
-        exec(pathstr,None,l)
-        painter=CavityPainter(brush)
-        painter.Run(l['path'])
-        painter.Draw(IO.cell,IO.layer)
-
-
-    @staticmethod
-    def _get_nearest_brush(x,y):
-        bestbrush=None
-        bestr=Interactive.searchr
-        pt=pya.DPoint(x,y)
-        for brush in Interactive.brushlist:
-            r=brush.edgein.p1.distance(pt)
-            if r<bestr:
-                bestr=r
-                bestbrush=brush
-        return bestbrush
-
-    @staticmethod
-    def link(brush1=None,brush2=None):
-        '''
-        输入两个CavityBrush作为参数, 并点击图中的一个路径, 生成一个连接两个brush的路径的函数  
-        缺省时会在Interactive.searchr内搜索最近的brush
-        第二个brush可为None, 此时取path的终点作为路径终点
-        '''
-        deltaangle=Interactive.deltaangle
-        maxlength=Interactive.maxlength
-
-        spts=Interactive._pts_path_selected()
-        if spts==False:return
-        if brush1==None:brush1=Interactive._get_nearest_brush(spts[0].x,spts[0].y)
-        if brush2==None:brush2=Interactive._get_nearest_brush(spts[-1].x,spts[-1].y)
-
-        if not isinstance(brush1,CavityBrush):
-            pya.MessageBox.warning("paintlib.Interactive.link", "Argument 1 must be CavityBrush", pya.MessageBox.Ok)
-            return
-        if not isinstance(brush2,CavityBrush) and brush2!=None:
-            pya.MessageBox.warning("paintlib.Interactive.link", "Argument 2 must be CavityBrush or None", pya.MessageBox.Ok)
-            return
-        angles=[brush1.angle]
-        pts=[pya.DPoint(brush1.centerx,brush1.centery)]
-        edges=[pya.DEdge(pts[0].x,pts[0].y,pts[0].x+maxlength*cos(angles[0]/180*pi),pts[0].y+maxlength*sin(angles[0]/180*pi))]
-        das=[]
-        lastpt=None
-
-        for ii in range(1,len(spts)):
-            pt=spts[ii]
-            pt0=spts[ii-1]
-            angle0=angles[-1]
-            edge0=edges[-1]
-            angle=atan2(pt.y-pt0.y,pt.x-pt0.x)/pi*180
-            angle=round(angle/deltaangle)*deltaangle
-            angle=0 if angle==360.0 else angle
-            if(angle==angle0):continue
-            da=-((angle+3600-angle0)%360)
-            if(da==-180):
-                pya.MessageBox.warning("paintlib.Interactive.link", "Error : Turn 180 degrees", pya.MessageBox.Ok)
-                return
-            if(da<-180):da=360+da
-            lastpt=[pt.x,pt.y]
-            angles.append(angle)
-            edge=pya.DEdge(pt.x+maxlength*cos(angle/180*pi),pt.y+maxlength*sin(angle/180*pi),pt.x-maxlength*cos(angle/180*pi),pt.y-maxlength*sin(angle/180*pi))
-            das.append(da)
-            if not edge.crossed_by(edge0):
-                print('point ',ii)
-                print(angle)
-                print(angle0)
-                pya.MessageBox.warning("paintlib.Interactive.link", "Error : Invalid path leads to no crossing point", pya.MessageBox.Ok)
-                return
-            pts.append(edge.crossing_point(edge0))
-            edges.append(edge)
-
-        if(brush2!=None):
-            angle0=angles[-1]
-            edge0=edges[-1]
-            angle=brush2.angle+180
-            pt=pya.DPoint(brush2.centerx,brush2.centery)
-            _angle=round(angle/deltaangle)*deltaangle
-            _angle=0 if _angle==360.0 else _angle
-            if(_angle==angle0):
-                angles.pop()
-                das.pop()
-                pts.pop()
-                edges.pop()
-                angle0=angles[-1]
-                edge0=edges[-1]
-            da=-((angle+3600-angle0)%360)
-            _da=-((_angle+3600-angle0)%360)
-            if(_da==-180):
-                pya.MessageBox.warning("paintlib.Interactive.link", "Error : Turn 180 degrees", pya.MessageBox.Ok)
-                return
-            if(da<-180):da=360+da
-            lastpt=[pt.x,pt.y]
-            edge=pya.DEdge(pt.x,pt.y,pt.x-maxlength*cos(angle/180*pi),pt.y-maxlength*sin(angle/180*pi))
-            angles.append(angle)
-            das.append(da)
-            if not edge.crossed_by(edge0):
-                print('brush2')
-                print(angle)
-                print(angle0)
-                pya.MessageBox.warning("paintlib.Interactive.link", "Error : Invalid path leads to no crossing point", pya.MessageBox.Ok)
-                return
-            pts.append(edge.crossing_point(edge0))
-            edges.append(edge)
-        pts.append(pya.DPoint(lastpt[0],lastpt[1]))
-        ss=Interactive._generatepath(pts,das)
-        print('##################################')
-        print(ss)
-        print('##################################')
-        Interactive._show_path(brush1,ss)
-    
-    @staticmethod
-    def _pts_path_selected():
-        for obj in IO.layout_view.each_object_selected():
-            #只检查第一个选中的对象
-            shape=obj.shape
-            if not shape.is_path():break
-            spts=list(shape.path.each_point())
-            return spts
-        pya.MessageBox.warning("paintlib.Interactive.link", "Please select a Path", pya.MessageBox.Ok)
-        return False
-
-    @staticmethod
-    def _generatepath(pts,das):
-        turningr=Interactive.turningr
-        indent=Interactive.indent
-        output=['def path(painter):','length=0']
-        last=0
-        for ii,da in enumerate(das):
-            sda=(da>0)-(da<0)
-            da*=sda
-            dl=turningr*tan(da/180*pi/2)
-            ll=pts[ii].distance(pts[ii+1])-last-dl
-            last=dl
-            if(ll<0):
-                pya.MessageBox.warning("paintlib.Interactive.link", "Error : Straight less than 0", pya.MessageBox.Ok)
-                return
-            output.append('length+=painter.Straight({length})'.format(length=ll))
-            output.append('length+=painter.Turning({radius},{angle})'.format(radius=sda*turningr,angle=da))
-        output.append('length+=painter.Straight({length})'.format(length=pts[-1].distance(pts[-2])-last))
-        output.append('return length')
-        return ('\n'+indent).join(output)
-
 class IO:
     '''处理输入输出的静态类'''
-    #IO:字母 Input Output
+    #IO:字母 In Out
     layout=None
     main_window=None
     layout_view=None
     top=None
-    cell=None
-    layer=None
     pointdistance=2000
     @staticmethod
     def Start(mod="guiopen"):
@@ -890,14 +716,10 @@ class IO:
                 IO.layout=IO.layout_view.cellview(IO.layout_view.active_cellview_index()).layout()
             except AttributeError as e:
                 IO.layout,IO.top=IO.Start("guinew")
-                return IO.layout,IO.top
         if len(IO.layout.top_cells())>0:
             IO.top=IO.layout.top_cells()[0]
         else:
             IO.top = IO.layout.create_cell("TOP")
-        IO.cell = IO.layout.create_cell("auxiliary")
-        IO.top.insert(pya.CellInstArray(IO.cell.cell_index(),pya.Trans()))
-        IO.layer=IO.layout.layer(0, 0)
         return IO.layout,IO.top    
         ##layout = main_window.load_layout(string filename,int mode)
     @staticmethod
@@ -911,8 +733,8 @@ class IO:
     @staticmethod
     def Write(filename=None):
         if filename==None:
+            print("[pythonout%s].gds"%(time.strftime("%Y%m%d_%H%M%S")))
             filename="[pythonout%s].gds"%(time.strftime("%Y%m%d_%H%M%S"))
-        print(filename)
         IO.layout.write(filename)
 
 #v =pya.MessageBox.warning("Dialog Title", "Something happened. Continue?", pya.MessageBox.Yes + pya.MessageBox.No)
