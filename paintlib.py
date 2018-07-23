@@ -715,7 +715,7 @@ class Interactive:
     def show(brush):
         Interactive.brushlist.append(brush)
         polygon=BasicPainter.Electrode(brush.reversed())
-        BasicPainter.Draw(IO.cell,IO.layer,polygon)
+        BasicPainter.Draw(IO.link,IO.layer,polygon)
         return brush
     
     @staticmethod
@@ -724,8 +724,7 @@ class Interactive:
         exec(pathstr,None,l)
         painter=CavityPainter(brush)
         painter.Run(l['path'])
-        painter.Draw(IO.cell,IO.layer)
-
+        painter.Draw(IO.link,IO.layer)
 
     @staticmethod
     def _get_nearest_brush(x,y):
@@ -739,6 +738,38 @@ class Interactive:
                 bestbrush=brush
         return bestbrush
 
+    @staticmethod
+    def _pts_path_selected():
+        for obj in IO.layout_view.each_object_selected():
+            #只检查第一个选中的对象
+            shape=obj.shape
+            if not shape.is_path():break
+            spts=list(shape.path.each_point())
+            return spts
+        pya.MessageBox.warning("paintlib.Interactive.link", "Please select a Path", pya.MessageBox.Ok)
+        return False
+
+    @staticmethod
+    def _generatepath(pts,das):
+        turningr=Interactive.turningr
+        indent=Interactive.indent
+        output=['def path(painter):','length=0']
+        last=0
+        for ii,da in enumerate(das):
+            sda=(da>0)-(da<0)
+            da*=sda
+            dl=turningr*tan(da/180*pi/2)
+            ll=pts[ii].distance(pts[ii+1])-last-dl
+            last=dl
+            if(ll<0):
+                pya.MessageBox.warning("paintlib.Interactive.link", "Error : Straight less than 0", pya.MessageBox.Ok)
+                return
+            output.append('length+=painter.Straight({length})'.format(length=ll))
+            output.append('length+=painter.Turning({radius},{angle})'.format(radius=sda*turningr,angle=da))
+        output.append('length+=painter.Straight({length})'.format(length=pts[-1].distance(pts[-2])-last))
+        output.append('return length')
+        return ('\n'+indent).join(output)
+    
     @staticmethod
     def link(brush1=None,brush2=None):
         '''
@@ -833,36 +864,54 @@ class Interactive:
         Interactive._show_path(brush1,ss)
     
     @staticmethod
-    def _pts_path_selected():
+    def _box_selected():
         for obj in IO.layout_view.each_object_selected():
             #只检查第一个选中的对象
             shape=obj.shape
-            if not shape.is_path():break
-            spts=list(shape.path.each_point())
-            return spts
-        pya.MessageBox.warning("paintlib.Interactive.link", "Please select a Path", pya.MessageBox.Ok)
+            if not shape.is_box():break
+            return shape.box
+        pya.MessageBox.warning("paintlib.Interactive.cut", "Please select a Box", pya.MessageBox.Ok)
         return False
 
     @staticmethod
-    def _generatepath(pts,das):
-        turningr=Interactive.turningr
-        indent=Interactive.indent
-        output=['def path(painter):','length=0']
-        last=0
-        for ii,da in enumerate(das):
-            sda=(da>0)-(da<0)
-            da*=sda
-            dl=turningr*tan(da/180*pi/2)
-            ll=pts[ii].distance(pts[ii+1])-last-dl
-            last=dl
-            if(ll<0):
-                pya.MessageBox.warning("paintlib.Interactive.link", "Error : Straight less than 0", pya.MessageBox.Ok)
-                return
-            output.append('length+=painter.Straight({length})'.format(length=ll))
-            output.append('length+=painter.Turning({radius},{angle})'.format(radius=sda*turningr,angle=da))
-        output.append('length+=painter.Straight({length})'.format(length=pts[-1].distance(pts[-2])-last))
-        output.append('return length')
-        return ('\n'+indent).join(output)
+    def cut(layerlist=None,layermod='not in',box=None):
+        if layerlist==None:layerlist=[(0,0)]
+        if type(box)==type(None):box=Interactive._box_selected()
+        if not box:return
+
+        celllist=[]
+
+        # cells=[]
+        # def buildcells(cell):
+        #     if cell.name.split('$')[0] in celllist:return
+        #     cells.append(cell)
+        #     for ii in cell.each_child_cell():
+        #         buildcells(layout.cell(ii))
+        # buildcells(top)
+        # cellnames=[c.name for c in cells]
+        cells=[IO.top]
+
+        _layerlist=[]
+        for ii in layerlist:
+            if type(ii)==str:
+                _layerlist.append(IO.layout.find_layer(ii))
+            else:
+                _layerlist.append(IO.layout.find_layer(ii[0],ii[1]))
+        layers=[index for index in IO.layout.layer_indices() if index in _layerlist] if layermod=='in' else [index for index in IO.layout.layer_indices() if index not in _layerlist]
+
+        outregion=pya.Region(box)
+        inregion=pya.Region()
+
+        for cell in cells:
+            for layer in layers:
+                s=cell.begin_shapes_rec_touching(layer,box)
+                inregion.insert(s)
+
+        region=outregion-inregion
+        cut = IO.layout.create_cell("cut")
+        IO.auxiliary.insert(pya.CellInstArray(cut.cell_index(),pya.Trans()))
+        BasicPainter.Draw(cut,IO.layer,region)
+        return region
 
 class IO:
     '''处理输入输出的静态类'''
@@ -871,7 +920,8 @@ class IO:
     main_window=None
     layout_view=None
     top=None
-    cell=None
+    auxiliary=None
+    link=None
     layer=None
     pointdistance=2000
     @staticmethod
@@ -895,8 +945,13 @@ class IO:
             IO.top=IO.layout.top_cells()[0]
         else:
             IO.top = IO.layout.create_cell("TOP")
-        IO.cell = IO.layout.create_cell("auxiliary")
-        IO.top.insert(pya.CellInstArray(IO.cell.cell_index(),pya.Trans()))
+        #
+        IO.auxiliary = IO.layout.create_cell("auxiliary")
+        IO.top.insert(pya.CellInstArray(IO.auxiliary.cell_index(),pya.Trans()))
+        #
+        IO.link = IO.layout.create_cell("link")
+        IO.auxiliary.insert(pya.CellInstArray(IO.link.cell_index(),pya.Trans()))
+        #
         IO.layer=IO.layout.layer(0, 0)
         return IO.layout,IO.top    
         ##layout = main_window.load_layout(string filename,int mode)
