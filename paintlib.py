@@ -648,6 +648,7 @@ class TBD(object):
     eps=0.01
     @staticmethod
     def init(id,_str=None):
+        TBD.filename=IO.path+'/'+'TBD.txt'
         if _str==None:
             TBD.id=str(id)
             try:
@@ -916,6 +917,7 @@ class Interactive:
 class IO:
     '''处理输入输出的静态类'''
     #IO:字母 Input Output
+    path='/'.join(__file__.replace('\\','/').split('/')[:-1])
     layout=None
     main_window=None
     layout_view=None

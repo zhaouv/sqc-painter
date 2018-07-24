@@ -3,6 +3,9 @@ temp.py
 workspace.py
 extract.py
 .antlr
+_test/
+
+TBD.txt
 
 *bit*
 transfile/*Xmon*
