@@ -2,7 +2,7 @@
 #KLayout 0.24.8
 #python 3.4
 import pya
-from math import *
+from math import cos,sin,pi,tan,atan2,sqrt,ceil
 import time
 
 class BasicPainter:
@@ -203,15 +203,21 @@ class LinePainter(Painter):
         self.outputlist=[]        
         self.pointr=pointr
         self.pointl=pointl
-        self.Turning=self.TurningArc
         #pointdistance=IO.pointdistance
         self.centerlinepts=[]
+        self.warning=True
     def Setpoint(self,pointl=pya.DPoint(0,1000),pointr=pya.DPoint(0,0)):       
         self.pointr=pointr
         self.pointl=pointl
         self.centerlinepts=[]
         self.outputlist=[]
     def Straight(self,length):
+        if length<-10 and self.warning and IO.warning:
+            pya.MessageBox.warning("paintlib.LinePainter.Straight", "Negative value", pya.MessageBox.Ok)
+        return self._Straight(length)
+    def Turning(self,radius,angle=90):
+        return self.TurningArc(radius,angle)
+    def _Straight(self,length):
         n=int(ceil(length/IO.pointdistance))+2
         if n==1:n=2
         p1x=self.pointr.x/2+self.pointl.x/2
@@ -257,8 +263,8 @@ class LinePainter(Painter):
         else:
             self.centerlinepts.extend(cpts[1:])
         #修复1nm线的bug
-        self.Straight(2)
-        self.Straight(-2)
+        self._Straight(2)
+        self._Straight(-2)
         return pi*angle/180*abs(radius)
     def TurningInterpolation(self,radius,angle=90):#有待改进
         '''radius非负向右，负是向左'''
@@ -424,16 +430,17 @@ class CavityPainter(Painter):
         self.painterout.Straight(self.bgn_ext)
         path(self.painterout)
         self.painterout.Straight(self.end_ext)
+        self.painterout._Straight(-self.end_ext)
         self.regionlistout.extend(self.painterout.outputlist)
         self.painterout.outputlist=[]
         self.bgn_ext=0
         self.end_ext=0
         #修复1nm线的bug
-        self.painterin.Straight(-3)
-        self.painterin.Straight(3)
+        self.painterin._Straight(-3)
+        self.painterin._Straight(3)
         result=path(self.painterin)
-        self.painterin.Straight(3)
-        self.painterin.Straight(-3)
+        self.painterin._Straight(3)
+        self.painterin._Straight(-3)
         self.regionlistin.extend(self.painterin.outputlist)
         self.painterin.outputlist=[]
         #把中心线的(点列表,宽度)成组添加
@@ -502,7 +509,8 @@ class CavityPainter(Painter):
             if isinstance(x,pya.DPolygon):
                 polygonsin.append(pya.Polygon.from_dpoly(x))
         self.regionlistin=[]
-        return pya.Region(polygonsout)-pya.Region(polygonsin)
+        self.region=pya.Region(polygonsout)-pya.Region(polygonsin)
+        return self.region
     def Draw(self,cell,layer):
         cell.shapes(layer).insert(self.Output_Region())
     def Getcenterlineinfo(self):
@@ -654,7 +662,7 @@ class TBD(object):
             try:
                 with open(TBD.filename) as fid:
                     ss=fid.read()
-            except FileNotFoundError as ee:
+            except FileNotFoundError as _:
                 with open(TBD.filename,'w') as fid:
                     ss=TBD.id
                     fid.write(ss)
@@ -875,13 +883,23 @@ class Interactive:
         return False
 
     @staticmethod
-    def cut(layerlist=None,layermod='not in',box=None):
+    def _merge_and_draw(outregion,inregion,tr=None):
+        region=outregion-inregion
+        center=outregion.bbox().center()
+        region.transform(pya.Trans(-center.x,-center.y))
+        cut = IO.layout.create_cell("cut")
+        if not tr:tr=pya.Trans(center.x,center.y)
+        IO.auxiliary.insert(pya.CellInstArray(cut.cell_index(),tr))
+        BasicPainter.Draw(cut,IO.layer,region)
+        return region,cut,[center.x,center.y]
+
+    @staticmethod
+    def cut(layerlist=None,layermod='not in',box=None,mergeanddraw=True):
         if layerlist==None:layerlist=[(0,0)]
         if type(box)==type(None):box=Interactive._box_selected()
         if not box:return
 
-        celllist=[]
-
+        # celllist=[]
         # cells=[]
         # def buildcells(cell):
         #     if cell.name.split('$')[0] in celllist:return
@@ -908,16 +926,16 @@ class Interactive:
                 s=cell.begin_shapes_rec_touching(layer,box)
                 inregion.insert(s)
 
-        region=outregion-inregion
-        cut = IO.layout.create_cell("cut")
-        IO.auxiliary.insert(pya.CellInstArray(cut.cell_index(),pya.Trans()))
-        BasicPainter.Draw(cut,IO.layer,region)
-        return region
+        if not mergeanddraw:
+            return outregion,inregion
+
+        return Interactive._merge_and_draw(outregion,inregion)[0]
 
 class IO:
     '''处理输入输出的静态类'''
     #IO:字母 Input Output
     path='/'.join(__file__.replace('\\','/').split('/')[:-1])
+    warning=True
     layout=None
     main_window=None
     layout_view=None
@@ -940,7 +958,7 @@ class IO:
             IO.layout_view = IO.main_window.current_view()
             try:
                 IO.layout=IO.layout_view.cellview(IO.layout_view.active_cellview_index()).layout()
-            except AttributeError as e:
+            except AttributeError as _:
                 IO.layout,IO.top=IO.Start("guinew")
                 return IO.layout,IO.top
         if len(IO.layout.top_cells())>0:
