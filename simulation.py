@@ -15,39 +15,79 @@ class Simulation:
     matlabfiletpl=_matlabtpl
 
     @staticmethod
-    def _get_region_cell_port_from_resonator_and_transmissionline(region,brush,layerlist,boxx,boxy,deltaangle=0):
+    def _get_region_cell_port(region,brush,layerlist,boxx,boxy,offsetx=0,offsety=0,deltaangle=0,absx=None,absy=None,portbrushs=None,transmissionlines=None):
         '''先把图像逆时针转deltaangle角度后沿着平直截取'''
-        painter=CavityPainter(brush)
-        painter.Run(lambda painter:painter._Straight(10)+painter._Straight(-10))
-        _pb=[region.bbox(),painter.Output_Region().bbox()]
-        _pbr=pya.Region()
-        for ii in _pb:_pbr.insert(ii)
-        pc=_pbr.bbox().center()
+        # if deltaangle>46 or deltaangle<-46:raise RuntimeError('deltaangle more than 45 degree')
+        if absx==None or absy==None:
+            _pb=[region.bbox()]
+            if type(brush)!=type(None):
+                painter=CavityPainter(brush)
+                painter.Run(lambda painter:painter._Straight(10)+painter._Straight(-10))
+                _pb.append(painter.Output_Region().bbox())
+            _pbr=pya.Region()
+            for ii in _pb:_pbr.insert(ii)
+            pc=_pbr.bbox().center()
+        else:
+            pc=pya.DPoint(absx,absy)
+        pc=pya.DPoint(pc.x+offsetx,pc.y+offsety)
         
-        # tr1=pya.DCplxTrans(1,-deltaangle,False,-pc.x,-pc.y)
+        def tr_to(obj,itr=False):
+            trs=[pya.DCplxTrans(1,-deltaangle,False,pc.x,pc.y)]
+            if itr:trs=[pya.ICplxTrans.from_dtrans(tr) for tr in trs]
+            for tr in trs:
+                obj=obj.transformed(tr)
+            return obj
+        def tr_back(obj,itr=False):
+            trs=[pya.DCplxTrans(1,0,False,-pc.x,-pc.y),
+                pya.DCplxTrans(1,deltaangle,False,0,0)]
+            if itr:trs=[pya.ICplxTrans.from_dtrans(tr) for tr in trs]
+            for tr in trs:
+                obj=obj.transformed(tr)
+            return obj
 
-        box=pya.Box(pc.x-boxx/2,pc.y-boxy/2,pc.x+boxx/2,pc.y+boxy/2)# .transformed(pya.ICplxTrans.from_dtrans(tr1))
-        outregion,inregion=Interactive.cut(layerlist=layerlist,layermod='in',box=box,mergeanddraw=False)
-        painter.Run(lambda painter:painter._Straight(-boxx-boxy))
-        painter.Run(lambda painter:painter.Straight(2*boxx+2*boxy))
-        inregion=inregion+painter.Output_Region()
+        box=tr_to(pya.Box(-boxx/2,-boxy/2,boxx/2,boxy/2),itr=True)
+        #
+        _,inregion=Interactive.cut(layerlist=layerlist,layermod='in',box=box,mergeanddraw=False)
+        inregion=tr_back(inregion,itr=True)
+        outregion=pya.Region(pya.Box(-boxx/2,-boxy/2,boxx/2,boxy/2))
+
+        if type(brush)!=type(None):
+            painter=CavityPainter(tr_back(brush))
+            painter.Run(lambda painter:painter._Straight(-boxx-boxy))
+            painter.Run(lambda painter:painter.Straight(2*boxx+2*boxy))
+            inregion=inregion+painter.Output_Region()
 
         #计算端口
-        br=painter.brush
-        pt=pya.DPoint(br.centerx,br.centery)
-        angle=br.angle
-        edge=pya.DEdge(pt.x,pt.y,pt.x-(2*boxx+2*boxy)*cos(angle/180*pi),pt.y-(2*boxx+2*boxy)*sin(angle/180*pi))
+        ports=[]
         edges=[ #左,上,右,下
-            pya.DEdge(pc.x-boxx/2,pc.y-boxy/2,pc.x-boxx/2,pc.y+boxy/2),
-            pya.DEdge(pc.x-boxx/2,pc.y+boxy/2,pc.x+boxx/2,pc.y+boxy/2),
-            pya.DEdge(pc.x+boxx/2,pc.y+boxy/2,pc.x+boxx/2,pc.y-boxy/2),
-            pya.DEdge(pc.x+boxx/2,pc.y-boxy/2,pc.x-boxx/2,pc.y-boxy/2)
+            pya.DEdge(-boxx/2,-boxy/2,-boxx/2,+boxy/2),
+            pya.DEdge(-boxx/2,+boxy/2,+boxx/2,+boxy/2),
+            pya.DEdge(+boxx/2,+boxy/2,+boxx/2,-boxy/2),
+            pya.DEdge(+boxx/2,-boxy/2,-boxx/2,-boxy/2)
         ]
-        ports=[ee.crossing_point(edge) for ee in edges if ee.crossed_by(edge)]
+        #
+        if type(brush)!=type(None):
+            br=painter.brush
+            pt=pya.DPoint(br.centerx,br.centery)
+            angle=br.angle
+            edge=pya.DEdge(pt.x,pt.y,pt.x-(2*boxx+2*boxy)*cos(angle/180*pi),pt.y-(2*boxx+2*boxy)*sin(angle/180*pi))
+            ports.extend([ee.crossing_point(edge) for ee in edges if ee.crossed_by(edge)])
+        if transmissionlines!=None:
+            for transmissionline in transmissionlines:
+                for info in transmissionline:
+                    cpts=info[0]
+                    pt0=cpts[0]
+                    for pt in cpts[1:]:
+                        edge=tr_back(pya.DEdge(pt0,pt))
+                        pt0=pt
+                        ports.extend([ee.crossing_point(edge) for ee in edges if ee.crossed_by(edge)])
+        if portbrushs!=None:
+            portbrushs=[tr_back(brush) for brush in portbrushs]
+            ports.extend([[brush.centerx,brush.centery] for brush in portbrushs])
+        ports=[[pt.x,pt.y] for pt in ports if abs(pt.x)<boxx/2+10 and abs(pt.y)<boxy/2+10]
         
-        final_region,cell,tr=Interactive._merge_and_draw(outregion,inregion)
+        final_region,cell=Interactive._merge_and_draw(outregion,inregion,pya.CplxTrans(1,-deltaangle,False,pc.x,pc.y))
 
-        ports=[[pt.x-tr[0],pt.y-tr[1]] for pt in ports]
         return final_region,cell,ports
     
     @staticmethod
@@ -71,18 +111,19 @@ class Simulation:
         return output
 
     @staticmethod
-    def resonator_transmissionline(region,brush,layerlist,boxx,boxy,name,startfrequency,endfrequency,stepfrequency,deltaangle=0):
+    def create(name,startfrequency,endfrequency,stepfrequency,layerlist,boxx,boxy,region,brush,transmissionlines=None,portbrushs=None,offsetx=0,offsety=0,deltaangle=0,absx=None,absy=None):
         '''
         frequency单位GHz
         '''
-        final_region,cell,ports=Simulation._get_region_cell_port_from_resonator_and_transmissionline(
-            region=region,brush=brush,layerlist=layerlist,boxx=boxx,boxy=boxy,deltaangle=deltaangle
+        final_region,cell,ports=Simulation._get_region_cell_port(
+            region=region,brush=brush,layerlist=layerlist,boxx=boxx,boxy=boxy,deltaangle=deltaangle,absx=absx,absy=absy,portbrushs=portbrushs,transmissionlines=transmissionlines
         )
         cell.name=name
         prefix=''
-        output=Simulation._format_region_into_matlab_code(region=final_region,name=name,prefix=prefix)
+        output=[]
         def pushln(ss):
             output.append(prefix+ss+'\n')
+        output.extend(Simulation._format_region_into_matlab_code(region=final_region,name=name,prefix=prefix))
         pushln(name+'_ports='+str(ports)+';')
         pushln(name+'_boxsize='+str([boxx,boxy])+';')
         pushln(name+'_sweep='+str([startfrequency,endfrequency,stepfrequency])+';')

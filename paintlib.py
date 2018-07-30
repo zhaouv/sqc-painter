@@ -212,10 +212,10 @@ class LinePainter(Painter):
         self.centerlinepts=[]
         self.outputlist=[]
     def Straight(self,length):
-        if length<-10 and self.warning and IO.warning:
-            pya.MessageBox.warning("paintlib.LinePainter.Straight", "Negative value", pya.MessageBox.Ok)
+        if length<-10 and self.warning and IO.warning:raise RuntimeError('Straight negative value')
         return self._Straight(length)
     def Turning(self,radius,angle=90):
+        if (angle<-361 or angle>361) and self.warning and IO.warning:raise RuntimeError('Turning angle more than 360 degree')
         return self.TurningArc(radius,angle)
     def _Straight(self,length):
         n=int(ceil(length/IO.pointdistance))+2
@@ -374,10 +374,10 @@ class CavityBrush(object):
         return int(round(self.edgeout.distance(self.edgein.p1)/10))*10
     @property
     def centerx(self):
-        return (self.edgeout.p2.x+self.edgeout.p1.x)/2
+        return (self.edgein.p2.x+self.edgein.p1.x)/2
     @property
     def centery(self):
-        return (self.edgeout.p2.y+self.edgeout.p1.y)/2
+        return (self.edgein.p2.y+self.edgein.p1.y)/2
     @property
     def angle(self):
         return 90+180/pi*atan2(self.edgeout.p2.y-self.edgeout.p1.y,self.edgeout.p2.x-self.edgeout.p1.x)
@@ -443,8 +443,8 @@ class CavityPainter(Painter):
         self.painterin._Straight(-3)
         self.regionlistin.extend(self.painterin.outputlist)
         self.painterin.outputlist=[]
-        #把中心线的(点列表,宽度)成组添加
-        self.centerlineinfos.append((self.painterin.Getcenterline(),self.brush.angle))
+        #把中心线的(点列表,笔刷)成组添加
+        self.centerlineinfos.append((self.painterin.Getcenterline(),self.brush))
         return result
     def Electrode(self,wid=368000,length=360000,midwid=200000,midlength=200000,narrowlength=120000,reverse=False):
         assert((reverse==False and self.end_ext==0) or (reverse==True and self.bgn_ext==0))
@@ -656,7 +656,6 @@ class TBD(object):
     eps=0.01
     @staticmethod
     def init(id,_str=None):
-        TBD.filename=IO.path+'/'+'TBD.txt'
         if _str==None:
             TBD.id=str(id)
             try:
@@ -883,15 +882,18 @@ class Interactive:
         return False
 
     @staticmethod
-    def _merge_and_draw(outregion,inregion,tr=None):
+    def _merge_and_draw(outregion,inregion,tr_to=None):
         region=outregion-inregion
-        center=outregion.bbox().center()
-        region.transform(pya.Trans(-center.x,-center.y))
+        if type(tr_to)==type(None):
+            center=outregion.bbox().center()
+            region.transform(pya.Trans(-center.x,-center.y))
+            tr=pya.Trans(center.x,center.y)
+        else:
+            tr=tr_to
         cut = IO.layout.create_cell("cut")
-        if not tr:tr=pya.Trans(center.x,center.y)
         IO.auxiliary.insert(pya.CellInstArray(cut.cell_index(),tr))
         BasicPainter.Draw(cut,IO.layer,region)
-        return region,cut,[center.x,center.y]
+        return region,cut
 
     @staticmethod
     def cut(layerlist=None,layermod='not in',box=None,mergeanddraw=True):

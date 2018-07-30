@@ -15,6 +15,22 @@ TBD=paintlib.TBD.init(686587)
 layer1 = layout.layer(10, 10)#创建新层
 
 #画电极传输线
+
+cell2 = layout.create_cell("TR2")#创建一个子cell
+top.insert(pya.CellInstArray(cell2.cell_index(),pya.Trans()))
+
+painter4=paintlib.CavityPainter(pya.DPoint(-1300000,-300000),angle=90,widout=20000,widin=10000,bgn_ext=0,end_ext=0)
+def path(painter):
+    painter.Straight(282000)
+    painter.Turning(20000)
+    painter.Straight(50000)
+    painter.Turning(20000)
+    painter.Straight(282000)
+painter4.Run(path)
+painter4.Draw(cell2,layer1)
+c4=painter4.Getcenterlineinfo()
+
+
 cell3 = layout.create_cell("TR1")#创建一个子cell
 top.insert(pya.CellInstArray(cell3.cell_index(),pya.Trans()))
 
@@ -43,7 +59,14 @@ Simulation=simulation.Simulation
 layerlist=[(10,10)]
 # box=pya.Box(-848740,-212112,40934,424224)
 # paintlib.Interactive.cut(layerlist=layerlist,layermod='in',box=box)
-Simulation.resonator_transmissionline(painter5.region,painter5.brush,layerlist,500000,500000,'TBD_projectname',4,8,4,0)
+
+Simulation.create(
+    name='TBD_projectname',startfrequency=4,endfrequency=8,stepfrequency=4,
+    layerlist=layerlist,boxx=500000,boxy=500000,
+    region=painter5.region,brush=painter5.brush,transmissionlines=[c4],portbrushs=None,
+    offsetx=0,offsety=0,deltaangle=15,absx=None,absy=None
+    )
+
 
 #输出
 print(TBD.isFinish())
