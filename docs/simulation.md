@@ -21,8 +21,8 @@ from simulation import Simulation
 ```
 
 画图完成后调用`Simulation.create`创建.m文件
-```
-# 欲仿真的腔
+
+<pre v-pre="" data-lang="python"><code class="lang-python"># 欲仿真的腔
 painter5=paintlib.CavityPainter(brush5)
 ...
 
@@ -32,15 +32,15 @@ painter4=paintlib.CavityPainter(brush4)
 c4=painter4.Getcenterlineinfo()
 
 Simulation.create(
-    name='sonnetProjectName',
-    startfrequency=4,endfrequency=8,stepfrequency=4,
-    layerlist=[(10,10)],boxx=500000,boxy=500000,
-    region=painter5.region,brush=painter5.brush,
+    <span style="font-weight: bold;color:navy">name</span>='sonnetProjectName',
+    <span style="font-weight: bold;color:navy">startfrequency</span>=4,<span style="font-weight: bold;color:navy">endfrequency</span>=8,<span style="font-weight: bold;color:navy">stepfrequency</span>=4,
+    <span style="font-weight: bold;color:navy">layerlist</span>=[(10,10)],<span style="font-weight: bold;color:navy">boxx</span>=500000,<span style="font-weight: bold;color:navy">boxy</span>=500000,
+    <span style="font-weight: bold;color:navy">region</span>=painter5.region,<span style="font-weight: bold;color:navy">brush</span>=painter5.brush,
     transmissionlines=[c4],portbrushs=None,
     offsetx=0,offsety=0,deltaangle=15,
     absx=None,absy=None
     )
-```
+</code></pre>
 
 完整例子见[demos/simulationDemo.py](https://github.com/zhaouv/sqc-painter/blob/master/demos/simulationDemo.py)
 

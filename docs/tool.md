@@ -1,6 +1,41 @@
 # tool
 
-## 路径函数生成器
+## 交互式的路径生成
+
+1. 在绘图过程中, 使用`paintlib.Interactive.show(brush)`标记需要连接的笔刷, 此时笔刷会以电极的形式画在auxiliary中.
+
+2. 选中(0,0)层, 用工具栏中的path点出一条路径并选中.
+
+3. 在命令行中输入`paintlib.Interactive.link()`, 会自动搜索最近的笔刷拟合出路径, 生成路径函数打印在命令行中, 并在auxiliary中画出.
+
+<p>
+<img src="./img_md/linkbeforepic.png" width="350" style="float:left">
+<span style="float:left">&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<img src="./img_md/linkafterpic.png" width="370" style="float:left">
+</p><br style="clear:both">
+
+```python
+def path(painter):
+    length=0
+    length+=painter.Straight(493628.3218813461)
+    length+=painter.Turning(-50000,45.0)
+    length+=painter.Straight(390557.7026663276)
+    length+=painter.Turning(-50000,90)
+    length+=painter.Straight(630063.254735586)
+    length+=painter.Turning(-50000,45)
+    length+=painter.Straight(330724.32188134524)
+    length+=painter.Turning(50000,90)
+    length+=painter.Straight(587893.3218813452)
+    length+=painter.Turning(50000,45)
+    length+=painter.Straight(545793.0969808981)
+    length+=painter.Turning(50000,90)
+    length+=painter.Straight(517921.7760936491)
+    length+=painter.Turning(-50000,45.0)
+    length+=painter.Straight(683581.3218813452)
+    return length
+```
+
+## 图块化的路径函数生成器
 
 <a href="./tool/pathGenerator.html" style="color:navy;" target="_blank_">点此进入</a>
 
