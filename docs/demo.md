@@ -1,5 +1,9 @@
 # demo
 
+## 功能展示
+
+[demos/featureList.py](https://github.com/zhaouv/sqc-painter/blob/master/demos/featureList.py)
+
 ## 密度均匀变化的airbridge
 
 ``` python

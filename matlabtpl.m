@@ -68,10 +68,14 @@ fid=fopen([project_name_,'.son'],'r');
 str=fread(fid);
 fclose(fid);
 str=char(str');
-lines=split(str,sprintf('\n'));
-clines=cell(1,size(lines,1));
-for ii = 1:size(clines,2)
-    clines{ii}=char(lines(ii));
+try
+    lines=split(str,sprintf('\n'));
+    clines=cell(1,size(lines,1));
+    for ii = 1:size(clines,2)
+        clines{ii}=char(lines(ii));
+    end
+catch
+    clines=strsplit(str,sprintf('\n'));
 end
 for ii = 1:size(clines,2)
     if strcmp(clines{ii}(1:3) , 'BOX')
@@ -86,7 +90,7 @@ clines=cat(2,...
     {...
         '      2000 1 1 0 0 0 0 "Air"',...
         '      500 9.3 1 0 0 0 0 "Sapphire" A 11.5 1 0 0 0 ',...
-        'TECHLAY METAL Stream10:0 <UNSPECIFIED> 10 0 ',...
+        'TECHLAY METAL Al <UNSPECIFIED> 10 0 ',...
         '0 0 0 N 0 1 1 100 100 0 0 0 Y',...
         'END',...
         'END',...
@@ -114,7 +118,7 @@ insertindexs=insertindexs(1:end-1);
 templines={};
 lastindex=0;
 for ii = insertindexs
-    templines=cat(2,templines,clines(lastindex+1:ii+1),{'TLAYNAM Stream10:0 INH'});
+    templines=cat(2,templines,clines(lastindex+1:ii+1),{'TLAYNAM Al INH'});
     lastindex=ii+1;
 end
 clines=cat(2,templines,clines(lastindex+1:end));
