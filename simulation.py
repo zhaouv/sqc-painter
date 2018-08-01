@@ -83,7 +83,7 @@ class Simulation:
                         ports.extend([ee.crossing_point(edge) for ee in edges if ee.crossed_by(edge)])
         if portbrushs!=None:
             portbrushs=[tr_back(brush) for brush in portbrushs]
-            ports.extend([[brush.centerx,brush.centery] for brush in portbrushs])
+            ports.extend([pya.DPoint(brush.centerx,brush.centery) for brush in portbrushs])
         ports=[[pt.x,pt.y] for pt in ports if abs(pt.x)<boxx/2+10 and abs(pt.y)<boxy/2+10]
         
         final_region,cell=Interactive._merge_and_draw(outregion,inregion,pya.CplxTrans(1,-deltaangle,False,pc.x,pc.y))
