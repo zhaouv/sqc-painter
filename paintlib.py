@@ -133,57 +133,37 @@ class BasicPainter:
         polygon1=pya.DPolygon(pts).transformed(tr)
         return polygon1
     @staticmethod
-    def Connection(x,y=0,angle=0,mod=48):
+    def Connection(x,widin=16000, widout=114000, linewid=5000, slength1=16000, slength2=16000, clength=30000, cwid=54000,y=0,angle=0):
         if isinstance(x,CavityBrush):
             brush=x
             tr=brush.DCplxTrans
-            mod=brush.widout
         else:
             tr=pya.DCplxTrans(1,angle,False,x,y)
-        pts=[]
-        if mod==48:
-            pts.append(pya.DPoint(0,-57000))
-            pts.append(pya.DPoint(0,-8000))
-            pts.append(pya.DPoint(16000,-8000))
-            pts.append(pya.DPoint(16000,-52000))
-            pts.append(pya.DPoint(62000,-52000))
-            pts.append(pya.DPoint(62000,-32000))
-            pts.append(pya.DPoint(32000,-32000))
-            pts.append(pya.DPoint(32000,32000))
-            pts.append(pya.DPoint(62000,32000))
-            pts.append(pya.DPoint(62000,52000))
-            pts.append(pya.DPoint(16000,52000))
-            pts.append(pya.DPoint(16000,8000))
-            pts.append(pya.DPoint(0,8000))
-            pts.append(pya.DPoint(0,57000))
-            pts.append(pya.DPoint(67000,57000))
-            pts.append(pya.DPoint(67000,27000))
-            pts.append(pya.DPoint(37000,27000))
-            pts.append(pya.DPoint(37000,-27000))
-            pts.append(pya.DPoint(67000,-27000))
-            pts.append(pya.DPoint(67000,-57000))
-        if mod==8:
-            pts.append(pya.DPoint(0,-57000))
-            pts.append(pya.DPoint(0,-2010))
-            pts.append(pya.DPoint(224,-2007))
-            pts.append(pya.DPoint(2000,-2000))
-            pts.append(pya.DPoint(2000,-52000))
-            pts.append(pya.DPoint(60000,-52000))
-            pts.append(pya.DPoint(60000,-32000))
-            pts.append(pya.DPoint(6000,-32000))
-            pts.append(pya.DPoint(6000,32000))
-            pts.append(pya.DPoint(60000,32000))
-            pts.append(pya.DPoint(60000,52000))
-            pts.append(pya.DPoint(2000,52000))
-            pts.append(pya.DPoint(2000,2000))
-            pts.append(pya.DPoint(0,2000))
-            pts.append(pya.DPoint(0,57000))
-            pts.append(pya.DPoint(65000,57000))
-            pts.append(pya.DPoint(65000,27000))
-            pts.append(pya.DPoint(11000,27000))
-            pts.append(pya.DPoint(11000,-27000))
-            pts.append(pya.DPoint(65000,-27000))
-            pts.append(pya.DPoint(65000,-57000))
+        pts=[
+            pya.DPoint(0,widin/2),
+            pya.DPoint(slength1,widin/2),
+            pya.DPoint(slength1,widout/2-linewid),
+            pya.DPoint(slength1+slength2+clength,widout/2-linewid),
+            pya.DPoint(slength1+slength2+clength,cwid/2+linewid),
+            pya.DPoint(slength1+slength2,cwid/2+linewid),
+            #
+            pya.DPoint(slength1+slength2,-(cwid/2+linewid)),
+            pya.DPoint(slength1+slength2+clength,-(cwid/2+linewid)),
+            pya.DPoint(slength1+slength2+clength,-(widout/2-linewid)),
+            pya.DPoint(slength1,-(widout/2-linewid)),
+            pya.DPoint(slength1,-widin/2),
+            pya.DPoint(0,-widin/2),
+            #
+            pya.DPoint(0,-widout/2),
+            pya.DPoint(slength1+slength2+clength+linewid,-widout/2),
+            pya.DPoint(slength1+slength2+clength+linewid,-cwid/2),
+            pya.DPoint(slength1+slength2+linewid,-cwid/2),
+            #
+            pya.DPoint(slength1+slength2+linewid,cwid/2),
+            pya.DPoint(slength1+slength2+clength+linewid,cwid/2),
+            pya.DPoint(slength1+slength2+clength+linewid,widout/2),
+            pya.DPoint(0,widout/2),
+        ]
         polygon1=pya.DPolygon(pts).transformed(tr)
         return polygon1
     @staticmethod
@@ -450,6 +430,11 @@ class CavityPainter(Painter):
         assert((reverse==False and self.end_ext==0) or (reverse==True and self.bgn_ext==0))
         brush=self.brush.reversed() if reverse else self.brush
         polygon=BasicPainter.Electrode(brush,wid=wid,length=length,midwid=midwid,midlength=midlength,narrowlength=narrowlength)
+        self.regionlistout.append(polygon)
+    def Connection(self,clength=30000,cwid=54000,widout=114000,linewid=5000,slength1=16000,slength2=16000,reverse=False):
+        assert((reverse==False and self.end_ext==0) or (reverse==True and self.bgn_ext==0))
+        brush=self.brush.reversed() if reverse else self.brush
+        polygon=BasicPainter.Connection(brush,widin=brush.widin, widout=widout, linewid=linewid, slength1=slength1, slength2=slength2, clength=clength, cwid=cwid)
         self.regionlistout.append(polygon)
     def Narrow(self,widout,widin,length=6000):
         assert(self.end_ext==0 and self.bgn_ext==0)

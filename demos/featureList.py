@@ -39,9 +39,13 @@ painter4=paintlib.TransfilePainter("[Crossover48].gds")
 painter4.airbridgedistance=100000#设置Crossover的间距
 painter4.DrawAirbridge(top,centerlinelist,"Crossover1")
 
-#画电极传输线
+#画电极传输线与Qubit的连接
 cell3 = layout.create_cell("TR1")#创建一个子cell
 top.insert(pya.CellInstArray(cell3.cell_index(),pya.Trans()))
+
+painter7=paintlib.CavityPainter(pya.DPoint(-450000,600000),angle=0,widout=48000,widin=16000,bgn_ext=0,end_ext=0)
+painter7.Connection(clength=50000)
+painter7.Draw(cell3,layer1)
 
 painter5=paintlib.CavityPainter(pya.DPoint(-600000,24000),angle=180,widout=20000,widin=10000,bgn_ext=0,end_ext=0)
 painter5.Electrode(reverse=True)
