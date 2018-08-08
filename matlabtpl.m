@@ -57,7 +57,9 @@ for ii = 2:2:size(TBD_projectname_ports,2)
     Project.addPortAtLocation(TBD_projectname_ports(ii-1)+offset_(1),TBD_projectname_ports(ii)+offset_(2));
 end
 %
-Project.addSimpleFrequencySweep(TBD_projectname_sweep(1),TBD_projectname_sweep(2),TBD_projectname_sweep(3));
+% Project.addSimpleFrequencySweep(TBD_projectname_sweep(1),TBD_projectname_sweep(2),TBD_projectname_sweep(3));
+Project.addAbsFrequencySweep(TBD_projectname_sweep(1),TBD_projectname_sweep(2));
+Project.ControlBlock.TargetAbs=TBD_projectname_sweep(3);
 % Add an output file and then resimulate
 Project.addTouchstoneOutput;
 % Project.openInSonnet();

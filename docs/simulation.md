@@ -33,7 +33,7 @@ c4=painter4.Getcenterlineinfo()
 
 Simulation.create(
     <span style="font-weight: bold;color:navy">name</span>='sonnetProjectName',
-    <span style="font-weight: bold;color:navy">startfrequency</span>=4,<span style="font-weight: bold;color:navy">endfrequency</span>=8,<span style="font-weight: bold;color:navy">stepfrequency</span>=4,
+    <span style="font-weight: bold;color:navy">startfrequency</span>=4,<span style="font-weight: bold;color:navy">endfrequency</span>=8,<span style="font-weight: bold;color:navy">freqnum</span>=2,
     <span style="font-weight: bold;color:navy">layerlist</span>=[(10,10)],<span style="font-weight: bold;color:navy">boxx</span>=500000,<span style="font-weight: bold;color:navy">boxy</span>=500000,
     <span style="font-weight: bold;color:navy">region</span>=painter5.region,<span style="font-weight: bold;color:navy">brush</span>=painter5.brush,
     transmissionlines=[c4],portbrushs=None,
@@ -46,7 +46,8 @@ Simulation.create(
 
 参数含义(带`*`为必填):
 + `name*`: 切割的cell的名字以及.m文件和sonnet项目名字.
-+ `...frequency*`: 起止频率和间隔频率, 以GHZ为单位.
++ `...frequency*`: 起止频率, 以GHZ为单位.
++ `freqnum*`: 频率点的数量.
 + `layerlist*`: 切割取反的layer列表.
 + `boxx* boxy*`: 切割盒子的宽高.
 + `region*`: 用于自动识别切割中心点的区域, 可以填None, 此时`absx absy`必须为数字.

@@ -111,7 +111,7 @@ class Simulation:
         return output
 
     @staticmethod
-    def create(name,startfrequency,endfrequency,stepfrequency,layerlist,boxx,boxy,region,brush,transmissionlines=None,portbrushs=None,offsetx=0,offsety=0,deltaangle=0,absx=None,absy=None):
+    def create(name,startfrequency,endfrequency,freqnum,layerlist,boxx,boxy,region,brush,transmissionlines=None,portbrushs=None,offsetx=0,offsety=0,deltaangle=0,absx=None,absy=None):
         '''
         frequency单位GHz
         '''
@@ -126,7 +126,7 @@ class Simulation:
         output.extend(Simulation._format_region_into_matlab_code(region=final_region,name=name,prefix=prefix))
         pushln(name+'_ports='+str(ports)+';')
         pushln(name+'_boxsize='+str([boxx,boxy])+';')
-        pushln(name+'_sweep='+str([startfrequency,endfrequency,stepfrequency])+';')
+        pushln(name+'_sweep='+str([startfrequency,endfrequency,freqnum])+';')
         pushln('project_name_=\''+name+'\';')
         pushln(Simulation.matlabfiletpl.replace('\n','\n'+prefix).replace('TBD_projectname',name))
         ss=''.join(output)

@@ -61,7 +61,7 @@ layerlist=[(10,10)]
 # paintlib.Interactive.cut(layerlist=layerlist,layermod='in',box=box)
 
 Simulation.create(
-    name='TBD_projectname',startfrequency=4,endfrequency=8,stepfrequency=4,
+    name='TBD_projectname',startfrequency=4,endfrequency=8,freqnum=2,
     layerlist=layerlist,boxx=500000,boxy=500000,
     region=painter5.region,brush=painter5.brush,transmissionlines=[c4],portbrushs=None,
     offsetx=0,offsety=0,deltaangle=15,absx=None,absy=None
