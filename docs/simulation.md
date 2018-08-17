@@ -7,9 +7,9 @@
 需要将 SonnetLab_v7.4/Scripts/SonnetPath.m 的117行 `aWasteCharacter=aRegistryFileLine(4);`  
 改为 `aWasteCharacter=aRegistryFileLine(5);` 才能正常工作.
 
-通过修改matlab模板文件 [matlabtpl.m](https://github.com/zhaouv/sqc-painter/blob/master/matlabtpl.m) 来修改sonnet的相关设置, 默认设置为`500μm Sapphire 2000μm Air 图形层Al, cellsize 1μm × 1μm`.
+通过修改matlab模板文件 [matlabtpl.m](https://github.com/zhaouv/sqc-painter/blob/master/matlabtpl.m) 来修改sonnet的相关设置, 默认设置为`500μm Sapphire 2000μm Air 图形层Al 0.1μm, cellsize 1μm × 1μm`.
 
-matlab模板文件由 [@Rui](https://github.com/richardvancouver) 提供.
+matlab模板文件以及Q值拟合脚本由 [@Rui](https://github.com/richardvancouver) 提供.
 
 ![](img_md/sonnetpic.png)
 
@@ -59,3 +59,34 @@ Simulation.create(
 + `absx absy`: 直接通过坐标指定切割区域的中心点, 此时不再通过`region`定位, `region`可以填None.
 
 同时由多种方式指定端口时, 顺序为`brush`->`transmissionlines`->`portbrushs`.
+
+## matlab模板文件
+
+section 2
+
+`Project.changeCellSizeUsingNumberOfCells(1,1);`  
+设置仿真的cell size 1μm × 1μm
+
+section 3
+
+`    {'MET "Al" 1 NOR INF 0 0.1 '},...`  
+设置AL的厚度0.1μm
+
+`        '      2000 1 1 0 0 0 0 "Air"',...`  
+设置Air的厚度2000μm
+
+`        '      500 9.3 1 3e-006 0 0 0 "Sapphire" A 11.5 1 3e-006 0 0 ',...`  
+设置Sapphire的厚度500μm
+
+section 5
+
+数据处理  
+默认的代码段作用是画出S11和S21曲线  
+可以改为如下代码来自动拟合S21曲线得到Q值  
+其中用到的qfit1, [点此下载](https://raw.githubusercontent.com/zhaouv/sqc-painter/master/docs/files/QFitScripts.zip)相关文件, 放在生成的代码同目录  
+```matlab
+snpfilename_=[project_name_,'.s',num2str(portnum_),'p'];
+S21 = TouchstoneParser(snpfilename_,2,1);
+[c,dc] = qfit1(S21)
+save(  strcat(project_name_,'.mat'),'c','dc' )
+```
