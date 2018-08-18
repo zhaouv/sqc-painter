@@ -9,6 +9,7 @@ layout,top = paintlib.IO.Start("guiopen")#在当前的图上继续画,如果没�
 layout.dbu = 0.001#设置单位长度为1nm
 paintlib.IO.pointdistance=2000#设置腔的精度,转弯处相邻两点的距离
 TBD=paintlib.TBD.init(6876587)
+filepath=paintlib.IO.path+'/demos/'
 
 #画腔
 painter3=paintlib.CavityPainter(pya.DPoint(0,24000),angle=180,widout=48000,widin=16000,bgn_ext=48000,end_ext=16000)
@@ -35,7 +36,7 @@ painter3.Draw(cell2,layer1)#把画好的腔置入
     #画Crossover
 centerlinelist=[]#画腔的中心线并根据中心线画Crossover
 centerlinelist.append(painter3.Getcenterlineinfo()[0][0])
-painter4=paintlib.TransfilePainter("[Crossover48].gds")
+painter4=paintlib.TransfilePainter(filepath+"crossover.gds")
 painter4.airbridgedistance=100000#设置Crossover的间距
 painter4.DrawAirbridge(top,centerlinelist,"Crossover1")
 
@@ -83,12 +84,12 @@ painter2=paintlib.PcellPainter()
 painter2.DrawText(top,layer2,"Python",pya.DCplxTrans(100,15,False,1000000,0))
 
 #画Mark
-painter1=paintlib.TransfilePainter("[Mark3inch_jiguangzhixie].gds")
+painter1=paintlib.TransfilePainter(filepath+"mark.gds")
 pts=[pya.Point(1000000,500000),pya.Point(-500000,-500000),pya.Point(1000000,-1000000)]
 painter1.DrawMark(top,pts,"Mark_laserwrite")
 
 #
-painter6=paintlib.TransfilePainter("[Xmon_20170112].gds")
+painter6=paintlib.TransfilePainter(filepath+"xmon.gds")
 tr=pya.DCplxTrans(1,-90,False,400000,-400000)
 painter6.DrawGds(top,"Qubit",tr)
 

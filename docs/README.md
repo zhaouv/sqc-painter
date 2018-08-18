@@ -22,6 +22,19 @@ Superconducting Quantum Chip Painter
 
 运行脚本时, 在左侧双击该脚本, 之后点击![](img_md/2018-04-15-15-41-16.png)运行
 
+## 通过命令行使用
+
+通过命令行使用可以更加灵活的与其他工具或脚本集成
+
+将`<sqc-painter path>`和`<klayout path>`替换为正确路径
+
+```
+@cd /d "<sqc-painter path>"
+"<klayout path>\klayout_app.exe" -r demos/featureList.py
+"<klayout path>\klayout_app.exe" -r demos/featureList.py
+```
+需要运行两次是因为demos/featureList.py用到了TBD来处理待定数值
+
 - - -
 
 - **Start Page**  
