@@ -18,11 +18,16 @@ xx_=[-250000,-250000,250000,250000];
 yy_=[30000,250000,250000,30000];
 TBD_projectname_xy{end+1}={xx_,yy_};
 TBD_projectname_ports=[[-250000,-20000], [250000,-20000]];
+TBD_projectname_porttype=[0, 0];
+TBD_projectname_parametertype='Y';
+TBD_projectname_speed=0;
+TBD_projectname_extra='null';
 TBD_projectname_boxsize=[500000, 500000];
 TBD_projectname_sweep=[4, 8, 2];
 project_name_='TBD_projectname';
 %}
 %=====^ data ^=====v simulate v=====
+TBD_projectname_extra=jsondecode(TBD_projectname_extra);
 Project=SonnetProject();
 Project.saveAs([project_name_,'.son']);
 % length unit
@@ -54,14 +59,20 @@ TBD_projectname_ports=TBD_projectname_ports*unitratio_;
 portnum_=0;
 for ii = 2:2:size(TBD_projectname_ports,2)
     portnum_=portnum_+1;
-    Project.addPortAtLocation(TBD_projectname_ports(ii-1)+offset_(1),TBD_projectname_ports(ii)+offset_(2));
+    if TBD_projectname_porttype(portnum_)==1
+        myaddPortCocalibrated(Project.GeometryBlock,TBD_projectname_ports(ii-1)+offset_(1),TBD_projectname_ports(ii)+offset_(2));
+    else
+        Project.addPortAtLocation(TBD_projectname_ports(ii-1)+offset_(1),TBD_projectname_ports(ii)+offset_(2));
+end
 end
 %
 % Project.addSimpleFrequencySweep(TBD_projectname_sweep(1),TBD_projectname_sweep(2),TBD_projectname_sweep(3));
 Project.addAbsFrequencySweep(TBD_projectname_sweep(1),TBD_projectname_sweep(2));
 Project.ControlBlock.TargetAbs=TBD_projectname_sweep(3);
+Project.ControlBlock.Speed=TBD_projectname_speed;
 % Add an output file and then resimulate
-Project.addTouchstoneOutput;
+% Project.addTouchstoneOutput;
+Project.addFileOutput('TS','D','Y',['$BASENAME.s' num2str(portnum_) 'p'],'IC','Y',TBD_projectname_parametertype,'RI','R',50)
 % Project.openInSonnet();
 Project.saveAs([project_name_,'.son']);
 %===================================

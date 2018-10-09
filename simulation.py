@@ -4,6 +4,7 @@
 import paintlib
 import pya
 from math import cos,sin,pi
+import json
 Interactive=paintlib.Interactive
 CavityPainter=paintlib.CavityPainter
 IO=paintlib.IO
@@ -111,7 +112,7 @@ class Simulation:
         return output
 
     @staticmethod
-    def create(name,startfrequency,endfrequency,freqnum,layerlist,boxx,boxy,region,brush,transmissionlines=None,portbrushs=None,offsetx=0,offsety=0,deltaangle=0,absx=None,absy=None):
+    def create(name,startfrequency,endfrequency,freqnum,layerlist,boxx,boxy,region,brush,transmissionlines=None,portbrushs=None,porttype=None,parametertype='S',speed=0,offsetx=0,offsety=0,deltaangle=0,absx=None,absy=None,extra=None):
         '''
         frequency单位GHz
         '''
@@ -125,6 +126,14 @@ class Simulation:
             output.append(prefix+ss+'\n')
         output.extend(Simulation._format_region_into_matlab_code(region=final_region,name=name,prefix=prefix))
         pushln(name+'_ports='+str(ports)+';')
+        porttype_=[0 for ii in ports]
+        if porttype!=None:
+            for ii in range(min(len(porttype),len(porttype_))):
+                porttype_[ii]=porttype[ii]
+        pushln(name+'_porttype='+str(porttype_)+';')
+        pushln(name+'_parametertype=\''+parametertype+'\';')
+        pushln(name+'_speed=\''+str(speed)+'\';')
+        pushln(name+'_extra=\''+json.dumps(extra)+'\';')
         pushln(name+'_boxsize='+str([boxx,boxy])+';')
         pushln(name+'_sweep='+str([startfrequency,endfrequency,freqnum])+';')
         pushln('project_name_=\''+name+'\';')

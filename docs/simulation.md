@@ -37,8 +37,10 @@ Simulation.create(
     <span style="font-weight: bold;color:navy">layerlist</span>=[(10,10)],<span style="font-weight: bold;color:navy">boxx</span>=500000,<span style="font-weight: bold;color:navy">boxy</span>=500000,
     <span style="font-weight: bold;color:navy">region</span>=painter5.region,<span style="font-weight: bold;color:navy">brush</span>=painter5.brush,
     transmissionlines=[c4],portbrushs=None,
+    porttype=None,parametertype='S',speed=0,
     offsetx=0,offsety=0,deltaangle=15,
-    absx=None,absy=None
+    absx=None,absy=None,
+    extra=None
     )
 </code></pre>
 
@@ -54,9 +56,13 @@ Simulation.create(
 + `brush*`: 用于向两端发射线产生传输线和端口的笔刷, 可以填None.
 + `transmissionlines`: 传输线的中心线列表, 用于产生端口.
 + `portbrushs`: 通过笔刷列表直接指定端口.
++ `porttype`: 形如`[0,1]`, 依次指定所有端口类型, 是Standard还是Co-calibrate.
++ `parametertype`: `'S'或'Y'或'Z'`,指定输出文件的参数类型.
++ `speed`: `0或1或2`数字越大仿真越快.
 + `offsetx offsety`: 指定切割区域的偏移.
 + `deltaangle`: 指定切割区域的逆时针旋转角度.
 + `absx absy`: 直接通过坐标指定切割区域的中心点, 此时不再通过`region`定位, `region`可以填None.
++ `extra`: 额外传递给matlab的变量(通过json实现)
 
 同时由多种方式指定端口时, 顺序为`brush`->`transmissionlines`->`portbrushs`.
 
