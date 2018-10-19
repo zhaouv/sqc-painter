@@ -3,6 +3,7 @@
 #python 3.4
 import pya
 from math import cos,sin,pi,tan,atan2,sqrt,ceil
+import re
 import time
 
 class BasicPainter:
@@ -174,6 +175,136 @@ class BasicPainter:
             cell.shapes(layer).insert(x)
 #paintlib.BasicPainter.Draw(cell,layer,x)
         
+class TraceRunner:
+    patternNames=['straight','turning','repeatStart','repeatEnd']
+
+    straight_pattern=re.compile(r'^s_?(-?\d+\.?\d*)')
+    turning_pattern=re.compile(r'^(l|r|t)_?(-?\d+\.?\d*)(?:,(-?\d+\.?\d*))?')
+    repeatStart_pattern=re.compile(r'^n(\d+)\[')
+    repeatEnd_pattern=re.compile(r'^\]')
+
+    straight='straight'
+    turning='turning'
+    repeatStart='repeatStart'
+    repeatEnd='repeatEnd'
+
+    top='top'
+
+    def __init__(self):
+        self.Node.tr=self
+        self.patterns={}
+        for name in self.patternNames:
+            self.patterns[name]=self.__getattribute__(name+'_pattern')
+
+    def run(self,rawString):
+        AST=self.buildAST(rawString)
+        pathString=self.traversalAST(AST)
+        localscope={'path':None}
+        exec(pathString,None,localscope)
+        self.pathFunction=localscope['path']
+        return self.pathFunction
+
+    def buildAST(self,rawString):
+        self.rawString=rawString
+        self.string=self.preConvert(rawString)
+        self.start=0
+        self.AST=self.Node(isTop=True,type=self.top)
+        self.currentNode=self.AST
+        self.parse()
+        if self.currentNode.type!=self.top:
+            raise RuntimeError('barket not match')
+        return self.AST
+    def preConvert(self,rawString):
+        string=re.sub(r'\s','',rawString)
+        return string
+
+    class Node:
+        def __init__(self,isTop=False,parentNode=None,**k):
+            self.children=[]
+            self.isTop=isTop
+            if parentNode==None and not isTop:
+                parentNode=self.tr.currentNode
+            self.parentNode=parentNode
+            if parentNode:
+                parentNode.addChild(self)
+            for key,value in k.items():
+                self.__setattr__(key,value)
+        def addChild(self,node):
+            self.children.append(node)
+        def getChildren(self):
+            return self.children
+
+    def parse(self):
+        match=None
+        patternName=''
+        currentString=self.string[self.start:]
+        if not currentString:return
+        for name in self.patternNames:
+            match=self.patterns[name].match(currentString)
+            if match:
+                patternName=name
+                break
+        if match==None:
+            raise RuntimeError('invaild trace at '+currentString)
+        if patternName==self.repeatStart:
+            times=int(match.group(1))
+            node=self.Node(match=match,type=patternName,times=times)
+            self.currentNode=node
+        if patternName==self.repeatEnd:
+            self.currentNode=self.currentNode.parentNode
+            if self.currentNode==None:
+                raise RuntimeError('barket not match at '+currentString)
+            node=self.Node(match=match,type=patternName)
+        if patternName==self.straight:
+            length=float(match.group(1))
+            enableMinus='_' in match.group(0)
+            node=self.Node(match=match,type=patternName,length=length,enableMinus=enableMinus)
+        if patternName==self.turning:
+            left=-1 if match.group(1)=='l' else 1
+            radius=float(match.group(2))
+            angle=match.group(3)
+            angle=90.0 if angle==None else float(angle)
+            enableMinus='_' in match.group(0)
+            node=self.Node(match=match,type=patternName,left=left,radius=radius,angle=angle,enableMinus=enableMinus)
+        self.start+=len(match.group(0))
+        self.parse()
+            
+    def traversalAST(self,AST):
+        output=[]
+        prefix=['']
+        def pushln(s):
+            output.append(prefix[0]+s+'\n')
+        def cpre(n=4):
+            if n>0:
+                prefix[0]=prefix[0]+' '*n
+            if n<0:
+                prefix[0]=prefix[0][0:-1*n]
+        def npre():
+            return len(prefix[0])
+        pushln('def path(painter):')
+        cpre()
+        pushln('length=0')
+        def traversal(node):
+            if node.type==self.top:
+                for cn in node.getChildren():
+                    traversal(cn)
+            if node.type==self.straight:
+                pushln('length+=painter.{minus}Straight({length})'.format(minus='_'if node.enableMinus else '',length=node.length))
+            if node.type==self.turning:
+                pushln('length+=painter.Turning({radius},{angle})'.format(radius=node.left*node.radius,angle=node.angle))
+            if node.type==self.repeatStart:
+                pushln('for _index{n} in range({times}):'.format(n=npre(),times=node.times))
+                cpre()
+                for cn in node.getChildren():
+                    traversal(cn)
+            if node.type==self.repeatEnd:
+                cpre(-4)
+                
+        traversal(AST)
+        pushln('return length')
+        self.pathString=''.join(output)
+        return self.pathString
+
 class Painter(object):
     pass
     
@@ -378,6 +509,7 @@ class CavityBrush(object):
         return pya.DCplxTrans(1,self.angle,False,self.centerx,self.centery)
 
 class CavityPainter(Painter):
+    tr=TraceRunner()
     def __init__(self,*args,**keys):
         if 'pointc' in keys or (isinstance(args[0],pya.DPoint) and ('angle' in keys or type(args[1]) in [int,float])):
             self.constructors1(*args,**keys)
@@ -406,9 +538,13 @@ class CavityPainter(Painter):
         return self.brush.Getinfo()
     def Run(self,path=None):
         if path==None:
-            path=self.path
+            pathFunction=self.path
+        elif hasattr(path,'__call__'):
+            pathFunction=path
+        else: # type(path)==str
+            pathFunction=self.tr.run(path)
         self.painterout.Straight(self.bgn_ext)
-        path(self.painterout)
+        pathFunction(self.painterout)
         self.painterout.Straight(self.end_ext)
         self.painterout._Straight(-self.end_ext)
         self.regionlistout.extend(self.painterout.outputlist)
@@ -418,7 +554,7 @@ class CavityPainter(Painter):
         #修复1nm线的bug
         self.painterin._Straight(-3)
         self.painterin._Straight(3)
-        result=path(self.painterin)
+        result=pathFunction(self.painterin)
         self.painterin._Straight(3)
         self.painterin._Straight(-3)
         self.regionlistin.extend(self.painterin.outputlist)

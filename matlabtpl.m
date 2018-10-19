@@ -37,7 +37,11 @@ Project.changeFrequencyUnit('GHZ');
 unitratio_=0.001;
 TBD_projectname_boxsize=TBD_projectname_boxsize*unitratio_;
 Project.changeBoxSize(TBD_projectname_boxsize(1),TBD_projectname_boxsize(2));
+if TBD_projectname_speed==0
 Project.changeCellSizeUsingNumberOfCells(1,1);
+else
+    Project.changeCellSizeUsingNumberOfCells(2,2);
+end
 % Set the dielectric layer thicknesses
 Project.changeDielectricLayerThickness(1,50);
 Project.changeDielectricLayerThickness(2,50);

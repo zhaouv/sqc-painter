@@ -132,7 +132,9 @@ class Simulation:
                 porttype_[ii]=porttype[ii]
         pushln(name+'_porttype='+str(porttype_)+';')
         pushln(name+'_parametertype=\''+parametertype+'\';')
-        pushln(name+'_speed=\''+str(speed)+'\';')
+        pushln(name+'_speed='+str(speed)+';')
+        if extra==None:
+            extra={'json':'nothing, null will lead a bug in jsonlab-matlab'}
         pushln(name+'_extra=\''+json.dumps(extra)+'\';')
         pushln(name+'_boxsize='+str([boxx,boxy])+';')
         pushln(name+'_sweep='+str([startfrequency,endfrequency,freqnum])+';')
