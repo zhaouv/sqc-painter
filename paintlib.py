@@ -686,7 +686,7 @@ class TransfilePainter(Painter):
         for icell in IO.layout.top_cells():
             if (icell.name == self.insertcellname):
                 icell.name=newcellname
-                for cpts in centerlinelist:
+                for cpts,brush in centerlinelist:
                     distance=0
                     if not hasattr(self.airbridgedistance,'__call__'):
                         distance=self.airbridgedistance*0.25

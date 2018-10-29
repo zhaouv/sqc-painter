@@ -35,7 +35,7 @@ length=painter1.Run(path)
 
 painter1.Draw(cell3,layer1)#把画好的腔置入
 
-painter2=paintlib.TransfilePainter("[Airbridge].gds","insert")
+painter2=paintlib.TransfilePainter("[Airbridge].gds")
 painter2.airbridgedistance=airbridgeDistance
 painter2.DrawAirbridge(cell2,painter1.Getcenterlineinfo(),"Airbridge")
 
