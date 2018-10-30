@@ -322,15 +322,16 @@ class LinePainter(Painter):
         self.pointl=pointl
         self.centerlinepts=[]
         self.outputlist=[]
-    def Straight(self,length):
+    def Straight(self,length,centerline=True):
         if length<-10 and self.warning and IO.warning:raise RuntimeError('Straight negative value')
-        return self._Straight(length)
+        return self._Straight(length,centerline=centerline)
     def Turning(self,radius,angle=90):
         if (angle<-361 or angle>361) and self.warning and IO.warning:raise RuntimeError('Turning angle more than 360 degree')
         return self.TurningArc(radius,angle)
-    def _Straight(self,length):
+    def _Straight(self,length,centerline=False):
         n=int(ceil(length/IO.pointdistance))+2
         if n==1:n=2
+        n*=IO.centerlineratio
         p1x=self.pointr.x/2+self.pointl.x/2
         p1y=self.pointr.y/2+self.pointl.y/2
         #接下来是画矩形，再之后是画中心线
@@ -342,10 +343,11 @@ class LinePainter(Painter):
         dx=self.pointr.x/2+self.pointl.x/2-p1x
         dy=self.pointr.y/2+self.pointl.y/2-p1y
         cpts=[pya.DPoint(p1x+1.0*pt/(n-1)*dx,p1y+1.0*pt/(n-1)*dy) for pt in range(n)]
-        if self.centerlinepts==[]:
-            self.centerlinepts=cpts
-        else:
-            self.centerlinepts.extend(cpts[1:])
+        if centerline:
+            if self.centerlinepts==[]:
+                self.centerlinepts=cpts
+            else:
+                self.centerlinepts.extend(cpts[1:])
         return length
     def TurningArc(self,radius,angle=90):
         '''radius非负向右，负是向左'''
@@ -362,10 +364,10 @@ class LinePainter(Painter):
         n=int(ceil((abs(radius)+delta/2)*angle*pi/180/IO.pointdistance)+2)      
         if radius>=0:
             thickarc1,pointr2,pointl2=BasicPainter.thickarc(center,radius-delta/2,radius+delta/2,n,dtheta+180,dtheta+180-angle)
-            cpts=BasicPainter.arc(center,radius,n,dtheta+180,dtheta+180-angle)
+            cpts=BasicPainter.arc(center,radius,n*IO.centerlineratio,dtheta+180,dtheta+180-angle)
         else:
             thickarc1,pointr2,pointl2=BasicPainter.thickarc(center,-radius+delta/2,-radius-delta/2,n,dtheta,dtheta+angle)
-            cpts=BasicPainter.arc(center,-radius,n,dtheta,dtheta+angle)
+            cpts=BasicPainter.arc(center,-radius,n*IO.centerlineratio,dtheta,dtheta+angle)
         self.outputlist.append(thickarc1)
         self.pointr=pointr2
         self.pointl=pointl2
@@ -534,7 +536,7 @@ class CavityPainter(Painter):
     def brush(self):
         return CavityBrush(self.painterout.pointl,self.painterin.pointl,self.painterin.pointr,self.painterout.pointr)
     def Getinfo(self):
-        # return [centerx,centery,angle,widout]
+        ''' return [centerx,centery,angle,widout] '''
         return self.brush.Getinfo()
     def Run(self,path=None):
         if path==None:
@@ -635,7 +637,7 @@ class CavityPainter(Painter):
     def Draw(self,cell,layer):
         cell.shapes(layer).insert(self.Output_Region())
     def Getcenterlineinfo(self):
-        #中心线的(点列表,宽度)成组添加
+        ''' 中心线的(点列表,笔刷)成组添加 '''
         cptinfos=self.centerlineinfos
         self.centerlineinfos=[]
         return cptinfos
@@ -681,6 +683,37 @@ class TransfilePainter(Painter):
         if(names[0]=='TOP'):raise RuntimeError("the name of insert file's cell can not be TOP")
         self.insertcellname=names[0]
         self.airbridgedistance=100000
+    @staticmethod
+    def airbridgeDistanceFunc(distance,inputList=None,staticList=[0,0,0,[0]]):
+        ''' 
+        设置间距及使用
+        paintera=paintlib.TransfilePainter("[Crossover48].gds")
+        paintera.airbridgeDistanceFunc(0,[50000,20000,50000,20000,50000,20000,50000,20000,50000,20000,50000,20000,50000,20000,50000,20000,123456])
+        paintera.airbridgedistance=paintera.airbridgeDistanceFunc
+        paintera.DrawAirbridge(cellairbridge,centerlinelist,"Crossover48")
+        
+        staticList [0]是上一个airbridge的距离,[1]是当前是第几个点,[2]是下一次的间隔,[3]是输入的列表
+        这里利用了默认参数只初始化一次 
+        '''
+        if inputList != None:
+            staticList[3]=inputList
+            staticList[3].append(0)
+            return 0
+        if (distance<staticList[0]):
+            staticList[0]=0
+            staticList[1]=0
+            staticList[2]=0
+        if (staticList[2]==0):
+            staticList[2]=staticList[3][0]
+        dd=distance-staticList[0]
+        if(dd>staticList[2]):
+            staticList[0]+=staticList[2]
+            staticList[1]+=1
+            if staticList[1] < len(staticList[3]):
+                staticList[2]=staticList[3][staticList[1]]
+            else:
+                staticList[1]-=1
+        return staticList[1]
     def DrawAirbridge(self,cell,centerlinelist,newcellname="Airbige"):
         IO.layout.read(self.filename)
         for icell in IO.layout.top_cells():
@@ -740,6 +773,140 @@ class TransfilePainter(Painter):
                 i.flatten(True)
                 i.delete()
         return resultcell        
+
+class SpecialPainter(Painter):
+    ''' 画一些较复杂图形的静态类 '''
+    @staticmethod
+    def Connection(x,widin=16000, widout=114000, linewid=5000, slength1=16000, slength2=16000, clength=30000, cwid=54000 ,clengthplus=0, turningRadiusPlus=5000,y=0,angle=0):
+        ''' 画腔到比特的连接(更复杂的版本),第一个参数是笔刷或坐标,返回图形 '''
+        if isinstance(x,CavityBrush):
+            brush=x
+            tr=brush.DCplxTrans
+        else:
+            tr=pya.DCplxTrans(1,angle,False,x,y)
+        rp=turningRadiusPlus
+        r=turningRadiusPlus+linewid/2
+        polygons=[]
+        pts=[
+            pya.DPoint(0,widin/2),
+            pya.DPoint(slength1,widin/2),
+            pya.DPoint(slength1,widout/2),
+            pya.DPoint(0,widout/2),
+        ]
+        polygons.append(pya.DPolygon(pts))
+        pts=[
+            pya.DPoint(0,-widin/2),
+            pya.DPoint(slength1,-widin/2),
+            pya.DPoint(slength1,-widout/2),
+            pya.DPoint(0,-widout/2),
+        ]
+        polygons.append(pya.DPolygon(pts))
+        dx=widout/2-cwid/2-2*linewid
+        tangle=90-atan2(clengthplus,dx)*180/pi
+        lp=LinePainter(pointl=pya.DPoint(slength1,widout/2),pointr=pya.DPoint(slength1,widout/2-linewid))
+        #
+        lp.Straight(slength2+clength-rp*tan(tangle/2*pi/180))
+        lp.Turning(r,tangle)
+        lp.Straight(-rp*tan(tangle/2*pi/180)+dx/sin(tangle*pi/180)-rp/tan(tangle/2*pi/180))
+        lp.Turning(r,180-tangle)
+        lp.Straight(-rp/tan(tangle/2*pi/180)+clengthplus+clength-linewid)
+        #
+        lp.Turning(-linewid/2,90)
+        lp._Straight(-linewid)
+        lp.Straight(linewid+cwid)
+        lp.Turning(-linewid/2,90)
+        lp._Straight(-linewid)
+        lp.Straight(linewid)
+        #
+        lp.Straight(-rp/tan(tangle/2*pi/180)+clengthplus+clength-linewid)
+        lp.Turning(r,180-tangle)
+        lp.Straight(-rp*tan(tangle/2*pi/180)+dx/sin(tangle*pi/180)-rp/tan(tangle/2*pi/180))
+        lp.Turning(r,tangle)
+        lp.Straight(slength2+clength-rp*tan(tangle/2*pi/180))
+        #
+        polygons.extend(lp.outputlist)
+
+        return [p.transformed(tr) for p in polygons]
+    @staticmethod
+    def ConnectionOnPainter(self,clength=30000,cwid=54000,widout=114000,linewid=5000,slength1=16000,slength2=16000,clengthplus=0, turningRadiusPlus=5000,reverse=False):
+        ''' 画腔到比特的连接(更复杂的版本),第一个参数是painter,直接把图形附在腔上 '''
+        assert((reverse==False and self.end_ext==0) or (reverse==True and self.bgn_ext==0))
+        brush=self.brush.reversed() if reverse else self.brush
+        polygons=SpecialPainter.Connection(brush,widin=brush.widin, widout=widout, linewid=linewid, slength1=slength1, slength2=slength2, clength=clength, cwid=cwid, clengthplus=clengthplus, turningRadiusPlus=turningRadiusPlus)
+        self.regionlistout.extend(polygons)
+    @staticmethod
+    def DrawContinueAirbridgePainter(cell,layerup,layerdown,centerlinelist,s1=300000,s2=300000+8500,e1=5200637-15000,e2=5200637-15000-8500,w1=20000,w2=30000,w3=40000,l1=28000,l2=22000,cnum=9):
+        ''' 画连续的airbridge构成的同轴线 '''
+        gl={1:l1,2:l2}
+        wl={1:w3,2:w1}
+        def getp(ll,p1,p2):
+            bl=p1.distance(p2)
+            dx=p2.x-p1.x
+            dy=p2.y-p1.y
+            k=1.0*ll/bl
+            return pya.DPoint(p1.x+k*dx,p1.y+k*dy)
+            
+        for cpts,brush in centerlinelist:
+            distance=0
+
+            downstartindex=0
+            downendindex=0
+
+            status=0 # 1宽 2窄
+            slength=s2
+            si=0
+            ei=0
+            sp=None
+            ep=None
+            polygons=[]
+
+            for i,pt in enumerate(cpts[1:-1],1):
+                delda=pt.distance(cpts[i-1])
+                distance=distance+delda
+                # 画下层
+                if not downstartindex and distance>=s1:
+                    downstartindex=i
+                    downstartp=getp(distance-s1,pt,cpts[i-1])
+                if not downendindex and distance>=e1:
+                    downendindex=i
+                    downendp=getp(distance-e1,pt,cpts[i-1])
+                    #
+                    temp=[downstartp]
+                    temp.extend(cpts[downstartindex:downendindex-1])
+                    temp.append(downendp)
+                    path=pya.DPath(temp,w2,0,0)
+                    polygon=path.polygon()
+                    BasicPainter.Draw(cell,layerdown,polygon)
+                # 画上层
+                if not status and distance>=slength:
+                    # 进入阶段
+                    status=1
+                    si=i
+                    sp=getp(distance-slength,pt,cpts[i-1])
+                    slength+=gl[status]
+                    continue
+                if distance>=e2:continue
+                if status and distance>=slength:
+                    ei=i
+                    ep=getp(distance-slength,pt,cpts[i-1])
+                    if status==1:
+                        temp=[sp]
+                        temp.extend(cpts[si:ei-1])
+                        temp.append(ep)
+                    else:
+                        temp=cpts[si-1-cnum:ei+cnum]
+                    path=pya.DPath(temp,wl[status],0,0)
+                    polygon=path.polygon()
+                    polygons.append(polygon)
+                    si=ei
+                    sp=ep
+                    status=3-status
+                    slength+=gl[status]
+
+            if not len(polygons)%2:polygons.pop()
+
+            for i,polygon in enumerate(polygons):
+                BasicPainter.Draw(cell,layerup,polygon)
 
 class Collision(object):
     '''处理图形冲突的类'''
@@ -1067,6 +1234,7 @@ class IO:
     link=None
     layer=None
     pointdistance=2000
+    centerlineratio=1
     @staticmethod
     def Start(mod="guiopen"):
         if mod=="gds":

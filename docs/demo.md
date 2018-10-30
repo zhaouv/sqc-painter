@@ -2,6 +2,8 @@
 
 ## 功能展示
 
+![](img_md/featurepic.png)
+
 [demos/featureList.py](https://github.com/zhaouv/sqc-painter/blob/master/demos/featureList.py)
 
 ## 密度均匀变化的airbridge
