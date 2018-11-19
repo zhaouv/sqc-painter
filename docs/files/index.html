@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title></title>
+</head>
+<body>
+    <pre id="content"></pre>
+
+    <script>
+
+var xhrOneFile = function(filename,callback){
+    var xhr = new XMLHttpRequest()
+    xhr.onload = function(e) { 
+        if(this.status == 200||this.status == 304){
+            callback(this.responseText)
+        }
+    };
+    xhr.open("GET",filename)
+    xhr.send()
+}
+
+var search=window.location.search
+var smap=null
+if(search){
+    smap={}
+    search=search.slice(1).split('&')
+    search.forEach(function(v){
+        var vs=v.split('=');
+        if(vs.length==1)smap.s=vs[0];
+        else smap[vs[0]]=vs[1];
+    });
+}
+if(smap.hasOwnProperty('s')){
+    document.title=smap.s
+    xhrOneFile(smap.s,function(data){
+        document.getElementById('content').innerText =data
+    })
+}
+
+
+  </script>
+</body>
+</html>

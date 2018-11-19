@@ -7,7 +7,7 @@
 需要将 SonnetLab_v7.4/Scripts/SonnetPath.m 的117行 `aWasteCharacter=aRegistryFileLine(4);`  
 改为 `aWasteCharacter=aRegistryFileLine(5);` 才能正常工作.
 
-通过修改matlab模板文件 [matlabtpl.m](https://github.com/zhaouv/sqc-painter/blob/master/matlabtpl.m) 来修改sonnet的相关设置, 默认设置为`500μm Sapphire 2000μm Air 图形层Al 0.1μm, cellsize 1μm × 1μm`.
+通过修改matlab模板文件 [matlabtpl.m](files/?../../matlabtpl.m ':ignore') 来修改sonnet的相关设置, 默认设置为`500μm Sapphire 2000μm Air 图形层Al 0.1μm, cellsize 1μm × 1μm`.
 
 matlab模板文件以及Q值拟合脚本由 [@Rui](https://github.com/richardvancouver) 提供.
 
@@ -44,7 +44,7 @@ Simulation.create(
     )
 </code></pre>
 
-完整例子见[demos/simulationDemo.py](https://github.com/zhaouv/sqc-painter/blob/master/demos/simulationDemo.py)
+完整例子见[demos/simulationDemo.py](files/?../../demos/simulationDemo.py ':ignore')
 
 参数含义(带`*`为必填):
 + `name*`: 切割的cell的名字以及.m文件和sonnet项目名字.
@@ -89,7 +89,7 @@ section 5
 数据处理  
 默认的代码段作用是画出S11和S21曲线  
 可以改为如下代码来自动拟合S21曲线得到Q值  
-其中用到的qfit1, [点此下载](https://raw.githubusercontent.com/zhaouv/sqc-painter/master/docs/files/QFitScripts.zip)相关文件, 放在生成的代码同目录  
+其中用到的qfit1, [点此下载](files/QFitScripts.zip ':ignore')相关文件, 放在生成的代码同目录  
 ```matlab
 snpfilename_=[project_name_,'.s',num2str(portnum_),'p'];
 S21 = TouchstoneParser(snpfilename_,2,1);
