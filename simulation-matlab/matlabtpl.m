@@ -64,7 +64,7 @@ portnum_=0;
 for ii = 2:2:size(TBD_projectname_ports,2)
     portnum_=portnum_+1;
     if TBD_projectname_porttype(portnum_)==1
-        myaddPortCocalibrated(Project.GeometryBlock,TBD_projectname_ports(ii-1)+offset_(1),TBD_projectname_ports(ii)+offset_(2));
+        addPortCocalibratedAtLocation(Project.GeometryBlock,TBD_projectname_ports(ii-1)+offset_(1),TBD_projectname_ports(ii)+offset_(2));
     else
         Project.addPortAtLocation(TBD_projectname_ports(ii-1)+offset_(1),TBD_projectname_ports(ii)+offset_(2));
 end

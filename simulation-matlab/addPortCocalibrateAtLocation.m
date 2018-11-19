@@ -1,4 +1,4 @@
-function aPort=myaddPortCocalibrated(obj,theXCoordinate,theYCoordinate, theLevel)
+function aPort=addPortCocalibrateAtLocation(obj,theXCoordinate,theYCoordinate, theLevel)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % This method will add an standard port
     %  to the project by specifying an X and Y coordinate.
