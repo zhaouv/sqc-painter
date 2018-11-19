@@ -17,6 +17,30 @@ TBD_projectname_xy{end+1}={xx_,yy_};
 xx_=[-250000,-250000,250000,250000];
 yy_=[30000,250000,250000,30000];
 TBD_projectname_xy{end+1}={xx_,yy_};
+TBD_projectname_xys={};
+TBD_projectname_xys{end+1}=TBD_projectname_xy;
+%
+TBD_projectname_xy={};
+xx_=[-250000,-250000,250000,250000];
+yy_=[-25000,-15000,-15000,-25000];
+TBD_projectname_xy{end+1}={xx_,yy_};
+xx_=[-250000,-250000,250000,250000];
+yy_=[15000,25000,25000,15000];
+TBD_projectname_xy{end+1}={xx_,yy_};
+TBD_projectname_xys{end+1}=TBD_projectname_xy;
+%
+TBD_projectname_xy={};
+xx_=[-250000,-250000,250000,250000];
+yy_=[-25000,-15000,-15000,-25000];
+TBD_projectname_xy{end+1}={xx_,yy_};
+xx_=[-250000,-250000,250000,250000];
+yy_=[-10000,10000,10000,-10000];
+TBD_projectname_xy{end+1}={xx_,yy_};
+xx_=[-250000,-250000,250000,250000];
+yy_=[15000,25000,25000,15000];
+TBD_projectname_xy{end+1}={xx_,yy_};
+TBD_projectname_xys{end+1}=TBD_projectname_xy;
+%
 TBD_projectname_ports=[[-250000,-20000], [250000,-20000]];
 TBD_projectname_porttype=[0, 0];
 TBD_projectname_parametertype='Y';
@@ -44,23 +68,24 @@ if TBD_projectname_speed==0
 else
     Project.changeCellSizeUsingNumberOfCells(2,2);
 end
-% Set the dielectric layer thicknesses
-Project.changeDielectricLayerThickness(1,50);
-Project.changeDielectricLayerThickness(2,50);
-% % Delete the default second layer so we can replace it with a new alumina one
-% Project.deleteLayer(2);
-% % Add the alumina layer to the Project.
-% Project.addDielectricLayer('Alumina',20,9.8,1,1.0e-4,0,0);
 %
+Project.deleteLayer(1);  %delete the default two layers, 
+Project.deleteLayer(1); %two layers are created as soon as you create a .son file
+Project.addDielectricLayer('Air',2000,1,1,0,0,0);
+Project.addDielectricLayer('Air',2,1,1,0,0,0);
+Project.addDielectricLayer('Sapphire',500,9.3,1,3e-006,0,0);
+%
+% Add the alumina layer to the Project.
 offset_=TBD_projectname_boxsize/2;
 TBD_projectname_polygon={};
-for ii = TBD_projectname_xy
+for ii = TBD_projectname_xys{1}
     xx_=ii{1}{1}*unitratio_+offset_(1);
     yy_=ii{1}{2}*unitratio_+offset_(2);
-    TBD_projectname_polygon{end+1}=Project.addMetalPolygonEasy(0,xx_,yy_);
+    TBD_projectname_polygon{end+1}=Project.addMetalPolygonEasy(1,xx_,yy_);
     Project.changePolygonType(TBD_projectname_polygon{end},'Lossless');
 end
 %
+% add ports to layer 1, do this immediately after setting up polygons in a layer
 TBD_projectname_ports=TBD_projectname_ports*unitratio_;
 portnum_=0;
 for ii = 2:2:size(TBD_projectname_ports,2)
@@ -72,6 +97,20 @@ for ii = 2:2:size(TBD_projectname_ports,2)
     end
 end
 %
+% add via polygons
+for ii = TBD_projectname_xys{2}
+    xx_=ii{1}{1}*unitratio_+offset_(1);
+    yy_=ii{1}{2}*unitratio_+offset_(2);
+    TBD_projectname_polygon{end+1}=Project.addViaPolygonEasy(1,0,xx_,yy_);
+    Project.changePolygonType(TBD_projectname_polygon{end},'Lossless');
+end
+% add bridge polygons
+for ii = TBD_projectname_xys{3}
+    xx_=ii{1}{1}*unitratio_+offset_(1);
+    yy_=ii{1}{2}*unitratio_+offset_(2);
+    TBD_projectname_polygon{end+1}=Project.addMetalPolygonEasy(0,xx_,yy_);
+    Project.changePolygonType(TBD_projectname_polygon{end},'Lossless');
+end
 % Project.addSimpleFrequencySweep(TBD_projectname_sweep(1),TBD_projectname_sweep(2),TBD_projectname_sweep(3));
 Project.addAbsFrequencySweep(TBD_projectname_sweep(1),TBD_projectname_sweep(2));
 Project.ControlBlock.TargetAbs=TBD_projectname_sweep(3);
@@ -97,7 +136,7 @@ cd(targetDir);
 pymod = py.importlib.import_module('fixFormat');  
 py.importlib.reload(pymod);    
 cd(startDir);
-str=char(pymod.fixOneLayerFile(str));
+str=char(pymod.fixThreeLayerFile(str));
 %
 fid=fopen([project_name_,'.son'],'w');
 fprintf(fid,'%s',str);

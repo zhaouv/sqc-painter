@@ -66,12 +66,16 @@ layerlist=[(10,10)]
 # box=pya.Box(-848740,-212112,40934,424224)
 # paintlib.Interactive.cut(layerlist=layerlist,layermod='in',box=box)
 
+# crossoverLayerList=[[False,(12,0)],[False,(13,0),(13,1)]]
+#   [[是否取反, 剩下的项含义同layerlist],[...先via层后表层]]
+
 Simulation.create(
     name='TBD_projectname',startfrequency=4,endfrequency=8,freqnum=2,
     layerlist=layerlist,boxx=500000,boxy=500000,
     region=painter5.region,brush=painter5.brush,transmissionlines=[c4],portbrushs=None,
     porttype=None,parametertype='S',speed=0,
     offsetx=0,offsety=0,deltaangle=15,absx=None,absy=None,
+    crossoverLayerList=None,
     extra=None
     )
 

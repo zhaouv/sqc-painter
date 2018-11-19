@@ -1170,16 +1170,23 @@ class Interactive:
         return False
 
     @staticmethod
-    def _merge_and_draw(outregion,inregion,tr_to=None):
-        region=outregion-inregion
-        if type(tr_to)==type(None):
-            center=outregion.bbox().center()
-            region.transform(pya.Trans(-center.x,-center.y))
-            tr=pya.Trans(center.x,center.y)
+    def _merge_and_draw(outregion,inregion,tr_to=None,cell=None,cutbool=True):
+        if cutbool:
+            region=outregion-inregion
         else:
-            tr=tr_to
-        cut = IO.layout.create_cell("cut")
-        IO.auxiliary.insert(pya.CellInstArray(cut.cell_index(),tr))
+            region=outregion-(outregion-inregion)
+        #
+        if type(cell)==type(None):
+            if type(tr_to)==type(None):
+                center=outregion.bbox().center()
+                region.transform(pya.Trans(-center.x,-center.y))
+                tr=pya.Trans(center.x,center.y)
+            else:
+                tr=tr_to
+            cut = IO.layout.create_cell("cut")
+            IO.auxiliary.insert(pya.CellInstArray(cut.cell_index(),tr))
+        else:
+            cut = cell
         BasicPainter.Draw(cut,IO.layer,region)
         return region,cut
 

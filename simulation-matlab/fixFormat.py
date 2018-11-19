@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 import re
-import json
 
 
 def fixOneLayerFile(ss):
     ss=re.sub(r'VER.*', 'VER 14.52', ss, 1)
     ss=re.sub(r'\n(BOX.*)\n.*\n.*\n', '''
-MET "Al" 1 NOR INF 0 0.1 \\1
+MET "Al" 1 NOR INF 0 0.1 
+\\1
       2000 1 1 0 0 0 0 "Air"
       500 9.3 1 3e-006 0 0 0 "Sapphire" A 11.5 1 3e-006 0 0 
 TECHLAY METAL Al <UNSPECIFIED> 10 0 
@@ -45,8 +45,8 @@ END
 END
 LORGN 0 1000 U 
 ''', ss, 1)
-    ss=re.sub(r'(\n0.*Y\n)','\\1TLAYNAM Stream2:2 NOH\n',ss)
-    ss=re.sub(r'(\n1.*Y\n)','\\1TLAYNAM Stream10:0 NOH\n',ss)
+    ss=re.sub(r'(\n[NE].*\n0.*Y\n)','\\1TLAYNAM Stream2:2 NOH\n',ss)
+    ss=re.sub(r'(\n[NE].*\n1.*Y\n)','\\1TLAYNAM Stream10:0 NOH\n',ss)
     ss=re.sub(r'\r','',ss)
     return ss
 

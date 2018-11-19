@@ -11,12 +11,15 @@ IO=paintlib.IO
 
 with open(IO.path+'/simulation-matlab/matlabtpl.m') as fid:
     _matlabtpl=fid.read()
+with open(IO.path+'/simulation-matlab/matlabtpl_threeLayer.m') as fid:
+    _matlabtpl_threeLayer=fid.read()
 
 class Simulation:
     matlabfiletpl=_matlabtpl
+    matlabfiletpl_threeLayer=_matlabtpl_threeLayer
 
     @staticmethod
-    def _get_region_cell_port(region,brush,layerlist,boxx,boxy,offsetx=0,offsety=0,deltaangle=0,absx=None,absy=None,portbrushs=None,transmissionlines=None):
+    def _get_region_cell_port(region,brush,layerlist,boxx,boxy,offsetx=0,offsety=0,deltaangle=0,absx=None,absy=None,portbrushs=None,transmissionlines=None,crossoverLayerList=None):
         '''先把图像逆时针转deltaangle角度后沿着平直截取'''
         # if deltaangle>46 or deltaangle<-46:raise RuntimeError('deltaangle more than 45 degree')
         if absx==None or absy==None:
@@ -48,7 +51,7 @@ class Simulation:
 
         box=tr_to(pya.Box(-boxx/2,-boxy/2,boxx/2,boxy/2),itr=True)
         #
-        _,inregion=Interactive.cut(layerlist=layerlist,layermod='in',box=box,mergeanddraw=False)
+        inregion=Interactive.cut(layerlist=layerlist,layermod='in',box=box,mergeanddraw=False)[1]
         inregion=tr_back(inregion,itr=True)
         outregion=pya.Region(pya.Box(-boxx/2,-boxy/2,boxx/2,boxy/2))
 
@@ -89,7 +92,13 @@ class Simulation:
         
         final_region,cell=Interactive._merge_and_draw(outregion,inregion,pya.CplxTrans(1,-deltaangle,False,pc.x,pc.y))
 
-        return final_region,cell,ports
+        crossover_region_list=[]
+        if crossoverLayerList!=None:
+            for layerlist in crossoverLayerList:
+                crossover_inregion=Interactive.cut(layerlist=layerlist[1:],layermod='in',box=box,mergeanddraw=False)[1]
+                crossover_region_list.append(Interactive._merge_and_draw(outregion,crossover_inregion,None,cell,layerlist[0])[0])
+
+        return final_region,crossover_region_list,cell,ports
     
     @staticmethod
     def _format_region_into_matlab_code(region,name,prefix=''):
@@ -112,12 +121,12 @@ class Simulation:
         return output
 
     @staticmethod
-    def create(name,startfrequency,endfrequency,freqnum,layerlist,boxx,boxy,region,brush,transmissionlines=None,portbrushs=None,porttype=None,parametertype='S',speed=0,offsetx=0,offsety=0,deltaangle=0,absx=None,absy=None,extra=None):
+    def create(name,startfrequency,endfrequency,freqnum,layerlist,boxx,boxy,region,brush,transmissionlines=None,portbrushs=None,porttype=None,parametertype='S',speed=0,offsetx=0,offsety=0,deltaangle=0,absx=None,absy=None,crossoverLayerList=None,extra=None):
         '''
-        frequency单位GHz
+        https://zhaouv.github.io/sqc-painter/docs/#/simulation?id=usage
         '''
-        final_region,cell,ports=Simulation._get_region_cell_port(
-            region=region,brush=brush,layerlist=layerlist,boxx=boxx,boxy=boxy,deltaangle=deltaangle,absx=absx,absy=absy,portbrushs=portbrushs,transmissionlines=transmissionlines
+        final_region,crossover_region_list,cell,ports=Simulation._get_region_cell_port(
+            region=region,brush=brush,layerlist=layerlist,boxx=boxx,boxy=boxy,deltaangle=deltaangle,absx=absx,absy=absy,portbrushs=portbrushs,transmissionlines=transmissionlines,crossoverLayerList=crossoverLayerList
         )
         cell.name=name
         prefix=''
@@ -125,6 +134,14 @@ class Simulation:
         def pushln(ss):
             output.append(prefix+ss+'\n')
         output.extend(Simulation._format_region_into_matlab_code(region=final_region,name=name,prefix=prefix))
+        if crossoverLayerList!=None:
+            pushln(name+'_xys={};')
+            pushln(name+'_xys{end+1}='+name+'_xy;')
+            pushln('%')
+            for region in crossover_region_list:
+                output.extend(Simulation._format_region_into_matlab_code(region=region,name=name,prefix=prefix))
+                pushln(name+'_xys{end+1}='+name+'_xy;')
+                pushln('%')
         pushln(name+'_ports='+str(ports)+';')
         porttype_=[0 for ii in ports]
         if porttype!=None:
@@ -139,7 +156,10 @@ class Simulation:
         pushln(name+'_boxsize='+str([boxx,boxy])+';')
         pushln(name+'_sweep='+str([startfrequency,endfrequency,freqnum])+';')
         pushln('project_name_=\''+name+'\';')
-        pushln(Simulation.matlabfiletpl.replace('\n','\n'+prefix).replace('TBD_projectname',name))
+        if crossoverLayerList==None:
+            pushln(Simulation.matlabfiletpl.replace('\n','\n'+prefix).replace('TBD_projectname',name))
+        else:
+            pushln(Simulation.matlabfiletpl_threeLayer.replace('\n','\n'+prefix).replace('TBD_projectname',name))
         ss=''.join(output)
         with open('sonnet_'+name+'.m','w') as fid:
             fid.write(ss)
