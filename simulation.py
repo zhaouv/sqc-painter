@@ -9,7 +9,7 @@ Interactive=paintlib.Interactive
 CavityPainter=paintlib.CavityPainter
 IO=paintlib.IO
 
-with open(IO.path+'/matlabtpl.m') as fid:
+with open(IO.path+'/simulation-matlab/matlabtpl.m') as fid:
     _matlabtpl=fid.read()
 
 class Simulation:

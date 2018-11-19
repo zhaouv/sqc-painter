@@ -21,13 +21,15 @@ TBD_projectname_ports=[[-250000,-20000], [250000,-20000]];
 TBD_projectname_porttype=[0, 0];
 TBD_projectname_parametertype='Y';
 TBD_projectname_speed=0;
-TBD_projectname_extra='null';
+TBD_projectname_extra='{"json": "nothing, null will lead a bug in jsonlab-matlab"}';
 TBD_projectname_boxsize=[500000, 500000];
 TBD_projectname_sweep=[4, 8, 2];
 project_name_='TBD_projectname';
 %}
 %=====^ data ^=====v simulate v=====
-TBD_projectname_extra=jsondecode(TBD_projectname_extra);
+% json=struct('loads',@(str)subsref(loadjson(['["",' str ']']),struct('type','{}','subs',{{2}})),'dumps',@(obj)savejson('',obj));
+json=struct('loads',@(str)jsondecode(str),'dumps',@(obj)jsonencode(obj));
+TBD_projectname_extra=json.loads(TBD_projectname_extra);
 Project=SonnetProject();
 Project.saveAs([project_name_,'.son']);
 % length unit
@@ -85,67 +87,20 @@ fid=fopen([project_name_,'.son'],'r');
 str=fread(fid);
 fclose(fid);
 str=char(str');
-try
-    lines=split(str,sprintf('\n'));
-    clines=cell(1,size(lines,1));
-    for ii = 1:size(clines,2)
-        clines{ii}=char(lines(ii));
-    end
-catch
-    clines=strsplit(str,sprintf('\n'));
+%
+startDir = pwd;
+targetDir=fileparts(mfilename('fullpath'));
+if isempty(targetDir)
+    targetDir=pwd;
 end
-for ii = 1:size(clines,2)
-    if strcmp(clines{ii}(1:3) , 'BOX')
-        boxindex=ii;
-        break
-    end
-end
-clines=cat(2,...
-    {clines{1}},...
-    {'VER 14.52'},...
-    clines{3:boxindex-1},...
-    {'MET "Al" 1 NOR INF 0 0.1 '},...
-    {clines{boxindex}},...
-    {...
-        '      2000 1 1 0 0 0 0 "Air"',...
-        '      500 9.3 1 3e-006 0 0 0 "Sapphire" A 11.5 1 3e-006 0 0 ',...
-        'TECHLAY METAL Al <UNSPECIFIED> 10 0 ',...
-        '0 0 0 N 0 1 1 100 100 0 0 0 Y',...
-        'END',...
-        'END',...
-        'LORGN 0 1000 U '...
-    },...
-    clines{boxindex+3:end}...
-);
-for ii = boxindex:size(clines,2)
-    if size(clines{ii},2)>=3 && strcmp(clines{ii}(1:3) , 'NUM')
-        numindex=ii;
-        break
-    end
-end
-insertindexs=[];
-insertindexs(end+1)=numindex;
-for ii = numindex:size(clines,2)
-    if size(clines{ii},2)>=7 && strcmp(clines{ii}(1:7) , 'END GEO')
-        break
-    end
-    if size(clines{ii},2)>=3 && strcmp(clines{ii}(1:3) , 'END')
-        insertindexs(end+1)=ii;
-    end
-end
-insertindexs=insertindexs(1:end-1);
-templines={};
-lastindex=0;
-for ii = insertindexs
-    templines=cat(2,templines,clines(lastindex+1:ii+1),{'TLAYNAM Al INH'});
-    lastindex=ii+1;
-end
-clines=cat(2,templines,clines(lastindex+1:end));
+cd(targetDir);
+pymod = py.importlib.import_module('fixFormat');  
+py.importlib.reload(pymod);    
+cd(startDir);
+str=char(pymod.fixOneLayerFile(str));
 %
 fid=fopen([project_name_,'.son'],'w');
-for ii = 1:size(clines,2)
-    fprintf(fid,'%s\n',char(clines{ii}));
-end
+fprintf(fid,'%s',str);
 fclose(fid);
 %===================================
 %%
