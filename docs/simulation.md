@@ -7,9 +7,9 @@
 需要将 SonnetLab_v7.4/Scripts/SonnetPath.m 的117行 `aWasteCharacter=aRegistryFileLine(4);`  
 改为 `aWasteCharacter=aRegistryFileLine(5);` 才能正常工作.
 
-通过修改matlab模板文件 [matlabtpl.m](files/?../../matlabtpl.m ':ignore') 来修改sonnet的相关设置, 默认设置为`500μm Sapphire 2000μm Air 图形层Al 0.1μm, cellsize 1μm × 1μm`.
+通过修改matlab模板文件 [matlabtpl.m](files/?../../simulation-matlab/matlabtpl.m ':ignore') 来修改sonnet的相关设置, 默认设置为`500μm Sapphire 2000μm Air 图形层Al 0.1μm, cellsize 1μm × 1μm`.
 
-matlab模板文件以及Q值拟合脚本由 [@Rui](https://github.com/richardvancouver) 提供.
+matlab模板文件的部分内容以及Q值拟合脚本由 [@Rui](https://github.com/richardvancouver) 提供.
 
 ![](img_md/sonnetpic.png)
 
@@ -48,7 +48,7 @@ Simulation.create(
 
 参数含义(带`*`为必填):
 + `name*`: 切割的cell的名字以及.m文件和sonnet项目名字.
-+ `...frequency*`: 起止频率, 以GHZ为单位.
++ `startfrequency* endfrequency*`: 起止频率, 以GHZ为单位.
 + `freqnum*`: 频率点的数量.
 + `layerlist*`: 切割取反的layer列表.
 + `boxx* boxy*`: 切割盒子的宽高.
@@ -62,7 +62,7 @@ Simulation.create(
 + `offsetx offsety`: 指定切割区域的偏移.
 + `deltaangle`: 指定切割区域的逆时针旋转角度.
 + `absx absy`: 直接通过坐标指定切割区域的中心点, 此时不再通过`region`定位, `region`可以填None.
-+ `extra`: 额外传递给matlab的变量(通过json实现)
++ `extra`: 额外传递给matlab的变量(通过json实现, 要注意matlab的一个元素的数组和数是无区分的)
 
 同时由多种方式指定端口时, 顺序为`brush`->`transmissionlines`->`portbrushs`.
 
@@ -75,13 +75,15 @@ section 2
 
 section 3
 
-`    {'MET "Al" 1 NOR INF 0 0.1 '},...`  
+调用fixFormat.py来设置材料, 其中
+
+`MET "Al" 1 NOR INF 0 0.1 `  
 设置AL的厚度0.1μm
 
-`        '      2000 1 1 0 0 0 0 "Air"',...`  
+`      2000 1 1 0 0 0 0 "Air"`  
 设置Air的厚度2000μm
 
-`        '      500 9.3 1 3e-006 0 0 0 "Sapphire" A 11.5 1 3e-006 0 0 ',...`  
+`      500 9.3 1 3e-006 0 0 0 "Sapphire" A 11.5 1 3e-006 0 0 `  
 设置Sapphire的厚度500μm
 
 section 5
@@ -96,3 +98,15 @@ S21 = TouchstoneParser(snpfilename_,2,1);
 [c,dc] = qfit1(S21)
 save(  strcat(project_name_,'.mat'),'c','dc' )
 ```
+
+## 自动化确定设计参数
+
+利用`设计-调整参数-仿真-调整参数-仿真-...`的链路来自动得到设计参数
+
+提供了如图所示的腔频设计环路作为示例 [点此下载](files/AutoCircle.zip ':ignore')
+
+![](img_md/autocircle.png)
+
+另外提供某不愿透露姓名的作者使用的**不依赖klayout**的, 只用来打开gds文件并设置端口仿真的程序[gdstoson.m](files/?gdstoson.m ':ignore'), 此程序使用了库 [Octave / MATLAB Toolbox for GDSII Stream Format](https://github.com/ulfgri/gdsii-toolbox) 来读gds, 仿真依然是使用了SonnetLab
+
+使用sqc-painter做同样的事的话, 可以利用`painter=paintlib.TransfilePainter(filename="[insert].gds")` `painter.DrawGds(cell,newcellname,tr:pya.DCplxTrans)`来导入完整的gds, 不画图并直接`Simulation.create(...)`
