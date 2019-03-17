@@ -907,6 +907,109 @@ class SpecialPainter(Painter):
 
             for i,polygon in enumerate(polygons):
                 BasicPainter.Draw(cell,layerup,polygon)
+    @staticmethod
+    def DrawParametricCurve(cell,layer,brush,xfunc,yfunc,pointnumber,startlength,deltalength,number,lengthlist):
+        ''' 
+        沿参数曲线画空心线, 并每一段间隔变宽一小段  
+        返回曲线参数为0和参数为1的两端的笔刷 [brush0,brush1]
+
+        lengthlist=[l1,l2,d1,w1,w2] 描述变宽部分, 其内外长度和间隔, 外内宽度  
+        xfunc,yfunc 是曲线参数函数, 参数均匀从取0~1中取pointnumber个, pointnumber尽量取大但是也不要大到让程序变慢  
+        
+        待改进 todo : 智能选点匹配到 IO.pointdistance
+        '''
+        def getp(ll,p1,p2):
+            bl=p1.distance(p2)
+            dx=p2.x-p1.x
+            dy=p2.y-p1.y
+            k=1.0*ll/bl
+            return pya.DPoint(p1.x+k*dx,p1.y+k*dy)
+        #
+        cpts=[pya.DPoint(xfunc(ii/(pointnumber-1)),yfunc(ii/(pointnumber-1))) for ii in range(pointnumber)]
+        # todo : cpts智能选点匹配到 IO.pointdistance
+        #
+        outpolygons=[]
+        inpolygons=[]
+        #
+        path=pya.DPath(cpts,brush.widout,0,0)
+        polygon=path.polygon()
+        outpolygons.append(polygon)
+        path=pya.DPath(cpts,brush.widin,3,3)
+        polygon=path.polygon()
+        inpolygons.append(polygon)
+        #
+        l1=lengthlist[0]
+        l2=lengthlist[1]
+        d1=lengthlist[2]
+        w1=lengthlist[3]
+        w2=lengthlist[4]
+        #
+        finishnumber=0
+
+        distance=0
+
+        startchecklength=startlength
+
+        bigstartindex=0
+        bigstartp=None
+        smallstartindex=0
+        smallstartp=None
+
+        status=0 # 1进入大矩阵 2进入小矩阵 3出小矩阵 0出大矩阵
+
+        for i,pt in enumerate(cpts[1:-1],1):
+            delda=pt.distance(cpts[i-1])
+            distance=distance+delda
+            # 进入大矩阵
+            if status==0 and distance>=startchecklength:
+                status=1
+                bigstartindex=i
+                bigstartp=getp(distance-startchecklength,pt,cpts[i-1])
+            # 进入小矩阵
+            if status==1 and distance>=startchecklength+d1:
+                status=2
+                smallstartindex=i
+                smallstartp=getp(distance-startchecklength-d1,pt,cpts[i-1])
+            # 出小矩阵
+            if status==2 and distance>=startchecklength+d1+l2:
+                status=3
+                smallendindex=i
+                ep=getp(distance-startchecklength-d1-l2,pt,cpts[i-1])
+                temp=[smallstartp]
+                temp.extend(cpts[smallstartindex:smallendindex-1])
+                temp.append(ep)
+                path=pya.DPath(temp,w2,0,0)
+                polygon=path.polygon()
+                inpolygons.append(polygon)
+            # 出大矩阵
+            if status==3 and distance>=startchecklength+l1:
+                status=0
+                bigendindex=i
+                ep=getp(distance-startchecklength-l1,pt,cpts[i-1])
+                temp=[bigstartp]
+                temp.extend(cpts[bigstartindex:bigendindex-1])
+                temp.append(ep)
+                path=pya.DPath(temp,w1,0,0)
+                polygon=path.polygon()
+                outpolygons.append(polygon)
+                startchecklength+=deltalength
+                finishnumber+=1
+                if finishnumber==number:break
+
+        if status==3:inpolygons.pop() # 状态是最后一个大矩阵未完成, 此时弹出不应有的对应的小矩阵
+
+        region=pya.Region([pya.Polygon.from_dpoly(x) for x in outpolygons])-pya.Region([pya.Polygon.from_dpoly(x) for x in  inpolygons])
+        region.transform(pya.ICplxTrans.from_dtrans(brush.DCplxTrans))
+
+        BasicPainter.Draw(cell,layer,region)
+
+        p0=cpts[0]
+        p1=cpts[1]
+        brush0=CavityBrush(pointc=p0,angle=atan2(p0.y-p1.y,p0.x-p1.x),widout=brush.widout,widin=brush.widin,bgn_ext=0)
+        p0=cpts[-1]
+        p1=cpts[-2]
+        brush1=CavityBrush(pointc=p0,angle=atan2(p0.y-p1.y,p0.x-p1.x),widout=brush.widout,widin=brush.widin,bgn_ext=0)
+        return [brush0,brush1]
 
 class Collision(object):
     '''处理图形冲突的类'''

@@ -31,6 +31,9 @@ layer2 = layout.layer(1, 1)
 cell4 = layout.create_cell("Cavity2")
 top.insert(pya.CellInstArray(cell4.cell_index(),pya.Trans()))
 
+cell5 = layout.create_cell("Cavity3")
+top.insert(pya.CellInstArray(cell5.cell_index(),pya.Trans()))
+
 layer3 = layout.layer(2, 0)
 layer4 = layout.layer(3, 0)
 
@@ -81,6 +84,28 @@ painter8.DrawAirbridge(cell4,centerlineinfo,"Crossover2")
     #画连续的airbridge构成的同轴线
 paintlib.SpecialPainter.DrawContinueAirbridgePainter(cell4,layer4,layer3,centerlineinfo,s1=700000,s2=700000+85000,e1=painter7.cavityLength-15000,e2=painter7.cavityLength-15000-8500)
 
+#沿参数曲线画腔
+xfunc=lambda t:500000*t
+yfunc=lambda t:500000*10*t*(t-0.333)*(t-0.6666)*(t-1)
+# lengthlist=[l1,l2,d1,w1,w2]
+paintlib.SpecialPainter.DrawParametricCurve(cell5,layer1,paintlib.CavityBrush(pointc=pya.DPoint(800000,-70000), angle=0,widout=24000,widin=8000,bgn_ext=0),xfunc,yfunc,pointnumber=100,startlength=10000,deltalength=100000,number=10,lengthlist=[50000,40000,5000,40000,20000])
+paintlib.PcellPainter().DrawText(cell5,layer2,"y=10*x*(x-0.333)*(x-0.6666)*(x-1)",pya.DCplxTrans(30,25,False,800000,0))
+#
+def getSpiralFunc(a,angle0,angle1):
+    from math import cos,sin,pi,sqrt
+    def f(t):
+        return (angle0*(1-t)+angle1*t)/180*pi
+    def xfunc(t):
+        theta=f(t)
+        return a*sqrt(abs(theta))*cos(theta)* (-1 if theta<0 else 1)
+    def yfunc(t):
+        theta=f(t)
+        return a*sqrt(abs(theta))*sin(theta)
+    return xfunc,yfunc
+xfunc,yfunc=getSpiralFunc(90000,-720,720)
+# lengthlist=[l1,l2,d1,w1,w2]
+paintlib.SpecialPainter.DrawParametricCurve(cell5,layer1,paintlib.CavityBrush(pointc=pya.DPoint(1050000,900000), angle=0,widout=24000,widin=8000,bgn_ext=0),xfunc,yfunc,pointnumber=3000,startlength=50000,deltalength=100000,number=3000,lengthlist=[50000,40000,5000,30000,15000])
+
 #画电极传输线
 painter5=paintlib.CavityPainter(pya.DPoint(-600000,24000),angle=180,widout=20000,widin=10000,bgn_ext=0,end_ext=0)
 painter5.Electrode(reverse=True)
@@ -109,7 +134,7 @@ painter1=paintlib.TransfilePainter(filepath+"mark.gds")
 pts=[pya.Point(1000000,500000),pya.Point(-500000,-500000),pya.Point(1000000,-1000000)]
 painter1.DrawMark(top,pts,"Mark_laserwrite")
 
-#
+#导入GDS
 painter6=paintlib.TransfilePainter(filepath+"xmon.gds")
 tr=pya.DCplxTrans(1,-90,False,1000000,-300000)
 painter6.DrawGds(top,"Qubit",tr)
