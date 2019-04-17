@@ -69,6 +69,11 @@ pya中涉及到具体图形的class分成了两大类:
 + 方法`polygon.transformed(tr:pya.DCplxTrans)`使用给定的转换产生一个新多边形(原多边形不变)  
 + 方法`polygon.transform(tr:pya.DCplxTrans)`把给定的转换作用到多边形上(返回改变后的多边形)  
 
+### DPath  
+基础图形:折线,用路径来产生多边形  
++ 构造`path=pya.DPolygon(pts:list,12000,6000,8000)`用(点的列表,宽度,起点处伸张长度,终点处伸展长度)创建新折线    
++ 方法`polygon=path.polygon()`把折线转成多边形  
+
 ### DCplxTrans  
 图形转换:转换,描述一个图形到另一个图形的平移,旋转,缩放等转换  
 + 构造`tr=pya.DCplxTrans(1,90,false,133000,-2000)`用(放大倍数,旋转角度,是否先沿x翻转,平移x,平移y)创建新转换  
@@ -94,11 +99,11 @@ pya中涉及到具体图形的class分成了两大类:
 CavityPainter中也提供了相应的接口  
 ![](img_md/2018-04-20-22-38-14.png)
 + 方法`Connection(x,widin=16000, widout=114000, linewid=5000, slength1=16000, slength2=16000, clength=30000, cwid=54000,y=0,angle=0)`  
-产生给定尺寸的与Qubit的连接  
-+ 方法`Connection(brush:paintlib.CavityBrush,widin=16000, widout=114000, linewid=5000, slength1=16000, slength2=16000, clength=30000, cwid=54000)`,返回一个pya.DPolygon  
-产生给定尺寸的与Qubit的连接  
+产生给定尺寸的与Qubit的连接,返回一个pya.DPolygon  
++ 方法`Connection(brush:paintlib.CavityBrush,widin=16000, widout=114000, linewid=5000, slength1=16000, slength2=16000, clength=30000, cwid=54000)`  
+产生给定尺寸的与Qubit的连接,返回一个pya.DPolygon  
 ![](img_md/2018-04-20-22-43-34.png)
-+ 方法`Draw(cell,layer,x)`,返回一个pya.DPolygon  
++ 方法`Draw(cell,layer,x)`  
 把给定的图形x画到指定的cell和layer中  
 x可以是pya.DPolygon或pya.Region或pya.Polygon  
 
@@ -158,6 +163,24 @@ path也可以是由`s`代表直行,`r`代表右转,`l`代表左转,`n`代表重�
 把腔画到指定的cell和layer中  
 + 方法`painter.Getcenterlineinfo()`  
 得到当前腔的中心线(用于画airbridge), 每执行过一次`Run`, 返回的List中就会有一条中心线对应该路径  
+
+### SpecialPainter  
+用于画一些较复杂图形的静态类,不需要产生实例,以`paintlib.SpecialPainter.func()`的形式直接执行其方法  
++ 方法`Connection(x,widin=16000, widout=114000, linewid=5000, slength1=16000, slength2=16000, clength=30000, cwid=54000 ,clengthplus=0, turningRadiusPlus=5000,y=0,angle=0)`  
+产生给定尺寸的与Qubit的连接,返回由pya.DPolygon构成的列表  
++ 方法`ConnectionOnPainter(painter:paintlib.CavityPainter,clength=30000,cwid=54000,widout=114000,linewid=5000,slength1=16000,slength2=16000,clengthplus=0, turningRadiusPlus=5000,reverse=False)`  
+产生给定尺寸的与Qubit的连接,作用在CavityPainter上  
+相比BasicPainter中的版本增加了两个参数  
+![](img_md/2019-04-17-11-56-53.png)
++ 方法`DrawContinueAirbridgePainter(cell,layerup,layerdown,centerlinelist=painter.Getcenterlineinfo(),s1=300000,s2=300000+8500,e1=length-15000,e2=length-15000-8500,w1=20000,w2=30000,w3=40000,l1=28000,l2=22000,cnum=9)`  
+e2处的该长度\>length-e2是因为宽w1和w3的图形要作为固定长度成组出现
+![](img_md/2019-04-17-14-47-06.png)
++ 方法`DrawParametricCurve(cell,layer,brush:paintlib.CavityBrush,xfunc,yfunc,pointnumber,startlength,deltalength,number,lengthlist)`  
+沿参数曲线画空心线, 并每一段间隔变宽一小段  
+返回曲线参数为0和参数为1的两端的笔刷 [brush0,brush1]  
+lengthlist=[l1,l2,d1,w1,w2] 描述变宽部分, 其内外长度和间隔, 外内宽度  
+xfunc,yfunc 是曲线参数函数, 参数均匀从取0~1中取pointnumber个, pointnumber尽量取大但是也不要大到让程序变慢  
+从startlength开始, 每deltalength放置一个变宽的结构, 最多number个
 
 ### PcellPainter  
 用来画文字的类  
