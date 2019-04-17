@@ -168,14 +168,14 @@ path也可以是由`s`代表直行,`r`代表右转,`l`代表左转,`n`代表重�
 用于画一些较复杂图形的静态类,不需要产生实例,以`paintlib.SpecialPainter.func()`的形式直接执行其方法  
 + 方法`Connection(x,widin=16000, widout=114000, linewid=5000, slength1=16000, slength2=16000, clength=30000, cwid=54000 ,clengthplus=0, turningRadiusPlus=5000,y=0,angle=0)`  
 产生给定尺寸的与Qubit的连接,返回由pya.DPolygon构成的列表  
-+ 方法`ConnectionOnPainter(painter:paintlib.CavityPainter,clength=30000,cwid=54000,widout=114000,linewid=5000,slength1=16000,slength2=16000,clengthplus=0, turningRadiusPlus=5000,reverse=False)`  
++ 方法`ConnectionOnPainter(painter:paintlib.CavityPainter,clength=30000,` `cwid=54000,widout=114000,linewid=5000,slength1=16000,slength2=16000,clengthplus=0, turningRadiusPlus=5000,reverse=False)`  
 产生给定尺寸的与Qubit的连接,作用在CavityPainter上  
 相比BasicPainter中的版本增加了两个参数  
 ![](img_md/2019-04-17-11-56-53.png)
-+ 方法`DrawContinueAirbridgePainter(cell,layerup,layerdown,centerlinelist=painter.Getcenterlineinfo(),s1=300000,s2=300000+8500,e1=length-15000,e2=length-15000-8500,w1=20000,w2=30000,w3=40000,l1=28000,l2=22000,cnum=9)`  
++ 方法`DrawContinueAirbridgePainter(cell,layerup,layerdown,` `centerlinelist=painter.Getcenterlineinfo(),s1=300000,s2=300000+8500,` `e1=length-15000,e2=length-15000-8500,w1=20000,w2=30000,w3=40000,l1=28000,l2=22000,cnum=9)`  
 e2处的该长度\>length-e2是因为宽w1和w3的图形要作为固定长度成组出现
 ![](img_md/2019-04-17-14-47-06.png)
-+ 方法`DrawParametricCurve(cell,layer,brush:paintlib.CavityBrush,xfunc,yfunc,pointnumber,startlength,deltalength,number,lengthlist)`  
++ 方法`DrawParametricCurve(cell,layer,brush:paintlib.CavityBrush,xfunc,yfunc,` `pointnumber,startlength,deltalength,number,lengthlist)`  
 沿参数曲线画空心线, 并每一段间隔变宽一小段  
 返回曲线参数为0和参数为1的两端的笔刷 [brush0,brush1]  
 lengthlist=[l1,l2,d1,w1,w2] 描述变宽部分, 其内外长度和间隔, 外内宽度  
