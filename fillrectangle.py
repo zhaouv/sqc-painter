@@ -42,6 +42,8 @@ class FillRectangle:
             for layer in layers:
                 s=cell.begin_shapes_rec_touching(layer,box)
                 inregion.insert(s)
+        
+        inregion.merge()
 
         return [outregion,inregion]
 
@@ -57,6 +59,7 @@ class FillRectangle:
     def _merge_and_draw(cell,layer,outregion,inregion,regions,cutbool=True):
         for rr in regions:
             inregion=inregion+rr
+            inregion.merge()
         if cutbool:
             region=outregion-inregion
         else:
