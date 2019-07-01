@@ -1,6 +1,6 @@
 import paintlib
 import pya
-from math import cos,sin,pi
+from math import cos,sin,pi,ceil,floor
 import json
 Interactive=paintlib.Interactive
 CavityPainter=paintlib.CavityPainter
@@ -71,9 +71,53 @@ class FillRectangle:
     def DrawFillRegion(cell,layer,radius,number,layerlist=None,layermod='not in',box=None,cutbool=True):
         outregion,inregion=FillRectangle._get_shapes(layerlist,layermod,box)
         regions=FillRectangle._move_and_copy(inregion,radius,number)
-        FillRectangle._merge_and_draw(cell,layer,outregion,inregion,regions,cutbool)
+        return FillRectangle._merge_and_draw(cell,layer,outregion,inregion,regions,cutbool)
 
-# import fillrectangle
-# reload(fillrectangle)
-# box=pya.Box(-848740,-212112,40934,424224)
-# fillrectangle.FillRectangle.DrawFillRegion(cell=cell6,layer=layer5,radius=20000,number=70,layerlist=None,layermod='not in',box=box,cutbool=True)
+    @staticmethod
+    def getRegionFromLayer(layerInfo):
+        region=pya.Region()
+        if type(layerInfo)==str:
+            layer=IO.layout.find_layer(layerInfo)
+        else:
+            layer=IO.layout.find_layer(layerInfo[0],layerInfo[1])
+        region.insert(IO.top.begin_shapes_rec(layer))
+        region.merge()
+        return region
+
+    @staticmethod
+    def DrawBoxesInRegion(cell,layer,region,dlength,dgap,dx=0,dy=0):
+        
+        d=dlength+dgap
+        area=region.bbox()
+
+        dx=dx%d
+        dy=dy%d
+
+        left=floor((area.left-dx)/d)
+        bottom=floor((area.top-dy)/d)
+        right=ceil((area.right-dx)/d)
+        top=ceil((area.top-dy)/d)
+
+        x0=left*d+dx
+        y0=bottom*d+dy
+
+        boxesregion=pya.Region()
+        for ii in range(right-left):
+            for jj in range(top-bottom):
+                x1=x0+ii*d
+                y1=y0+jj*d
+                box=pya.Box(x1,y1,x1+dlength,y1+dlength)
+                boxesregion.insert(box)
+
+        andRegion= boxesregion & region
+
+        BasicPainter.Draw(cell,layer,andRegion)
+        return andRegion
+        
+""" 
+import fillrectangle
+reload(fillrectangle)
+box=pya.Box(-848740,-212112,40934,424224)
+region=fillrectangle.FillRectangle.DrawFillRegion(cell=cell6,layer=layer5,radius=20000,number=70,layerlist=None,layermod='not in',box=box,cutbool=True)
+fillrectangle.FillRectangle.DrawBoxesInRegion(cell=cell7,layer=layer6,region,dlength=80000,dgap=2000,dx=0,dy=0)
+ """

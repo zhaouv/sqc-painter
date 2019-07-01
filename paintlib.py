@@ -1325,6 +1325,8 @@ class Interactive:
             for layer in layers:
                 s=cell.begin_shapes_rec_touching(layer,box)
                 inregion.insert(s)
+                
+        inregion.merge()
 
         if not mergeanddraw:
             return outregion,inregion
