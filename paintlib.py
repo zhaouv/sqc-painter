@@ -2,7 +2,7 @@
 #KLayout 0.24.8
 #python 3.4
 import pya
-from math import cos,sin,pi,tan,atan2,sqrt,ceil
+from math import cos,sin,pi,tan,atan2,sqrt,ceil,floor
 import re
 import time
 
@@ -67,10 +67,10 @@ class BasicPainter:
         Y=[-1,-1,-1,thetay,-sqrt(2),thetay,-1,-1,-1]
         high=[-1,-1,1,1,   0,0]
         #
-#        theta=-1.34
-#        X=[-1,-1,-1, 0   , 1, 1, 1]
-#        Y=[-1,-1,-1,theta,-1,-1,-1]
-#        high=[-1,-1,1,1,    0,0]
+        # theta=-1.34
+        # X=[-1,-1,-1, 0   , 1, 1, 1]
+        # Y=[-1,-1,-1,theta,-1,-1,-1]
+        # high=[-1,-1,1,1,    0,0]
         #
         f=BasicPainter.NewtonInterpolation(X,Y,high)
         pts1=[pya.DPoint((-1.0+2.0/(n-1)*i)/sqrt(2)*r1,f(-1.0+2.0/(n-1)*i)/sqrt(2)*r1) for i in range(n)]
@@ -173,7 +173,7 @@ class BasicPainter:
             cell.shapes(layer).insert(pya.Polygon.from_dpoly(x))
         else:
             cell.shapes(layer).insert(x)
-#paintlib.BasicPainter.Draw(cell,layer,x)
+    #paintlib.BasicPainter.Draw(cell,layer,x)
         
 class TraceRunner:
     patternNames=['straight','turning','repeatStart','repeatEnd']
@@ -1010,6 +1010,60 @@ class SpecialPainter(Painter):
         p1=cpts[-2]
         brush1=CavityBrush(pointc=p0,angle=atan2(p0.y-p1.y,p0.x-p1.x),widout=brush.widout,widin=brush.widin,bgn_ext=0)
         return [brush0,brush1]
+    @staticmethod
+    def _boxes_move_and_copy(inregion,radius,number):
+        xys=[(radius*cos(2*pi*ii/number),radius*sin(2*pi*ii/number)) for ii in range(number)]
+        regions=[]
+        for x,y in xys:
+            regions.append(inregion.transformed(pya.Trans(x,y)))
+        return regions
+    @staticmethod
+    def _boxes_merge_and_draw(cell,layer,outregion,inregion,regions,cutbool=True):
+        for rr in regions:
+            inregion=inregion+rr
+            inregion.merge()
+        if cutbool:
+            region=outregion-inregion
+        else:
+            region=outregion & inregion
+        BasicPainter.Draw(cell,layer,region)
+        return region
+    @staticmethod
+    def DrawFillRegion(cell,layer,radius,number,layerlist=None,layermod='not in',box=None,cutbool=True):
+        outregion,inregion=Collision.getShapesFromCellAndLayer(cellList=[IO.top],layerList=layerlist,box=box,layermod=layermod)
+        regions=SpecialPainter._boxes_move_and_copy(inregion,radius,number)
+        return SpecialPainter._boxes_merge_and_draw(cell,layer,outregion,inregion,regions,cutbool)
+    @staticmethod
+    def DrawBoxesInRegion(cell,layer,region,dlength,dgap,dx=0,dy=0): 
+        d=dlength+dgap
+        area=region.bbox()
+        dx=dx%d
+        dy=dy%d
+        left=floor((area.left-dx)/d)
+        bottom=floor((area.bottom-dy)/d)
+        right=ceil((area.right-dx)/d)
+        top=ceil((area.top-dy)/d)
+        x0=left*d+dx
+        y0=bottom*d+dy
+        boxesregion=pya.Region()
+        for ii in range(right-left):
+            for jj in range(top-bottom):
+                x1=x0+ii*d
+                y1=y0+jj*d
+                box=pya.Box(x1,y1,x1+dlength,y1+dlength)
+                boxesregion.insert(box)
+        andRegion= boxesregion & region
+        BasicPainter.Draw(cell,layer,andRegion)
+        return andRegion
+    @staticmethod
+    def DrawBoxes(cell,layer,dlength,dgap,radius,number,layerlist=None,layermod='not in',box=None,cutbool=True,dx=0,dy=0):
+        fillCell = IO.layout.create_cell("fill")
+        IO.auxiliary.insert(pya.CellInstArray(fillCell.cell_index(),pya.Trans()))
+        fillRegion=SpecialPainter.DrawFillRegion(cell=fillCell,layer=IO.layer,radius=radius,number=number,layerlist=layerlist,layermod=layermod,box=box,cutbool=cutbool)
+        boxesRegion=SpecialPainter.DrawBoxesInRegion(cell=cell,layer=layer,region=fillRegion,dlength=dlength,dgap=dgap,dx=dx,dy=dy)
+        return fillCell,fillRegion,boxesRegion
+        # box=pya.Box(-170000,-60000,110000,190000)
+        # paintlib.SpecialPainter.DrawBoxes(cell=cell7,layer=layer6,dlength=80000,dgap=2000,radius=20000,number=70,layerlist=None,layermod='not in',box=box,cutbool=True,dx=0,dy=0)
 
 class Collision(object):
     '''处理图形冲突的类'''
@@ -1036,6 +1090,36 @@ class Collision(object):
             region=pya.Region(pya.DPolygon(BasicPainter.arc(other,self.pointRadius,8,0,360)))
             return self.region.interacting(region)
         raise TypeError('Invalid input')
+    @staticmethod
+    def getRegionFromLayer(layerInfo):
+        region=pya.Region()
+        if type(layerInfo)==str:
+            layer=IO.layout.find_layer(layerInfo)
+        else:
+            layer=IO.layout.find_layer(layerInfo[0],layerInfo[1])
+        region.insert(IO.top.begin_shapes_rec(layer))
+        region.merge()
+        return region
+    @staticmethod
+    def getShapesFromCellAndLayer(cellList,layerList=None,box=None,layermod='not in'):
+        if layerList==None:layerList=[(0,0)]
+        if type(box)==type(None):box=Interactive._box_selected()
+        if not box:raise RuntimeError('no box set')
+        _layerlist=[]
+        for ii in layerList:
+            if type(ii)==str:
+                _layerlist.append(IO.layout.find_layer(ii))
+            else:
+                _layerlist.append(IO.layout.find_layer(ii[0],ii[1]))
+        layers=[index for index in IO.layout.layer_indices() if index in _layerlist] if layermod=='in' else [index for index in IO.layout.layer_indices() if index not in _layerlist]
+        outregion=pya.Region(box)
+        inregion=pya.Region()
+        for cell in cellList:
+            for layer in layers:
+                s=cell.begin_shapes_rec_touching(layer,box)
+                inregion.insert(s)
+        inregion.merge()
+        return [outregion,inregion]
 
 class TBD(object):
     '''处理待定数值的静态类'''
@@ -1103,6 +1187,7 @@ class TBD(object):
 
 class Interactive:
     '''处理交互的类'''
+    #v =pya.MessageBox.warning("Dialog Title", "Something happened. Continue?", pya.MessageBox.Yes + pya.MessageBox.No)
     deltaangle=45
     maxlength=1073741824
     turningr=50000
@@ -1295,38 +1380,8 @@ class Interactive:
 
     @staticmethod
     def cut(layerlist=None,layermod='not in',box=None,mergeanddraw=True):
-        if layerlist==None:layerlist=[(0,0)]
-        if type(box)==type(None):box=Interactive._box_selected()
-        if not box:return
 
-        # celllist=[]
-        # cells=[]
-        # def buildcells(cell):
-        #     if cell.name.split('$')[0] in celllist:return
-        #     cells.append(cell)
-        #     for ii in cell.each_child_cell():
-        #         buildcells(layout.cell(ii))
-        # buildcells(top)
-        # cellnames=[c.name for c in cells]
-        cells=[IO.top]
-
-        _layerlist=[]
-        for ii in layerlist:
-            if type(ii)==str:
-                _layerlist.append(IO.layout.find_layer(ii))
-            else:
-                _layerlist.append(IO.layout.find_layer(ii[0],ii[1]))
-        layers=[index for index in IO.layout.layer_indices() if index in _layerlist] if layermod=='in' else [index for index in IO.layout.layer_indices() if index not in _layerlist]
-
-        outregion=pya.Region(box)
-        inregion=pya.Region()
-
-        for cell in cells:
-            for layer in layers:
-                s=cell.begin_shapes_rec_touching(layer,box)
-                inregion.insert(s)
-                
-        inregion.merge()
+        outregion,inregion=Collision.getShapesFromCellAndLayer(cellList=[IO.top],layerList=layerlist,box=box,layermod=layermod)
 
         if not mergeanddraw:
             return outregion,inregion
@@ -1393,4 +1448,4 @@ class IO:
         print(filename)
         IO.layout.write(filename)
 
-#v =pya.MessageBox.warning("Dialog Title", "Something happened. Continue?", pya.MessageBox.Yes + pya.MessageBox.No)
+    

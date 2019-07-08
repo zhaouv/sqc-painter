@@ -139,6 +139,9 @@ painter6=paintlib.TransfilePainter(filepath+"xmon.gds")
 tr=pya.DCplxTrans(1,-90,False,1000000,-300000)
 painter6.DrawGds(top,"Qubit",tr)
 
+box=pya.Box(-170000,-60000,110000,190000)
+paintlib.SpecialPainter.DrawBoxes(cell=cell5,layer=layer4,dlength=80000,dgap=2000,radius=20000,number=70,layerlist=None,layermod='not in',box=box,cutbool=True,dx=0,dy=0)
+
 #输出
 print(TBD.isFinish())
 paintlib.IO.Show()#输出到屏幕上

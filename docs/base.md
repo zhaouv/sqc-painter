@@ -183,6 +183,15 @@ xfunc,yfunc 是曲线参数函数, 参数均匀从取0~1中取pointnumber个, po
 从startlength开始, 每deltalength放置一个变宽的结构, 最多number个  
 ![](img_md/2019-07-08-12-28-53.png)  
 ![](img_md/2019-07-08-12-17-13.png)  
++ 方法`DrawBoxes(cell,layer,dlength,dgap,radius,number,` `layerlist=None,layermod='not in',box=None,cutbool=True,dx=0,dy=0)`  
+在选定box内填充网格  
+在layerlist中图形radius之外的区域内, 用长dlength间隔dgap的网格填充, 初始偏移是dx,dy  
+可以使用`layermod='in'`来在layerlist中图形内部radius之内填充  
+通过把一个图形复制number份摆在radius的圆周上来变为一个区域再与网格取并来实现, number会决定精度速度, cutbool取false会使得区域取反.  
+生成区域的过程较慢, 如果已经生成了区域只改网格参数, 可以先  
+`region=paintlib.Collision.getRegionFromLayer('layer1')`获取region,  
+再`DrawBoxesInRegion(cell,layer,region,dlength,dgap,dx=0,dy=0)`重新画网格  
+![](img_md/2019-07-08-21-14-10.png)
 
 ### PcellPainter  
 用来画文字的类  
