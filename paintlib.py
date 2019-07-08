@@ -1277,7 +1277,7 @@ class Interactive:
         if cutbool:
             region=outregion-inregion
         else:
-            region=outregion-(outregion-inregion)
+            region=outregion & inregion
         #
         if type(cell)==type(None):
             if type(tr_to)==type(None):

@@ -63,7 +63,7 @@ class FillRectangle:
         if cutbool:
             region=outregion-inregion
         else:
-            region=outregion-(outregion-inregion)
+            region=outregion & inregion
         BasicPainter.Draw(cell,layer,region)
         return region
 

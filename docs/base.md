@@ -180,7 +180,9 @@ e2处的该长度\>length-e2是因为宽w1和w3的图形要作为固定长度成
 返回曲线参数为0和参数为1的两端的笔刷 [brush0,brush1]  
 lengthlist=[l1,l2,d1,w1,w2] 描述变宽部分, 其内外长度和间隔, 外内宽度  
 xfunc,yfunc 是曲线参数函数, 参数均匀从取0~1中取pointnumber个, pointnumber尽量取大但是也不要大到让程序变慢  
-从startlength开始, 每deltalength放置一个变宽的结构, 最多number个
+从startlength开始, 每deltalength放置一个变宽的结构, 最多number个  
+![](img_md/2019-07-08-12-28-53.png)  
+![](img_md/2019-07-08-12-17-13.png)  
 
 ### PcellPainter  
 用来画文字的类  
