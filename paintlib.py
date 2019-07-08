@@ -1437,6 +1437,7 @@ class IO:
     def Show():
         if IO.layout_view:
             IO.layout_view.select_cell(IO.top.cell_index(), 0)
+            IO.layout_view.max_hier()
             IO.layout_view.add_missing_layers()
             IO.layout_view.zoom_fit()
             strtime=time.strftime("%Y%m%d_%H%M%S")
