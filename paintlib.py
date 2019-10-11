@@ -5,6 +5,7 @@ import pya
 from math import cos,sin,pi,tan,atan2,sqrt,ceil,floor
 import re
 import time
+import queue
 
 class BasicPainter:
     '''用于画基础图形的静态类'''
@@ -1185,6 +1186,238 @@ class TBD(object):
             fid.write(ss)
         return finish
 
+class AutoRoute:
+    '''处理自动布线的类'''
+    @staticmethod
+    def _Rasterized(size, box, region):
+        '''
+        size
+            double unit nm
+        box
+            pya.Box
+        region
+            pya.Region
+        return
+            area[x][y] :int[][]
+            xyToAreaxy :lambda double,double:int,int
+        '''
+        dx = 0
+        dy = 0
+        dx = dx % size
+        dy = dy % size
+        left = ceil((box.left-dx)/size)
+        bottom = ceil((box.bottom-dy)/size)
+        right = floor((box.right-dx)/size)
+        top = floor((box.top-dy)/size)
+        x0 = left*size+dx
+        y0 = bottom*size+dy
+        area = []
+        for ii in range(right-left):
+            thisline = []
+            for jj in range(top-bottom):
+                x1 = x0+ii*size
+                y1 = y0+jj*size
+                check_box = pya.Box(x1, y1, x1+size, y1+size)
+                empty = (pya.Region(check_box) & region).is_empty()
+                thisline.append(0 if empty else 1)
+            thisline[0] = 1
+            thisline[-1] = 1
+            area.append(thisline)
+        area[0] = [1 for ii in area[0]]
+        area[-1] = [1 for ii in area[-1]]
+
+        def xyToAreaxy(px, py):
+            px -= x0
+            py -= y0
+            if px < 0 or py < 0 or px > size*(right-left) or py > size*(top-bottom):
+                return -1, -1
+            return floor(px/size), floor(py/size)
+
+        def areaxyToXy(x, y):
+            return x0+(x+0.5)*size, y0+(y+0.5)*size
+        return area, xyToAreaxy, areaxyToXy
+
+    @staticmethod
+    def _brushToPair(xyToAreaxy, brushs, area, size):
+        pairs0 = []
+        pairs = []
+        for brush12 in brushs:
+            pairs0.append([xyToAreaxy(brush.centerx, brush.centery)
+                           for brush in brush12])
+            tmp_pair = []
+            for brush in brush12:
+                tmp_painter = CavityPainter(brush)
+                tmp_painter.Run('s'+str(size))
+                tmp_brush = tmp_painter.brush
+                tmp_pair.append(xyToAreaxy(
+                    tmp_brush.centerx, tmp_brush.centery))
+            pairs.append(tmp_pair)
+        BIGNUMBERPID = 2**20
+        for pairs_ in [pairs, pairs0]:
+            for pid, pair in enumerate(pairs_):
+                for is1, pt in enumerate(pair, 1):
+                    px, py = pt
+                    if area[px][py] >= BIGNUMBERPID:
+                        estr = 'conflict, pair '+str(pid)
+                        pya.MessageBox.warning(
+                            "paintlib.AutoRoute._brushToPair", "Error : "+estr, pya.MessageBox.Ok)
+                        return [], estr
+                    area[px][py] = is1*BIGNUMBERPID+pid
+        return pairs, ''
+
+    @staticmethod
+    def _BFSTwoPoint(area, pair):
+        '''
+        ul u ur
+        l    r
+        dl d dr
+        2 6 3
+        8   9
+        4 7 5
+        '''
+        marks = [2, 3, 4, 5, 6, 7, 8, 9]
+        ul, ur, dl, dr, u, d, l, r = marks
+        BIGNUMBERPID = 2**20
+        for vx in area:
+            for y, v in enumerate(vx):
+                if v in marks:
+                    vx[y] = 0
+        area[pair[1][0]][pair[1][1]] = 0
+
+        def unvaild(v):
+            return v == 1 or v > 9
+        q = queue.Queue()
+        q.put((0, pair[0]))
+        while not q.empty():
+            mdistance, pt = q.get()
+            px, py = pt
+            if pt == pair[1]:
+                pair.append(-mdistance)
+                mark = area[px][py]
+                area[px][py] = area[pair[0][0]][pair[0][1]]+BIGNUMBERPID
+                return mark
+            for mark, dx, dy in zip([u, d, l, r], [0, 0, -1, 1], [1, -1, 0, 0]):
+                if area[px+dx][py+dy] != 0:
+                    continue
+                area[px+dx][py+dy] = mark
+                q.put((mdistance-1, (px+dx, py+dy)))
+            for mark, dx, dy in zip([ul, ur, dl, dr], [-1, 1, -1, 1], [1, 1, -1, -1]):
+                if area[px+dx][py+dy] != 0:
+                    continue
+                if unvaild(area[px+dx][py]) and unvaild(area[px][py+dy]):
+                    continue
+                area[px+dx][py+dy] = mark
+                q.put((mdistance-1.4142135623730951, (px+dx, py+dy)))
+        area[pair[1][0]][pair[1][1]] = area[pair[0][0]][pair[0][1]]+BIGNUMBERPID
+        return 0
+
+    @staticmethod
+    def _BFSLinkAllToCheckAndDistance(area, pairs):
+        for pid, pair in enumerate(pairs):
+            print('paintlib.AutoRoute._BFSLinkAllToCheckAndDistance:',
+                  'linking pair', pid)
+            if AutoRoute._BFSTwoPoint(area, pair) == 0:
+                estr = 'can not link, pair '+str(pid)
+                pya.MessageBox.warning(
+                    "paintlib.AutoRoute._BFSLinkAllToCheckAndDistance", "Error : "+estr, pya.MessageBox.Ok)
+                return estr
+        return ''
+
+    @staticmethod
+    def _orderDistance(pairs):
+        order = sorted(list(enumerate(pairs)), key=lambda x: x[1][2])
+        return [arr[0] for arr in order]
+
+    @staticmethod
+    def _backtrace(direct, pair, area):
+        '''
+        ul u ur
+        l    r
+        dl d dr
+        2 6 3
+        8   9
+        4 7 5
+        '''
+        dxdy = [
+            0, 1,
+            (-1, 1),
+            (1, 1),
+            (-1, -1),
+            (1, -1),
+            (0, 1),
+            (0, -1),
+            (-1, 0),
+            (1, 0),
+        ]
+        px, py = pair[1]
+        line = [(px, py)]
+        rmark = area[pair[0][0]][pair[0][1]]
+        while (px, py) != pair[0]:
+            area[px][py] = rmark
+            dx, dy = dxdy[direct]
+            px -= dx
+            py -= dy
+            line.append((px, py))
+            direct = area[px][py]
+        return line[::-1]
+
+    @staticmethod
+    def _linkInArea(area, pairs, order):
+        lines = list(range(len(order)))
+        for ii in order:
+            print('paintlib.AutoRoute._linkInArea:', 'linking pair', ii)
+            pair = pairs[ii]
+            while len(pair) > 2:
+                pair.pop()
+            direct = AutoRoute._BFSTwoPoint(area, pair)
+            if direct == 0:
+                estr = 'can not link, pair '+str(ii)
+                pya.MessageBox.warning(
+                    "paintlib.AutoRoute._linkInArea", "Error : "+estr, pya.MessageBox.Ok)
+                return estr, []
+            lines[ii] = AutoRoute._backtrace(direct, pair, area)
+        return '', lines
+
+    @staticmethod
+    def _linkLine(cell, layer, line, brush12, areaxyToXy):
+        spts = [pya.DPoint(areaxyToXy(x, y)[0], areaxyToXy(x, y)[1])
+                for x, y in line[::-1]]
+        pathstr = Interactive.link(
+            brush1=brush12[1], brush2=brush12[0], spts=spts, print_=False)
+        if not pathstr:
+            return 'link line fail', 0
+        return '', Interactive._show_path(cell, layer, brush12[1], pathstr)
+
+    @staticmethod
+    def autoRoute(cell, layer, size, cellList, brushs, layerList=None, box=None, layermod='not in', order=None):
+        outregion, inregion = Collision.getShapesFromCellAndLayer(
+            cellList, layerList=layerList, box=box, layermod=layermod)
+        region = outregion & inregion
+        area, xyToAreaxy, areaxyToXy = AutoRoute._Rasterized(size, box, region)
+        pairs, checkresult = AutoRoute._brushToPair(
+            xyToAreaxy, brushs, area, size)
+        if checkresult != '':
+            return checkresult, []
+        if order == None:
+            order = list(range(len(brushs)))
+        elif order == ['distance']:
+            checkresult = AutoRoute._BFSLinkAllToCheckAndDistance(area, pairs)
+            if checkresult != '':
+                return checkresult, []
+            order = AutoRoute._orderDistance(pairs)
+        checkresult, lines = AutoRoute._linkInArea(area, pairs, order)
+        if checkresult != '':
+            return checkresult, []
+        lengths = []
+        for line, brush12 in zip(lines, brushs):
+            checkresult, length = AutoRoute._linkLine(
+                cell, layer, line, brush12, areaxyToXy)
+            if checkresult:
+                return checkresult, []
+            lengths.append(length)
+        return '', lengths
+
+
 class Interactive:
     '''处理交互的类'''
     #v =pya.MessageBox.warning("Dialog Title", "Something happened. Continue?", pya.MessageBox.Yes + pya.MessageBox.No)
@@ -1203,12 +1436,13 @@ class Interactive:
         return brush
     
     @staticmethod
-    def _show_path(brush,pathstr):
-        l={'path':None}
-        exec(pathstr,None,l)
-        painter=CavityPainter(brush)
-        painter.Run(l['path'])
-        painter.Draw(IO.link,IO.layer)
+    def _show_path(cell, layer, brush, pathstr):
+        l = {'path': None}
+        exec(pathstr, None, l)
+        painter = CavityPainter(brush)
+        length = painter.Run(l['path'])
+        painter.Draw(cell, layer)
+        return length
 
     @staticmethod
     def _get_nearest_brush(x,y):
@@ -1255,97 +1489,115 @@ class Interactive:
         return ('\n'+indent).join(output)
     
     @staticmethod
-    def link(brush1=None,brush2=None):
+    def link(brush1=None, brush2=None, spts=None, print_=True):
         '''
         输入两个CavityBrush作为参数, 并点击图中的一个路径, 生成一个连接两个brush的路径的函数  
         缺省时会在Interactive.searchr内搜索最近的brush
         第二个brush可为None, 此时取path的终点作为路径终点
         '''
-        deltaangle=Interactive.deltaangle
-        maxlength=Interactive.maxlength
+        deltaangle = Interactive.deltaangle
+        maxlength = Interactive.maxlength
 
-        spts=Interactive._pts_path_selected()
-        if spts==False:return
-        if brush1==None:brush1=Interactive._get_nearest_brush(spts[0].x,spts[0].y)
-        if brush2==None:brush2=Interactive._get_nearest_brush(spts[-1].x,spts[-1].y)
-
-        if not isinstance(brush1,CavityBrush):
-            pya.MessageBox.warning("paintlib.Interactive.link", "Argument 1 must be CavityBrush", pya.MessageBox.Ok)
+        if spts == None:
+            spts = Interactive._pts_path_selected()
+        if spts == False:
             return
-        if not isinstance(brush2,CavityBrush) and brush2!=None:
-            pya.MessageBox.warning("paintlib.Interactive.link", "Argument 2 must be CavityBrush or None", pya.MessageBox.Ok)
-            return
-        angles=[brush1.angle]
-        pts=[pya.DPoint(brush1.centerx,brush1.centery)]
-        edges=[pya.DEdge(pts[0].x,pts[0].y,pts[0].x+maxlength*cos(angles[0]/180*pi),pts[0].y+maxlength*sin(angles[0]/180*pi))]
-        das=[]
-        lastpt=None
+        if brush1 == None:
+            brush1 = Interactive._get_nearest_brush(spts[0].x, spts[0].y)
+        if brush2 == None:
+            brush2 = Interactive._get_nearest_brush(spts[-1].x, spts[-1].y)
 
-        for ii in range(1,len(spts)):
-            pt=spts[ii]
-            pt0=spts[ii-1]
-            angle0=angles[-1]
-            edge0=edges[-1]
-            angle=atan2(pt.y-pt0.y,pt.x-pt0.x)/pi*180
-            angle=round(angle/deltaangle)*deltaangle
-            angle=0 if angle==360.0 else angle
-            if(angle==angle0):continue
-            da=-((angle+3600-angle0)%360)
-            if(da==-180):
-                pya.MessageBox.warning("paintlib.Interactive.link", "Error : Turn 180 degrees", pya.MessageBox.Ok)
+        if not isinstance(brush1, CavityBrush):
+            pya.MessageBox.warning("paintlib.Interactive.link",
+                                "Argument 1 must be CavityBrush", pya.MessageBox.Ok)
+            return
+        if not isinstance(brush2, CavityBrush) and brush2 != None:
+            pya.MessageBox.warning("paintlib.Interactive.link",
+                                "Argument 2 must be CavityBrush or None", pya.MessageBox.Ok)
+            return
+        angles = [brush1.angle]
+        pts = [pya.DPoint(brush1.centerx, brush1.centery)]
+        edges = [pya.DEdge(pts[0].x, pts[0].y, pts[0].x+maxlength *
+                        cos(angles[0]/180*pi), pts[0].y+maxlength*sin(angles[0]/180*pi))]
+        das = []
+        lastpt = None
+
+        for ii in range(1, len(spts)):
+            pt = spts[ii]
+            pt0 = spts[ii-1]
+            angle0 = angles[-1]
+            edge0 = edges[-1]
+            angle = atan2(pt.y-pt0.y, pt.x-pt0.x)/pi*180
+            angle = round(angle/deltaangle)*deltaangle
+            angle = 0 if angle == 360.0 else angle
+            if(angle == angle0):
+                continue
+            da = -((angle+3600-angle0) % 360)
+            if(da == -180):
+                pya.MessageBox.warning(
+                    "paintlib.Interactive.link", "Error : Turn 180 degrees", pya.MessageBox.Ok)
                 return
-            if(da<-180):da=360+da
-            lastpt=[pt.x,pt.y]
+            if(da < -180):
+                da = 360+da
+            lastpt = [pt.x, pt.y]
             angles.append(angle)
-            edge=pya.DEdge(pt.x+maxlength*cos(angle/180*pi),pt.y+maxlength*sin(angle/180*pi),pt.x-maxlength*cos(angle/180*pi),pt.y-maxlength*sin(angle/180*pi))
+            edge = pya.DEdge(pt.x+maxlength*cos(angle/180*pi), pt.y+maxlength*sin(angle/180*pi),
+                            pt.x-maxlength*cos(angle/180*pi), pt.y-maxlength*sin(angle/180*pi))
             das.append(da)
             if not edge.crossed_by(edge0):
-                print('point ',ii)
+                print('point ', ii)
                 print(angle)
                 print(angle0)
-                pya.MessageBox.warning("paintlib.Interactive.link", "Error : Invalid path leads to no crossing point", pya.MessageBox.Ok)
+                pya.MessageBox.warning(
+                    "paintlib.Interactive.link", "Error : Invalid path leads to no crossing point", pya.MessageBox.Ok)
                 return
             pts.append(edge.crossing_point(edge0))
             edges.append(edge)
 
-        if(brush2!=None):
-            angle0=angles[-1]
-            edge0=edges[-1]
-            angle=brush2.angle+180
-            pt=pya.DPoint(brush2.centerx,brush2.centery)
-            _angle=round(angle/deltaangle)*deltaangle
-            _angle=0 if _angle==360.0 else _angle
-            if(_angle==angle0):
+        if(brush2 != None):
+            angle0 = angles[-1]
+            edge0 = edges[-1]
+            angle = brush2.angle+180
+            pt = pya.DPoint(brush2.centerx, brush2.centery)
+            _angle = round(angle/deltaangle)*deltaangle
+            _angle = 0 if _angle == 360.0 else _angle
+            if(_angle == angle0):
                 angles.pop()
                 das.pop()
                 pts.pop()
                 edges.pop()
-                angle0=angles[-1]
-                edge0=edges[-1]
-            da=-((angle+3600-angle0)%360)
-            _da=-((_angle+3600-angle0)%360)
-            if(_da==-180):
-                pya.MessageBox.warning("paintlib.Interactive.link", "Error : Turn 180 degrees", pya.MessageBox.Ok)
+                angle0 = angles[-1]
+                edge0 = edges[-1]
+            da = -((angle+3600-angle0) % 360)
+            _da = -((_angle+3600-angle0) % 360)
+            if(_da == -180):
+                pya.MessageBox.warning(
+                    "paintlib.Interactive.link", "Error : Turn 180 degrees", pya.MessageBox.Ok)
                 return
-            if(da<-180):da=360+da
-            lastpt=[pt.x,pt.y]
-            edge=pya.DEdge(pt.x,pt.y,pt.x-maxlength*cos(angle/180*pi),pt.y-maxlength*sin(angle/180*pi))
+            if(da < -180):
+                da = 360+da
+            lastpt = [pt.x, pt.y]
+            edge = pya.DEdge(pt.x, pt.y, pt.x-maxlength *
+                            cos(angle/180*pi), pt.y-maxlength*sin(angle/180*pi))
             angles.append(angle)
             das.append(da)
             if not edge.crossed_by(edge0):
                 print('brush2')
                 print(angle)
                 print(angle0)
-                pya.MessageBox.warning("paintlib.Interactive.link", "Error : Invalid path leads to no crossing point", pya.MessageBox.Ok)
+                pya.MessageBox.warning(
+                    "paintlib.Interactive.link", "Error : Invalid path leads to no crossing point", pya.MessageBox.Ok)
                 return
             pts.append(edge.crossing_point(edge0))
             edges.append(edge)
-        pts.append(pya.DPoint(lastpt[0],lastpt[1]))
-        ss=Interactive._generatepath(pts,das)
-        print('##################################')
-        print(ss)
-        print('##################################')
-        Interactive._show_path(brush1,ss)
+        pts.append(pya.DPoint(lastpt[0], lastpt[1]))
+        ss = Interactive._generatepath(pts, das)
+        if print_:
+            print('##################################')
+            print(ss)
+            print('##################################')
+            Interactive._show_path(IO.link, IO.layer, brush1, ss)
+        return ss
     
     @staticmethod
     def _box_selected():

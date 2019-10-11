@@ -1,5 +1,34 @@
 # tool
 
+## 自动布线
+
+![](img_md/autoroutedemo.png)
+![](img_md/autoroutedemodetail.png)
+
+```python
+err, lengths = paintlib.AutoRoute.autoRoute(
+    cell, layer, size, cellList, brushs,
+    layerList, box, layermod, order)
+if not err:
+    print(lengths)
+```
+
+把图形区域栅格化后两两连线
+
++ `cell,layer`是连线要放入的地方
++ `size`是栅格化的尺寸
++ `cellList`要栅格化的cell列表, 一般填顶层cell`[top]`就可以
++ `brushs`是成对的笔刷的列表
++ `layerList`是要排除的或要加入层的列表
++ `box`是栅格化以及连线的区域
++ `layermod`决定层的列表是加入`'in'`还是排除`'not in'`
++ `order`是连线顺序, `None`按顺序连, `['distance']`会先两两连一次算距离,  
+  并按照距离从小到大连, 填索引数组会按照给定的顺序连
+
+当返回的`err`无错误时, `lengths`是所有实际连线的长度列表
+
+完整例子见[demos/autoRouteDemo.py](files/?../../demos/autoRouteDemo.py ':ignore')
+
 ## 交互式的路径生成
 
 1. 在绘图过程中, 使用`paintlib.Interactive.show(brush)`标记需要连接的笔刷, 此时笔刷会以电极的形式画在auxiliary中.
