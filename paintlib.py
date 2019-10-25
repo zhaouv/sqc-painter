@@ -1253,11 +1253,11 @@ class AutoRoute:
                     tmp_brush.centerx, tmp_brush.centery))
             pairs.append(tmp_pair)
         BIGNUMBERPID = 2**20
-        for pairs_ in [pairs, pairs0]:
+        for issource,pairs_ in [(False,pairs), (True,pairs0)]:
             for pid, pair in enumerate(pairs_):
                 for is1, pt in enumerate(pair, 1):
                     px, py = pt
-                    if area[px][py] >= BIGNUMBERPID:
+                    if area[px][py] >= BIGNUMBERPID and not issource:
                         estr = 'conflict, pair '+str(pid)
                         pya.MessageBox.warning(
                             "paintlib.AutoRoute._brushToPair", "Error : "+estr, pya.MessageBox.Ok)
