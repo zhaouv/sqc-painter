@@ -9,7 +9,7 @@ from paintlib import *
 # 以某点为中心矩形区域内画定长产生两个刷子 done but not tested yet
 class _SpecialPainter(Painter):
     @staticmethod
-    def contortion(cell,layer,x,y,angle,width,height,length,radius,widout=20000,widin=10000,strategy='width'):
+    def DrawContortion(cell,layer,x,y,angle,width,height,length,radius,widout=20000,widin=10000,strategy='width'):
         def minlength(n):
             return (n+1)*2*pi*radius/4+(width-(n+1)*2*radius)
         def maxlength(n):
@@ -62,6 +62,18 @@ class _Interactive:
         deltaangle = Interactive.deltaangle
         maxlength = Interactive.maxlength
 
+        def boundAngle(angle):
+            '''
+            (-180,180]
+            '''
+            while angle<=-180:
+                angle+=360
+            while angle>180:
+                angle-=360
+            return angle
+        def gridAngle(angle):
+            return boundAngle(round(angle/deltaangle)*deltaangle)
+
         if spts == None:
             spts = Interactive._pts_path_selected()
         if spts == False:
@@ -79,7 +91,7 @@ class _Interactive:
             pya.MessageBox.warning("paintlib.Interactive.link",
                                 "Argument 2 must be CavityBrush or None", pya.MessageBox.Ok)
             return
-        angles = [brush1.angle]
+        angles = [boundAngle(brush1.angle)]
         pts = [pya.DPoint(brush1.centerx, brush1.centery)]
         edges = [pya.DEdge(pts[0].x, pts[0].y, pts[0].x+maxlength *
                         cos(angles[0]/180*pi), pts[0].y+maxlength*sin(angles[0]/180*pi))]
@@ -91,18 +103,14 @@ class _Interactive:
             pt0 = spts[ii-1]
             angle0 = angles[-1]
             edge0 = edges[-1]
-            angle = atan2(pt.y-pt0.y, pt.x-pt0.x)/pi*180
-            angle = round(angle/deltaangle)*deltaangle
-            angle = 0 if angle == 360.0 else angle
-            if(angle == angle0):
+            angle = gridAngle(atan2(pt.y-pt0.y, pt.x-pt0.x)/pi*180)
+            da=boundAngle(angle0 - angle)
+            if(da == 0):
                 continue
-            da = -((angle+3600-angle0) % 360)
-            if(da == -180):
+            if(da == 180):
                 pya.MessageBox.warning(
                     "paintlib.Interactive.link", "Error : Turn 180 degrees", pya.MessageBox.Ok)
                 return
-            if(da < -180):
-                da = 360+da
             lastpt = [pt.x, pt.y]
             angles.append(angle)
             edge = pya.DEdge(pt.x+maxlength*cos(angle/180*pi), pt.y+maxlength*sin(angle/180*pi),
@@ -121,39 +129,47 @@ class _Interactive:
         if(brush2 != None):
             angle0 = angles[-1]
             edge0 = edges[-1]
-            angle = brush2.angle+180
+            angle = boundAngle(brush2.angle+180)
             pt = pya.DPoint(brush2.centerx, brush2.centery)
-            _angle = round(angle/deltaangle)*deltaangle
-            _angle = 0 if _angle == 360.0 else _angle
-            if(_angle == angle0):
+            _angle = gridAngle(angle)
+            if(_angle == angle0 and len(angles)>1):
+                # 规整化后与终点平行, 放弃最后一个点, 从而不再平行
                 angles.pop()
                 das.pop()
                 pts.pop()
                 edges.pop()
                 angle0 = angles[-1]
                 edge0 = edges[-1]
-            da = -((angle+3600-angle0) % 360)
-            _da = -((_angle+3600-angle0) % 360)
-            if(_da == -180):
+            da = boundAngle(angle0 - angle)
+            _da = boundAngle(angle0 - _angle)
+            if(_da == 180):
                 pya.MessageBox.warning(
                     "paintlib.Interactive.link", "Error : Turn 180 degrees", pya.MessageBox.Ok)
                 return
-            if(da < -180):
-                da = 360+da
             lastpt = [pt.x, pt.y]
             edge = pya.DEdge(pt.x, pt.y, pt.x-maxlength *
                             cos(angle/180*pi), pt.y-maxlength*sin(angle/180*pi))
-            angles.append(angle)
-            das.append(da)
-            if not edge.crossed_by(edge0):
-                print('brush2')
-                print(angle)
-                print(angle0)
-                pya.MessageBox.warning(
-                    "paintlib.Interactive.link", "Error : Invalid path leads to no crossing point", pya.MessageBox.Ok)
-                return
-            pts.append(edge.crossing_point(edge0))
-            edges.append(edge)
+            if(angle == angle0 and len(angles)==1):
+                # 只有起点和终点且平行
+                distance=edge0.distance(pt)
+                if abs(distance)<10:
+                    # 直连无需转弯
+                    pass
+                else:
+                    # 需转弯, 此处多生成两个点和两个角度
+                    pass
+            else:
+                angles.append(angle)
+                das.append(da)
+                if not edge.crossed_by(edge0):
+                    print('brush2')
+                    print(angle)
+                    print(angle0)
+                    pya.MessageBox.warning(
+                        "paintlib.Interactive.link", "Error : Invalid path leads to no crossing point", pya.MessageBox.Ok)
+                    return
+                pts.append(edge.crossing_point(edge0))
+                edges.append(edge)
         pts.append(pya.DPoint(lastpt[0], lastpt[1]))
         ss = Interactive._generatepath(pts, das)
         if print_:
