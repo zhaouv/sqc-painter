@@ -50,7 +50,7 @@ class _SpecialPainter(Painter):
 
 # 连线程序只在第二个点检测冲突 done
 
-# 更正确的处理终点处的平行以及在起点附近的无交点情况
+# 更正确的处理终点处的平行以及在起点附近的无交点情况 done but not tested yet
 class _Interactive:
     @staticmethod
     def link(brush1=None, brush2=None, spts=None, print_=True):
@@ -111,18 +111,20 @@ class _Interactive:
                 pya.MessageBox.warning(
                     "paintlib.Interactive.link", "Error : Turn 180 degrees", pya.MessageBox.Ok)
                 return
-            lastpt = [pt.x, pt.y]
-            angles.append(angle)
             edge = pya.DEdge(pt.x+maxlength*cos(angle/180*pi), pt.y+maxlength*sin(angle/180*pi),
                             pt.x-maxlength*cos(angle/180*pi), pt.y-maxlength*sin(angle/180*pi))
-            das.append(da)
             if not edge.crossed_by(edge0):
+                if len(das)==0:
+                    continue
                 print('point ', ii)
                 print(angle)
                 print(angle0)
                 pya.MessageBox.warning(
                     "paintlib.Interactive.link", "Error : Invalid path leads to no crossing point", pya.MessageBox.Ok)
                 return
+            lastpt = [pt.x, pt.y]
+            angles.append(angle)
+            das.append(da)
             pts.append(edge.crossing_point(edge0))
             edges.append(edge)
 
@@ -132,7 +134,7 @@ class _Interactive:
             angle = boundAngle(brush2.angle+180)
             pt = pya.DPoint(brush2.centerx, brush2.centery)
             _angle = gridAngle(angle)
-            if(_angle == angle0 and len(angles)>1):
+            if(_angle == angle0 and len(das)>0):
                 # 规整化后与终点平行, 放弃最后一个点, 从而不再平行
                 angles.pop()
                 das.pop()
@@ -149,15 +151,28 @@ class _Interactive:
             lastpt = [pt.x, pt.y]
             edge = pya.DEdge(pt.x, pt.y, pt.x-maxlength *
                             cos(angle/180*pi), pt.y-maxlength*sin(angle/180*pi))
-            if(angle == angle0 and len(angles)==1):
+            if(angle == angle0 and len(das)==0):
                 # 只有起点和终点且平行
-                distance=edge0.distance(pt)
-                if abs(distance)<10:
+                dis=edge0.distance(pt)
+                if abs(dis)<10:
                     # 直连无需转弯
                     pass
                 else:
-                    # 需转弯, 此处多生成两个点和两个角度
-                    pass
+                    # 需转弯, 此处多生成两个点和两个角度, 如果dis小于2-sqrt(2)的转弯半径, 生成路径时会报错
+                    pt0=pts[-1]
+                    dse=pt0.distance(pt)
+                    dp=sqrt(dse**2-dis**2)
+                    l1=(dp-dis)/2
+                    if dis<0:
+                        das.extend([-45,45])
+                        angles.extend([angle+45,angle])
+                    else:
+                        das.extend([45,-45])
+                        angles.extend([angle-45,angle])
+                    pt1=pya.DPoint(pt0.x+l1*cos(angle/180*pi),pt0.y+l1*sin(angle/180*pi))
+                    pt2=pya.DPoint(pt.x-l1*cos(angle/180*pi),pt.y-l1*sin(angle/180*pi))
+                    pts.extend([pt1,pt2])
+                    edges.extend([pya.DEdge(pt1,pt2),edge])
             else:
                 angles.append(angle)
                 das.append(da)
