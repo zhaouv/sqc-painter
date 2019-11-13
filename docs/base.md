@@ -191,7 +191,16 @@ xfunc,yfunc 是曲线参数函数, 参数均匀从取0~1中取pointnumber个, po
 生成区域的过程较慢, 如果已经生成了区域只改网格参数, 可以先  
 `region=paintlib.Collision.getRegionFromLayer('layer1')`获取region,  
 再`DrawBoxesInRegion(cell,layer,region,dlength,dgap,dx=0,dy=0)`重新画网格  
-![](img_md/2019-07-08-21-14-10.png)
+![](img_md/2019-07-08-21-14-10.png)  
++ 方法`contortion(x,y,angle,width,height,length,radius,` `widout=20000,widin=10000,strategy='width',infoOnly=False)`  
+以某点为中心矩形区域内画定长的腔并产生两个笔刷  
+x,y,angle,width,height是矩形的中心和宽高  
+length是内部腔的长度, radius是内部转弯的半径  
+widout,widin是笔刷的参数  
+strategy是策略, `'width'`优先画扁平的, `'height'`优先画瘦高的  
+infoOnly为True时只返回笔刷和长度信息, 此时path为`''`  
+返回`path,brush1,brush2,minlength,maxlength`  
+分别是字符串形式的路径,左侧笔刷,右侧笔刷,允许的最小长度,最大长度  
 
 ### PcellPainter  
 用来画文字的类  

@@ -138,3 +138,14 @@ def path(painter):
   </block>
 </xml>
 ```
+
+## 生成所有标记的位置坐标
+
+生成layer(0,1)中所有图形左下角的坐标
+
+```python
+marks = paintlib.Interactive.scanBoxes()
+paintlib.IO.Show()
+import json
+print(json.dumps(marks,indent=4))
+```
