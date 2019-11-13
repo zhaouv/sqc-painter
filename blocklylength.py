@@ -9,18 +9,26 @@ from paintlib import *
 # 以某点为中心矩形区域内画定长产生两个刷子 done but not tested yet
 class _SpecialPainter(Painter):
     @staticmethod
-    def DrawContortion(cell,layer,x,y,angle,width,height,length,radius,widout=20000,widin=10000,strategy='width'):
+    def contortion(x,y,angle,width,height,length,radius,widout=20000,widin=10000,strategy='width',infoOnly=False):
         def minlength(n):
-            return (n+1)*2*pi*radius/4+(width-(n+1)*2*radius)
+            return (n+1)*pi*radius+(width-(n+1)*2*radius)
         def maxlength(n):
             return minlength(n)+(height-4*radius)+(n-1)*(height-2*radius)
         if height<4*radius:
             raise RuntimeError('height<4*radius')
         if width<4*radius:
             raise RuntimeError('width<4*radius')
-        if length<2*pi*radius+width-4*radius:
-            raise RuntimeError('length too small')
         maxn=floor(width/(2*radius))-1
+        painter=CavityPainter(pointc=pya.DPoint(x,y),angle=angle+180,widout=widout,widin=widin,bgn_ext=0,end_ext=0)
+        painter.Run('s{}'.format(width/2))
+        brush1=painter.brush
+        painter=CavityPainter(brush1.reversed())
+        painter.Run('s{}'.format(width))
+        brush2=painter.brush
+        if infoOnly:
+            return '',brush1,brush2,minlength(1),maxlength(maxn)
+        if length<minlength(1):
+            raise RuntimeError('length too small')
         if length>maxlength(maxn):
             raise RuntimeError('length too big')
         if strategy=='width':
@@ -39,14 +47,7 @@ class _SpecialPainter(Painter):
             path+='r{r} s{dl} l{r} '
         path+='s{s1}'
         path=path.format(s1=(width-(n+1)*2*radius)/2,r=radius,dl=dl,dl2=dl*2+radius*2,nm=int(floor((n-1)/2)))
-        painter=CavityPainter(pointc=pya.DPoint(x,y),angle=angle+180,widout=widout,widin=widin,bgn_ext=0,end_ext=0)
-        painter.Run('s{}'.format(width/2))
-        brush1=painter.brush
-        painter=CavityPainter(brush1.reversed())
-        painter.Run(path)
-        painter.Draw(cell,layer)
-        brush2=painter.brush
-        return painter,brush1,brush2
+        return path,brush1,brush2,minlength(1),maxlength(maxn)
 
 # 连线程序只在第二个点检测冲突 done
 
