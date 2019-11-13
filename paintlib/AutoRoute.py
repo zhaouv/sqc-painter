@@ -5,7 +5,8 @@ import queue
 
 import pya
 from .CavityPainter import CavityPainter
-from .Interactive import Collision,Interactive
+from .Collision import Collision
+from .Interactive import Interactive
 
 class AutoRoute:
 
@@ -212,6 +213,8 @@ class AutoRoute:
 
     @staticmethod
     def autoRoute(cell, layer, size, cellList, brushs, layerList=None, box=None, layermod='not in', order=None):
+        if type(box)==type(None):box=Interactive._box_selected()
+        if not box:raise RuntimeError('no box set')
         outregion, inregion = Collision.getShapesFromCellAndLayer(
             cellList, layerList=layerList, box=box, layermod=layermod)
         region = outregion & inregion

@@ -10,6 +10,7 @@ from .Painter import Painter
 from .BasicPainter import BasicPainter
 from .CavityPainter import LinePainter,CavityPainter
 from .Collision import Collision
+from .Interactive import Interactive
 
 class SpecialPainter(Painter):
     ''' 画一些较复杂图形的静态类 '''
@@ -267,6 +268,8 @@ class SpecialPainter(Painter):
         return region
     @staticmethod
     def DrawFillRegion(cell,layer,radius,number,layerlist=None,layermod='not in',box=None,cutbool=True):
+        if type(box)==type(None):box=Interactive._box_selected()
+        if not box:raise RuntimeError('no box set')
         outregion,inregion=Collision.getShapesFromCellAndLayer(cellList=[IO.top],layerList=layerlist,box=box,layermod=layermod)
         regions=SpecialPainter._boxes_move_and_copy(inregion,radius,number)
         return SpecialPainter._boxes_merge_and_draw(cell,layer,outregion,inregion,regions,cutbool)
