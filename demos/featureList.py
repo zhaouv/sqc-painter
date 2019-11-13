@@ -143,6 +143,13 @@ painter6.DrawGds(top,"Qubit",tr)
 box=pya.Box(-170000,-60000,110000,190000)
 paintlib.SpecialPainter.DrawBoxes(cell=cell5,layer=layer4,dlength=80000,dgap=2000,radius=20000,number=70,layerlist=None,layermod='not in',box=box,cutbool=True,dx=0,dy=0)
 
+# 以某点为中心矩形区域内画定长的腔并产生两个刷子
+_,brush1,brush2,minlength,maxlength=paintlib.SpecialPainter.contortion(x=-752000,y=-813000,angle=0,width=800000,height=473000,length=0,radius=15000,widout=2000,widin=1000,strategy='width',infoOnly=True)
+path,_,_,_,_=paintlib.SpecialPainter.contortion(x=-752000,y=-813000,angle=0,width=800000,height=473000,length=int(minlength/2+maxlength/2),radius=15000,widout=2000,widin=1000,strategy='height',infoOnly=False)
+painter9=paintlib.CavityPainter(brush1.reversed())
+painter9.Run(path)
+painter9.Draw(cell2,layer1)#把画好的腔置入
+
 #输出
 print(TBD.isFinish())
 paintlib.IO.Show()#输出到屏幕上
