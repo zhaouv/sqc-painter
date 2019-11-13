@@ -1639,6 +1639,45 @@ class Interactive:
             return outregion,inregion
 
         return Interactive._merge_and_draw(outregion,inregion)[0]
+    
+    @staticmethod
+    def scanBoxes(cellList=None,layerList=None,layermod='in'):
+        if cellList==None:cellList=[IO.top]
+        if layerList==None:layerList=[(0,1)]
+        _layerlist=[]
+        for ii in layerList:
+            if type(ii)==str:
+                _layerlist.append(IO.layout.find_layer(ii))
+            else:
+                _layerlist.append(IO.layout.find_layer(ii[0],ii[1]))
+        layers=[index for index in IO.layout.layer_indices() if index in _layerlist] if layermod=='in' else [index for index in IO.layout.layer_indices() if index not in _layerlist]
+
+        region=pya.Region()
+        for cell in cellList:
+            for layer in layers:
+                s=cell.begin_shapes_rec(layer)
+                region.insert(s)
+        region.merge()
+        pts=[]
+        for polygon in region.each():
+            print(polygon)
+            try:
+                polygon=polygon.bbox()
+            finally:
+                pass
+            print(polygon)
+            pt=polygon.p1
+            pts.append(pt)
+        output=[]
+        layer=IO.layout.layer(0, 2)
+        cell=IO.layout.create_cell("boxMarks")
+        IO.auxiliary.insert(pya.CellInstArray(cell.cell_index(),pya.Trans()))
+        painter=PcellPainter()
+        for index,pt in enumerate(pts,1):
+            name="M"+str(index)
+            painter.DrawText(cell,layer,name,pya.DCplxTrans(100,0,False,pt.x,pt.y))
+            output.append([name,{"x":pt.x,"y":pt.y}])
+        return output
 
 class IO:
     '''处理输入输出的静态类'''
