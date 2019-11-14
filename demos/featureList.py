@@ -149,6 +149,13 @@ painter9=paintlib.CavityPainter(brush1.reversed())
 painter9.Run(path)
 painter9.Draw(cell2,layer1)#把画好的腔置入
 
+# 连接两个刷子
+brush1=paintlib.CavityBrush(pointc=pya.DPoint(-612000,-500000),angle=90)
+brush2=paintlib.CavityBrush(pointc=pya.DPoint(473000,-900000),angle=-90)
+path=paintlib.AutoRoute.linkTwoBrush(brush1,brush2)
+paintlib.Interactive._show_path(cell2,layer1,brush1,path)
+
+
 #输出
 print(TBD.isFinish())
 paintlib.IO.Show()#输出到屏幕上

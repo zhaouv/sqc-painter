@@ -18,20 +18,19 @@ class IO:
     @staticmethod
     def Start(mod="guiopen"):
         if mod=="gds":
-            IO.layout=pya.Layout()            
+            IO.layout=pya.Layout()
         elif mod=="guinew":
             IO.main_window = pya.Application.instance().main_window()
             IO.layout = IO.main_window.create_layout(1).layout()
             IO.layout_view = IO.main_window.current_view()
-            IO.layout_view.rename_cellview("pythonout",0)            
+            IO.layout_view.rename_cellview("pythonout",0)
         elif mod=="guiopen":
             IO.main_window = pya.Application.instance().main_window()
             IO.layout_view = IO.main_window.current_view()
             try:
                 IO.layout=IO.layout_view.cellview(IO.layout_view.active_cellview_index()).layout()
             except AttributeError as _:
-                IO.layout,IO.top=IO.Start("guinew")
-                return IO.layout,IO.top
+                return IO.Start("guinew")
         if len(IO.layout.top_cells())>0:
             IO.top=IO.layout.top_cells()[0]
         else:
@@ -44,6 +43,8 @@ class IO:
         IO.auxiliary.insert(pya.CellInstArray(IO.link.cell_index(),pya.Trans()))
         #
         IO.layer=IO.layout.layer(0, 0)
+        for li1,li2 in [(0, 1),(0, 2)]:
+            IO.layout.layer(li1,li2)
         return IO.layout,IO.top    
         ##layout = main_window.load_layout(string filename,int mode)
     @staticmethod

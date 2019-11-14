@@ -232,6 +232,12 @@ airbridge的间隔,也可以是函数:输入是distance,输出是distance内包�
 + 方法`TBD.set(value,index=-1)`  
 设置待定量, index非负时会设置第index的量, index为负时会基于内部计数向前设置待定量  
 会把对应待定量增加value的增量, 其设置原则是value从正的方向接近0, value为负时会打印警告
++ 方法`TBD.fetch(index=None)`  
+类似`TBD.get()`的取一个字符串  
++ 方法`TBD.storage(value,index=-1)`  
+类似`TBD.fetch()`的设置字符串, 仅仅是存下来, 是否满足要求重运行时是否需要更改, 要用别的手段来保证
++ 方法`TBD.jumpTo(number)`  
+把内部计数跳到一个大于先前的值, 用来处理不同的代码分支, 使用的待定量不同的情况
 + 方法`TBD.isFinish()`  
 检查是否所有的待定量都符合set为0的要求, 满足时返回True, 否则返回False  
 执行此函数时才会储存变量到文件, 请务必执行一次

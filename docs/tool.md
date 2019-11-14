@@ -31,6 +31,16 @@ if not err:
 
 完整例子见[demos/autoRouteDemo.py](files/?../../demos/autoRouteDemo.py ':ignore')
 
+一个简化版的只连两个刷子的包装
+```python
+b1 = paintlib.CavityBrush(pointc=pya.DPoint(-8259000, 17202000),
+                               angle=0, widout=20000, widin=10000, bgn_ext=0)
+b2 = paintlib.CavityBrush(pointc=pya.DPoint(10012000, 17202000-1347000*
+    5), angle=-180, widout=20000, widin=10000, bgn_ext=0)
+path=paintlib.AutoRoute.linkTwoBrush(b1,b2)
+paintlib.Interactive._show_path(IO.top,IO.layer,b1,path)
+```
+
 ## 交互式的路径生成
 
 1. 在绘图过程中, 使用`paintlib.Interactive.show(brush)`标记需要连接的笔刷, 此时笔刷会以电极的形式画在auxiliary中.

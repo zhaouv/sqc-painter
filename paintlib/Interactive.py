@@ -268,9 +268,9 @@ class Interactive:
         _layerlist=[]
         for ii in layerList:
             if type(ii)==str:
-                _layerlist.append(IO.layout.find_layer(ii))
+                if IO.layout.find_layer(ii)!=None:_layerlist.append(IO.layout.find_layer(ii))
             else:
-                _layerlist.append(IO.layout.find_layer(ii[0],ii[1]))
+                if IO.layout.find_layer(ii[0],ii[1])!=None:_layerlist.append(IO.layout.find_layer(ii[0],ii[1]))
         layers=[index for index in IO.layout.layer_indices() if index in _layerlist] if layermod=='in' else [index for index in IO.layout.layer_indices() if index not in _layerlist]
 
         region=pya.Region()

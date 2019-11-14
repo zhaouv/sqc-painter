@@ -1,6 +1,6 @@
 
 # %%
-import imp
+
 import pya
 import sys
 import os
@@ -8,20 +8,20 @@ import os
 sys.path.append(os.path.dirname(__file__))
 # sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 import paintlib
-
+import imp
 for moduleName in [
-    'AutoRoute',
-    'BasicPainter',
-    'CavityBrush',
-    'CavityPainter',
-    'Collision',
-    'Interactive',
-    'IO',
-    'Painter',
-    'PcellPainter',
-    'SpecialPainter',
-    'TBD',
-    'TransfilePainter',
+    # 'AutoRoute',
+    # 'BasicPainter',
+    # 'CavityBrush',
+    # 'CavityPainter',
+    # 'Collision',
+    # 'Interactive',
+    # 'IO',
+    # 'Painter',
+    # 'PcellPainter',
+    # 'SpecialPainter',
+    # 'TBD',
+    # 'TransfilePainter',
 ]:
     asdasfaese = imp.load_source(
         'paintlib.'+moduleName, 'paintlib\\'+moduleName+'.py')
@@ -34,22 +34,7 @@ paintlib.IO.pointdistance = 2000  # 设置腔的精度,转弯处相邻两点的�
 TBD = paintlib.TBD.init(676987)
 # %%[markdown]
 # list:
-# + [ ] 基于autoRoute的linkTwoBrush
-# + [ ] docs/featureList
-# + [x] tbd塞字符串 storage fetch
-# + [ ] docs/featureList
-# %%
-a = TBD.get()
-TBD.set(100-a)
-b = TBD.fetch()
-if b == '':
-    TBD.storage('asd')
-TBD.jumpTo(6)
-a = TBD.get()
-TBD.set(100-a)
-b = TBD.fetch()
-if b == '':
-    TBD.storage('sdfsfd')
+
 # %%
 
 

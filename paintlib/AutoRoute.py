@@ -4,6 +4,7 @@ from math import cos,sin,pi,tan,atan2,sqrt,ceil,floor
 import queue
 
 import pya
+from .IO import IO
 from .CavityPainter import CavityPainter
 from .Collision import Collision
 from .Interactive import Interactive
@@ -248,3 +249,20 @@ class AutoRoute:
             lengths.append(length)
             paths.append(pathstr)
         return '', lengths, paths
+
+    @staticmethod
+    def linkTwoBrush(brush1,brush2,size=150000,enlargesize=600000,layerList=None, box=None,layermod='not in',cellList=None):
+        if type(box)==type(None):
+            ppp='r{size},180 r{size2},180 r{size2},180'.format(size=enlargesize/2,size2=enlargesize)
+            painter=CavityPainter(brush1)
+            painter.Run(ppp)
+            region=painter.Output_Region()
+            painter=CavityPainter(brush2)
+            painter.Run(ppp)
+            region=region + painter.Output_Region()
+            box=region.bbox()
+        if cellList==None:
+            cellList=[IO.top]
+        err,_,paths=AutoRoute.autoRoute(cell=None, layer=None, size=size, cellList=cellList, brushs=[[brush1,brush2]], layerList=layerList, box=box, layermod='not in', order=None)
+        if err:raise RuntimeError(err)
+        return paths[0]
