@@ -208,11 +208,16 @@ class AutoRoute:
         pathstr = Interactive.link(
             brush1=brush12[1], brush2=brush12[0], spts=spts, print_=False)
         if not pathstr:
-            return 'link line fail', 0
-        return '', Interactive._show_path(cell, layer, brush12[1], pathstr)
+            return 'link line fail', 0,pathstr
+        if type(cell)!=type(None) and type(layer)!=type(None):
+            length=Interactive._show_path(cell, layer, brush12[1], pathstr)
+        else:
+            length=0
+        return '', length, pathstr
 
     @staticmethod
     def autoRoute(cell, layer, size, cellList, brushs, layerList=None, box=None, layermod='not in', order=None):
+        brushs=[[b2,b1] for b1,b2 in brushs]
         if type(box)==type(None):box=Interactive._box_selected()
         if not box:raise RuntimeError('no box set')
         outregion, inregion = Collision.getShapesFromCellAndLayer(
@@ -222,22 +227,24 @@ class AutoRoute:
         pairs, checkresult = AutoRoute._brushToPair(
             xyToAreaxy, brushs, area, size)
         if checkresult != '':
-            return checkresult, []
+            return checkresult, [], []
         if order == None:
             order = list(range(len(brushs)))
         elif order == ['distance']:
             checkresult = AutoRoute._BFSLinkAllToCheckAndDistance(area, pairs)
             if checkresult != '':
-                return checkresult, []
+                return checkresult, [], []
             order = AutoRoute._orderDistance(pairs)
         checkresult, lines = AutoRoute._linkInArea(area, pairs, order)
         if checkresult != '':
-            return checkresult, []
+            return checkresult, [], []
         lengths = []
+        paths=[]
         for line, brush12 in zip(lines, brushs):
-            checkresult, length = AutoRoute._linkLine(
+            checkresult, length, pathstr = AutoRoute._linkLine(
                 cell, layer, line, brush12, areaxyToXy)
             if checkresult:
-                return checkresult, []
+                return checkresult, [], []
             lengths.append(length)
-        return '', lengths
+            paths.append(pathstr)
+        return '', lengths, paths

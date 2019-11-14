@@ -18,7 +18,6 @@ class Interactive:
     deltaangle=45
     maxlength=1073741824
     turningr=50000
-    indent='    '
     brushlist=[]
     searchr=500000
 
@@ -31,10 +30,8 @@ class Interactive:
     
     @staticmethod
     def _show_path(cell, layer, brush, pathstr):
-        l = {'path': None}
-        exec(pathstr, None, l)
         painter = CavityPainter(brush)
-        length = painter.Run(l['path'])
+        length = painter.Run(pathstr)
         painter.Draw(cell, layer)
         return length
 
@@ -64,8 +61,7 @@ class Interactive:
     @staticmethod
     def _generatepath(pts,das):
         turningr=Interactive.turningr
-        indent=Interactive.indent
-        output=['def path(painter):','length=0']
+        output=[]
         last=0
         for ii,da in enumerate(das):
             sda=(da>0)-(da<0)
@@ -76,11 +72,10 @@ class Interactive:
             if(ll<0):
                 pya.MessageBox.warning("paintlib.Interactive.link", "Error : Straight less than 0", pya.MessageBox.Ok)
                 return
-            output.append('length+=painter.Straight({length})'.format(length=ll))
-            output.append('length+=painter.Turning({radius},{angle})'.format(radius=sda*turningr,angle=da))
-        output.append('length+=painter.Straight({length})'.format(length=pts[-1].distance(pts[-2])-last))
-        output.append('return length')
-        return ('\n'+indent).join(output)
+            output.append('s{length}'.format(length=ll))
+            output.append('r{radius},{angle}'.format(radius=sda*turningr,angle=da))
+        output.append('s{length}'.format(length=pts[-1].distance(pts[-2])-last))
+        return ''.join(output)
     
     @staticmethod
     def link(brush1=None, brush2=None, spts=None, print_=True):

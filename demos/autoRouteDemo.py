@@ -9,8 +9,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 import pya
 import paintlib
-from imp import reload
-reload(paintlib)
+
 layout,top = paintlib.IO.Start("guiopen")#在当前的图上继续画,如果没有就创建一个新的
 layout.dbu = 0.001#设置单位长度为1nm
 paintlib.IO.pointdistance=2000#设置腔的精度,转弯处相邻两点的距离
@@ -53,7 +52,7 @@ brush1 = [paintlib.CavityBrush(pointc=pya.DPoint(-8259000, 17202000-1347000*ii),
                                angle=0, widout=20000, widin=10000, bgn_ext=0) for ii in range(10)]
 brush2 = [paintlib.CavityBrush(pointc=pya.DPoint(10012000, 17202000-1347000*(
     5+ii)), angle=-180, widout=20000, widin=10000, bgn_ext=0) for ii in range(10)]
-brushs = list(zip(brush1, brush2)) #此处的list()重要, 只用zip调用autoRoute会出错
+brushs = zip(brush1, brush2)
 
 cell = celllines
 layer = layerlines
@@ -65,7 +64,7 @@ box = pya.Box(-12787000, -11127000, 12063000, 18757000)
 layermod = 'not in'
 order = None
 
-err, lengths = paintlib.AutoRoute.autoRoute(cell, layer, size, cellList, brushs,
+err, lengths, paths = paintlib.AutoRoute.autoRoute(cell, layer, size, cellList, brushs,
                                    layerList, box, layermod, order)
 if not err:
     print(lengths)

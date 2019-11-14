@@ -6,7 +6,7 @@
 ![](img_md/autoroutedemodetail.png)
 
 ```python
-err, lengths = paintlib.AutoRoute.autoRoute(
+err, lengths, paths = paintlib.AutoRoute.autoRoute(
     cell, layer, size, cellList, brushs,
     layerList, box, layermod, order)
 if not err:
@@ -15,7 +15,7 @@ if not err:
 
 把图形区域栅格化后两两连线
 
-+ `cell,layer`是连线要放入的地方
++ `cell,layer`是连线要放入的地方,如果有一个是`None`则只产生路径不实际画出来
 + `size`是栅格化的尺寸
 + `cellList`要栅格化的cell列表, 一般填顶层cell`[top]`就可以
 + `brushs`是成对的笔刷的列表
@@ -25,7 +25,9 @@ if not err:
 + `order`是连线顺序, `None`按顺序连, `['distance']`会先两两连一次算距离,  
   并按照距离从小到大连, 填索引数组会按照给定的顺序连
 
-当返回的`err`无错误时, `lengths`是所有实际连线的长度列表
+当返回的`err`无错误时, `lengths`是所有实际连线的长度列表(不画图时全为0), `paths`是所有连线的字符串形式(每对笔刷内是前者出发连向后者)
+
+使用的算法会使得, 有多种选择时, 选先转向的. 即把转向靠近起点端
 
 完整例子见[demos/autoRouteDemo.py](files/?../../demos/autoRouteDemo.py ':ignore')
 
