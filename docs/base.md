@@ -201,6 +201,7 @@ strategy是策略, `'width'`优先画扁平的, `'height'`优先画瘦高的
 infoOnly为True时只返回笔刷和长度信息, 此时path为`''`  
 返回`path,brush1,brush2,minlength,maxlength`  
 分别是字符串形式的路径,左侧笔刷,右侧笔刷,允许的最小长度,最大长度  
+当width和length相等时会忽略所有行为退化成直线
 
 ### PcellPainter  
 用来画文字的类  

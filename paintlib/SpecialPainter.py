@@ -309,6 +309,17 @@ class SpecialPainter(Painter):
         '''
         以某点为中心矩形区域内画定长的腔并产生两个刷子
         '''
+        def getbrush():
+            painter=CavityPainter(pointc=pya.DPoint(x,y),angle=angle+180,widout=widout,widin=widin,bgn_ext=0,end_ext=0)
+            painter.Run('s{}'.format(width/2))
+            brush1=painter.brush
+            painter=CavityPainter(brush1.reversed())
+            painter.Run('s{}'.format(width))
+            brush2=painter.brush
+            return brush1,brush2
+        if width==length:
+            brush1,brush2=getbrush()
+            return 's'+str(length),brush1,brush2,width,width
         def minlength(n):
             return (n+1)*pi*radius+(width-(n+1)*2*radius)
         def maxlength(n):
@@ -318,12 +329,7 @@ class SpecialPainter(Painter):
         if width<4*radius:
             raise RuntimeError('width<4*radius')
         maxn=floor(width/(2*radius))-1
-        painter=CavityPainter(pointc=pya.DPoint(x,y),angle=angle+180,widout=widout,widin=widin,bgn_ext=0,end_ext=0)
-        painter.Run('s{}'.format(width/2))
-        brush1=painter.brush
-        painter=CavityPainter(brush1.reversed())
-        painter.Run('s{}'.format(width))
-        brush2=painter.brush
+        brush1,brush2=getbrush()
         if infoOnly:
             return '',brush1,brush2,minlength(1),maxlength(maxn)
         if length<minlength(1):
