@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-#KLayout 0.24.8
-#python 3.4
+#KLayout 0.26.1
+#python 3.7.3
 
 from .IO import IO
 from .TBD import TBD

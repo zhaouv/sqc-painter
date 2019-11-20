@@ -5,6 +5,7 @@ class IO:
     '''处理输入输出的静态类'''
     #IO:字母 Input Output
     path='/'.join(__file__.replace('\\','/').split('/')[:-2])
+    workingDir='/'.join(__file__.replace('\\','/').split('/')[:-2])
     warning=True
     layout=None
     main_window=None
@@ -48,6 +49,12 @@ class IO:
         return IO.layout,IO.top    
         ##layout = main_window.load_layout(string filename,int mode)
     @staticmethod
+    def SetWoringDir(filename):
+        '''
+        paintlib.IO.SetWoringDir(__file__)
+        '''
+        IO.workingDir='/'.join(filename.replace('\\','/').split('/')[:-1])
+    @staticmethod
     def Show():
         if IO.layout_view:
             IO.layout_view.select_cell(IO.top.cell_index(), 0)
@@ -59,6 +66,6 @@ class IO:
     @staticmethod
     def Write(filename=None):
         if filename==None:
-            filename="[pythonout%s].gds"%(time.strftime("%Y%m%d_%H%M%S"))
+            filename=IO.workingDir+"/[pythonout%s].gds"%(time.strftime("%Y%m%d_%H%M%S"))
         print(filename)
         IO.layout.write(filename)

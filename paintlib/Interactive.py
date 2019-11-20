@@ -239,8 +239,8 @@ class Interactive:
         if type(cell)==type(None):
             if type(tr_to)==type(None):
                 center=outregion.bbox().center()
-                region.transform(pya.Trans(-center.x,-center.y))
-                tr=pya.Trans(center.x,center.y)
+                region.transform(pya.Trans(int(-center.x),int(-center.y)))
+                tr=pya.Trans(int(center.x),int(center.y))
             else:
                 tr=tr_to
             cut = IO.layout.create_cell("cut")

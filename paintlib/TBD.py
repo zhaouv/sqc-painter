@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from .IO import IO
 
 class TBD(object):
     '''处理待定数值的静态类'''
@@ -16,10 +17,10 @@ class TBD(object):
         if _str==None:
             TBD.id=str(id)
             try:
-                with open(TBD.filename) as fid:
+                with open(IO.workingDir+'/'+TBD.filename) as fid:
                     ss=fid.read()
             except FileNotFoundError as _:
-                with open(TBD.filename,'w') as fid:
+                with open(IO.workingDir+'/'+TBD.filename,'w') as fid:
                     ss=TBD.id
                     fid.write(ss)
             lines=[ln for ln in ss.split('\n') if len(ln.strip())>1 and ln.strip()[0] in '-.0123456789']
@@ -93,7 +94,7 @@ class TBD(object):
                 finish=False
                 break
         if TBD.id == 'not file':return finish
-        with open(TBD.filename,'w') as fid:
+        with open(IO.workingDir+'/'+TBD.filename,'w') as fid:
             ss=TBD.id+'\n'+'\n'.join([','.join([str(jj) for jj in ii]) for ii in TBD.values])+'\n|'+'\n|'.join(TBD.strValues)
             print('TBD :\n'+ss+'\nTBD END')
             fid.write(ss)

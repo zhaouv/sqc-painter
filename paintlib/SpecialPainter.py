@@ -253,7 +253,7 @@ class SpecialPainter(Painter):
         xys=[(radius*cos(2*pi*ii/number),radius*sin(2*pi*ii/number)) for ii in range(number)]
         regions=[]
         for x,y in xys:
-            regions.append(inregion.transformed(pya.Trans(x,y)))
+            regions.append(inregion.transformed(pya.Trans(int(x),int(y))))
         return regions
     @staticmethod
     def _boxes_merge_and_draw(cell,layer,outregion,inregion,regions,cutbool=True):

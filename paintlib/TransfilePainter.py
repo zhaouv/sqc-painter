@@ -81,7 +81,7 @@ class TransfilePainter(Painter):
             if (i.name == self.insertcellname):
                 i.name=newcellname
                 for pt in pts:
-                    tr=pya.Trans(pt.x,pt.y)
+                    tr=pya.Trans(int(pt.x),int(pt.y))
                     new_instance=pya.CellInstArray(i.cell_index(),tr)
                     cell.insert(new_instance)
         for i in IO.layout.top_cells():

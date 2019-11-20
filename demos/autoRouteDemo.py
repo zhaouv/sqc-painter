@@ -13,6 +13,7 @@ import paintlib
 layout,top = paintlib.IO.Start("guiopen")#在当前的图上继续画,如果没有就创建一个新的
 layout.dbu = 0.001#设置单位长度为1nm
 paintlib.IO.pointdistance=2000#设置腔的精度,转弯处相邻两点的距离
+paintlib.IO.SetWoringDir(__file__)
 TBD=paintlib.TBD.init(68765787)
 filepath=paintlib.IO.path+'/demos/'
 
