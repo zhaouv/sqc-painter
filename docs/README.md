@@ -6,7 +6,7 @@ Superconducting Quantum Chip Painter
 
 [项目地址](https://github.com/zhaouv/sqc-painter) | [下载](https://github.com/zhaouv/sqc-painter)
 
-基于[KLayout](https://github.com/klayoutmatthias/klayout) (version:[klayout-0.24.8-win64](http://www.klayout.org/downloads/Windows/klayout-0.24.10-win64.zip)) 中Python3.4的脚本环境, 写了库paintlib用于超导芯片的绘图
+基于[KLayout](https://github.com/klayoutmatthias/klayout) (version:[klayout-0.26.1-win64](https://www.klayout.org/downloads/Windows/klayout-0.26.1-win64.zip)) 中Python3.7.3的脚本环境, 写了库paintlib用于超导芯片的绘图
 
 ## 环境配置以及运行
 
