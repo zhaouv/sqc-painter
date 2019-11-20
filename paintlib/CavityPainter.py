@@ -33,7 +33,7 @@ class TraceRunner:
         for name in self.patternNames:
             self.patterns[name]=self.__getattribute__(name+'_pattern')
 
-    def run(self,rawString):
+    def getPathFunction(self,rawString):
         AST=self.buildAST(rawString)
         pathString=self.traversalAST(AST)
         localscope={'path':None}
@@ -141,8 +141,34 @@ class TraceRunner:
         pushln('return length')
         self.pathString=''.join(output)
         return self.pathString
+    
+    def reversePath(self,rawString):
+        AST=self.buildAST(rawString)
+        pathString=self.traversalAST_reversePath(AST)
+        return pathString
 
-
+    def traversalAST_reversePath(self,AST):
+        output=['']
+        def push(s):
+            output.append(s)
+        def traversal(node):
+            if node.type==self.top:
+                for cn in node.getChildren()[::-1]:
+                    traversal(cn)
+            if node.type==self.straight:
+                push('s{minus} {length} '.format(minus='_'if node.enableMinus else '',length=node.length))
+            if node.type==self.turning:
+                push('t {radius},{angle} '.format(radius=node.left*node.radius,angle=node.angle))
+            if node.type==self.repeatStart:
+                push('n{times}[ '.format(times=node.times))
+                for cn in node.getChildren()[::-1]:
+                    traversal(cn)
+                push('] ')
+            if node.type==self.repeatEnd:
+                pass
+        traversal(AST)
+        self.pathString=''.join(output)
+        return self.pathString
     
 class LinePainter(Painter):
     def __init__(self,pointl=pya.DPoint(0,1000),pointr=pya.DPoint(0,0)):
@@ -276,7 +302,7 @@ class LinePainter(Painter):
         
 
 class CavityPainter(Painter):
-    tr=TraceRunner()
+    TraceRunner=TraceRunner()
     def __init__(self,*args,**keys):
         if 'pointc' in keys or (isinstance(args[0],pya.DPoint) and ('angle' in keys or type(args[1]) in [int,float])):
             self.constructors1(*args,**keys)
@@ -309,7 +335,7 @@ class CavityPainter(Painter):
         elif hasattr(path,'__call__'):
             pathFunction=path
         else: # type(path)==str
-            pathFunction=self.tr.run(path)
+            pathFunction=self.TraceRunner.getPathFunction(path)
         self.painterout.Straight(self.bgn_ext)
         pathFunction(self.painterout)
         self.painterout.Straight(self.end_ext)
