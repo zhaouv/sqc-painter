@@ -317,13 +317,13 @@ class SpecialPainter(Painter):
             painter.Run('s{}'.format(width))
             brush2=painter.brush
             return brush1,brush2
-        if width==length:
+        if width==length or height==0:
             brush1,brush2=getbrush()
             return 's'+str(length),brush1,brush2,width,width
         def minlength(n):
-            return (n+1)*pi*radius+(width-(n+1)*2*radius)
+            return (n+1)*pi*radius+width-4*radius
         def maxlength(n):
-            return minlength(n)+(height-4*radius)+(n-1)*(height-2*radius)
+            return minlength(n)+n*height-4*n*radius
         if height<4*radius:
             raise RuntimeError('height<4*radius')
         if width<4*radius:
