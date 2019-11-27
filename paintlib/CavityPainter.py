@@ -336,9 +336,14 @@ class CavityPainter(Painter):
             pathFunction=path
         else: # type(path)==str
             pathFunction=self.TraceRunner.getPathFunction(path)
+        #修复1nm线的bug
+        self.painterout._Straight(-1)
+        self.painterout._Straight(1)
         self.painterout.Straight(self.bgn_ext)
         pathFunction(self.painterout)
         self.painterout.Straight(self.end_ext)
+        self.painterout._Straight(1)
+        self.painterout._Straight(-1)
         self.painterout._Straight(-self.end_ext)
         self.regionlistout.extend(self.painterout.outputlist)
         self.painterout.outputlist=[]
