@@ -14,7 +14,7 @@ from .Collision import Collision
 
 class Interactive:
     '''处理交互的类'''
-    #v =pya.MessageBox.warning("Dialog Title", "Something happened. Continue?", pya.MessageBox.Yes + pya.MessageBox.No)
+    #v =IO.warning.warning("Dialog Title", "Something happened. Continue?", pya.MessageBox.Yes + pya.MessageBox.No)
     deltaangle=45
     maxlength=1073741824
     turningr=50000
@@ -55,7 +55,7 @@ class Interactive:
             if not shape.is_path():break
             spts=list(shape.path.each_point())
             return spts
-        pya.MessageBox.warning("paintlib.Interactive.link", "Please select a Path", pya.MessageBox.Ok)
+        IO.warning.warning("paintlib.Interactive.link", "Please select a Path", pya.MessageBox.Ok)
         return False
 
     @staticmethod
@@ -69,8 +69,8 @@ class Interactive:
             dl=turningr*tan(da/180*pi/2)
             ll=pts[ii].distance(pts[ii+1])-last-dl
             last=dl
-            if(ll<0):
-                pya.MessageBox.warning("paintlib.Interactive.link", "Error : Straight less than 0", pya.MessageBox.Ok)
+            if(ll<0 and IO.warning.minus_stright):
+                IO.warning.warning("paintlib.Interactive.link", "Error : Straight less than 0", pya.MessageBox.Ok)
                 return
             output.append('s{length}'.format(length=ll))
             output.append('r{radius},{angle}'.format(radius=sda*turningr,angle=da))
@@ -109,11 +109,11 @@ class Interactive:
             brush2 = Interactive._get_nearest_brush(spts[-1].x, spts[-1].y)
 
         if not isinstance(brush1, CavityBrush):
-            pya.MessageBox.warning("paintlib.Interactive.link",
+            IO.warning.warning("paintlib.Interactive.link",
                                 "Argument 1 must be CavityBrush", pya.MessageBox.Ok)
             return
         if not isinstance(brush2, CavityBrush) and brush2 != None:
-            pya.MessageBox.warning("paintlib.Interactive.link",
+            IO.warning.warning("paintlib.Interactive.link",
                                 "Argument 2 must be CavityBrush or None", pya.MessageBox.Ok)
             return
         angles = [boundAngle(brush1.angle)]
@@ -133,7 +133,7 @@ class Interactive:
             if(da == 0):
                 continue
             if(da == 180):
-                pya.MessageBox.warning(
+                IO.warning.warning(
                     "paintlib.Interactive.link", "Error : Turn 180 degrees", pya.MessageBox.Ok)
                 return
             edge = pya.DEdge(pt.x+maxlength*cos(angle/180*pi), pt.y+maxlength*sin(angle/180*pi),
@@ -144,7 +144,7 @@ class Interactive:
                 print('point ', ii)
                 print(angle)
                 print(angle0)
-                pya.MessageBox.warning(
+                IO.warning.warning(
                     "paintlib.Interactive.link", "Error : Invalid path leads to no crossing point", pya.MessageBox.Ok)
                 return
             lastpt = [pt.x, pt.y]
@@ -170,7 +170,7 @@ class Interactive:
             da = boundAngle(angle0 - angle)
             _da = boundAngle(angle0 - _angle)
             if(_da == 180):
-                pya.MessageBox.warning(
+                IO.warning.warning(
                     "paintlib.Interactive.link", "Error : Turn 180 degrees", pya.MessageBox.Ok)
                 return
             lastpt = [pt.x, pt.y]
@@ -205,7 +205,7 @@ class Interactive:
                     print('brush2')
                     print(angle)
                     print(angle0)
-                    pya.MessageBox.warning(
+                    IO.warning.warning(
                         "paintlib.Interactive.link", "Error : Invalid path leads to no crossing point", pya.MessageBox.Ok)
                     return
                 pts.append(edge.crossing_point(edge0))
@@ -226,7 +226,7 @@ class Interactive:
             shape=obj.shape
             if not shape.is_box():break
             return shape.box
-        pya.MessageBox.warning("paintlib.Interactive.cut", "Please select a Box", pya.MessageBox.Ok)
+        IO.warning.warning("paintlib.Interactive.cut", "Please select a Box", pya.MessageBox.Ok)
         return False
 
     @staticmethod

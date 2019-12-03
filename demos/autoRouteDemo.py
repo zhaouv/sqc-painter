@@ -1,21 +1,21 @@
 # -*- coding: utf-8 -*-
 
-#初始化
+# 初始化
 import sys
 import os
 #
-#sys.path.append(os.path.dirname(__file__))
+# sys.path.append(os.path.dirname(__file__))
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+if 1:
+    import pya
+    import paintlib
 
-import pya
-import paintlib
-
-layout,top = paintlib.IO.Start("guiopen")#在当前的图上继续画,如果没有就创建一个新的
-layout.dbu = 0.001#设置单位长度为1nm
-paintlib.IO.pointdistance=2000#设置腔的精度,转弯处相邻两点的距离
+layout, top = paintlib.IO.Start("guiopen")  # 在当前的图上继续画,如果没有就创建一个新的
+layout.dbu = 0.001  # 设置单位长度为1nm
+paintlib.IO.pointdistance = 1000  # 设置腔的精度,转弯处相邻两点的距离
 paintlib.IO.SetWoringDir(__file__)
-TBD=paintlib.TBD.init(68765787)
-filepath=paintlib.IO.path+'/demos/'
+TBD = paintlib.TBD.init(68765787)
+filepath = paintlib.IO.path+'/demos/'
 
 
 # 创建cell和layer的结构
@@ -41,10 +41,9 @@ for xx in range(-rangex, rangex+1):
         opts.append(pt)
 
 for pt in opts:
-    pts=paintlib.BasicPainter.arc(pt,0.25*1000000,3*4+1,0,360)
-    hole=pya.DPolygon(pts)
-    paintlib.BasicPainter.Draw(cellobstacle,layerobstacle,hole)
-
+    pts = paintlib.BasicPainter.arc(pt, 0.25*1000000, 3*4+1, 0, 360)
+    hole = pya.DPolygon(pts)
+    paintlib.BasicPainter.Draw(cellobstacle, layerobstacle, hole)
 
 
 # 连线
@@ -66,12 +65,12 @@ layermod = 'not in'
 order = None
 
 err, lengths, paths = paintlib.AutoRoute.autoRoute(cell, layer, size, cellList, brushs,
-                                   layerList, box, layermod, order)
+                                                   layerList, box, layermod, order)
 if not err:
     print(lengths)
 
-#输出
+# 输出
 print(TBD.isFinish())
-paintlib.IO.Show()#输出到屏幕上
-#paintlib.IO.Write()#输出到文件中
+paintlib.IO.Show()  # 输出到屏幕上
+# paintlib.IO.Write()#输出到文件中
 #

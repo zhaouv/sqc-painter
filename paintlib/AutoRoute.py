@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from math import cos,sin,pi,tan,atan2,sqrt,ceil,floor
+from math import cos, sin, pi, tan, atan2, sqrt, ceil, floor
 import queue
 
 import pya
@@ -8,6 +8,7 @@ from .IO import IO
 from .CavityPainter import CavityPainter
 from .Collision import Collision
 from .Interactive import Interactive
+
 
 class AutoRoute:
 
@@ -77,13 +78,13 @@ class AutoRoute:
                     tmp_brush.centerx, tmp_brush.centery))
             pairs.append(tmp_pair)
         BIGNUMBERPID = 2**20
-        for issource,pairs_ in [(False,pairs), (True,pairs0)]:
+        for issource, pairs_ in [(False, pairs), (True, pairs0)]:
             for pid, pair in enumerate(pairs_):
                 for is1, pt in enumerate(pair, 1):
                     px, py = pt
                     if area[px][py] >= BIGNUMBERPID and not issource:
                         estr = 'conflict, pair '+str(pid)
-                        pya.MessageBox.warning(
+                        IO.warning.warning(
                             "paintlib.AutoRoute._brushToPair", "Error : "+estr, pya.MessageBox.Ok)
                         return [], estr
                     area[px][py] = is1*BIGNUMBERPID+pid
@@ -142,7 +143,7 @@ class AutoRoute:
                   'linking pair', pid)
             if AutoRoute._BFSTwoPoint(area, pair) == 0:
                 estr = 'can not link, pair '+str(pid)
-                pya.MessageBox.warning(
+                IO.warning.warning(
                     "paintlib.AutoRoute._BFSLinkAllToCheckAndDistance", "Error : "+estr, pya.MessageBox.Ok)
                 return estr
         return ''
@@ -196,7 +197,7 @@ class AutoRoute:
             direct = AutoRoute._BFSTwoPoint(area, pair)
             if direct == 0:
                 estr = 'can not link, pair '+str(ii)
-                pya.MessageBox.warning(
+                IO.warning.warning(
                     "paintlib.AutoRoute._linkInArea", "Error : "+estr, pya.MessageBox.Ok)
                 return estr, []
             lines[ii] = AutoRoute._backtrace(direct, pair, area)
@@ -209,18 +210,20 @@ class AutoRoute:
         pathstr = Interactive.link(
             brush1=brush12[1], brush2=brush12[0], spts=spts, print_=False)
         if not pathstr:
-            return 'link line fail', 0,pathstr
-        if type(cell)!=type(None) and type(layer)!=type(None):
-            length=Interactive._show_path(cell, layer, brush12[1], pathstr)
+            return 'link line fail', 0, pathstr
+        if type(cell) != type(None) and type(layer) != type(None):
+            length = Interactive._show_path(cell, layer, brush12[1], pathstr)
         else:
-            length=0
+            length = 0
         return '', length, pathstr
 
     @staticmethod
     def autoRoute(cell, layer, size, cellList, brushs, layerList=None, box=None, layermod='not in', order=None):
-        brushs=[[b2,b1] for b1,b2 in brushs]
-        if type(box)==type(None):box=Interactive._box_selected()
-        if not box:raise RuntimeError('no box set')
+        brushs = [[b2, b1] for b1, b2 in brushs]
+        if type(box) == type(None):
+            box = Interactive._box_selected()
+        if not box:
+            raise RuntimeError('no box set')
         outregion, inregion = Collision.getShapesFromCellAndLayer(
             cellList, layerList=layerList, box=box, layermod=layermod)
         region = outregion & inregion
@@ -240,7 +243,7 @@ class AutoRoute:
         if checkresult != '':
             return checkresult, [], []
         lengths = []
-        paths=[]
+        paths = []
         for line, brush12 in zip(lines, brushs):
             checkresult, length, pathstr = AutoRoute._linkLine(
                 cell, layer, line, brush12, areaxyToXy)
@@ -251,18 +254,21 @@ class AutoRoute:
         return '', lengths, paths
 
     @staticmethod
-    def linkTwoBrush(brush1,brush2,size=150000,enlargesize=600000,layerList=None, box=None,layermod='not in',cellList=None):
-        if type(box)==type(None):
-            ppp='r{size},180 r{size2},180 r{size2},180'.format(size=enlargesize/2,size2=enlargesize)
-            painter=CavityPainter(brush1)
+    def linkTwoBrush(brush1, brush2, size=150000, enlargesize=600000, layerList=None, box=None, layermod='not in', cellList=None):
+        if type(box) == type(None):
+            ppp = 'r{size},180 r{size2},180 r{size2},180'.format(
+                size=enlargesize/2, size2=enlargesize)
+            painter = CavityPainter(brush1)
             painter.Run(ppp)
-            region=painter.Output_Region()
-            painter=CavityPainter(brush2)
+            region = painter.Output_Region()
+            painter = CavityPainter(brush2)
             painter.Run(ppp)
-            region=region + painter.Output_Region()
-            box=region.bbox()
-        if cellList==None:
-            cellList=[IO.top]
-        err,_,paths=AutoRoute.autoRoute(cell=None, layer=None, size=size, cellList=cellList, brushs=[[brush1,brush2]], layerList=layerList, box=box, layermod='not in', order=None)
-        if err:raise RuntimeError(err)
+            region = region + painter.Output_Region()
+            box = region.bbox()
+        if cellList == None:
+            cellList = [IO.top]
+        err, _, paths = AutoRoute.autoRoute(cell=None, layer=None, size=size, cellList=cellList, brushs=[
+                                            [brush1, brush2]], layerList=layerList, box=box, layermod='not in', order=None)
+        if err:
+            raise RuntimeError(err)
         return paths[0]
