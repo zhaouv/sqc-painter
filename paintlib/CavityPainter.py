@@ -12,7 +12,7 @@ from .BasicPainter import BasicPainter
 
 
         
-class TraceRunner:
+class TraceRunnerClass:
     patternNames=['straight','turning','repeatStart','repeatEnd']
 
     straight_pattern=re.compile(r'^s_?(-?\d+\.?\d*)')
@@ -169,7 +169,9 @@ class TraceRunner:
         traversal(AST)
         self.pathString=''.join(output)
         return self.pathString
-    
+
+TraceRunner=TraceRunnerClass()
+
 class LinePainter(Painter):
     def __init__(self,pointl=pya.DPoint(0,1000),pointr=pya.DPoint(0,0)):
         '''沿着前进方向，右边pointr，左边pointl'''
@@ -302,7 +304,6 @@ class LinePainter(Painter):
         
 
 class CavityPainter(Painter):
-    TraceRunner=TraceRunner()
     def __init__(self,*args,**keys):
         if 'pointc' in keys or (isinstance(args[0],pya.DPoint) and ('angle' in keys or type(args[1]) in [int,float])):
             self.constructors1(*args,**keys)
@@ -335,26 +336,26 @@ class CavityPainter(Painter):
         elif hasattr(path,'__call__'):
             pathFunction=path
         else: # type(path)==str
-            pathFunction=self.TraceRunner.getPathFunction(path)
+            pathFunction=TraceRunner.getPathFunction(path)
         #修复1nm线的bug
-        self.painterout._Straight(-1)
-        self.painterout._Straight(1)
+        self.painterout._Straight(-0.414)
+        self.painterout._Straight(0.414)
         self.painterout.Straight(self.bgn_ext)
         pathFunction(self.painterout)
         self.painterout.Straight(self.end_ext)
-        self.painterout._Straight(1)
-        self.painterout._Straight(-1)
+        self.painterout._Straight(0.414)
+        self.painterout._Straight(-0.414)
         self.painterout._Straight(-self.end_ext)
         self.regionlistout.extend(self.painterout.outputlist)
         self.painterout.outputlist=[]
         self.bgn_ext=0
         self.end_ext=0
         #修复1nm线的bug
-        self.painterin._Straight(-3)
-        self.painterin._Straight(3)
+        self.painterin._Straight(-1.414)
+        self.painterin._Straight(1.414)
         result=pathFunction(self.painterin)
-        self.painterin._Straight(3)
-        self.painterin._Straight(-3)
+        self.painterin._Straight(1.414)
+        self.painterin._Straight(-1.414)
         self.regionlistin.extend(self.painterin.outputlist)
         self.painterin.outputlist=[]
         #把中心线的(点列表,笔刷)成组添加

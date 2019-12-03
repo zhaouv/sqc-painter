@@ -36,7 +36,7 @@ TBD = paintlib.TBD.init(676987)
 # list:
 # + [x] TraceRunner.reverse
 # %%
-tr=paintlib.TraceRunner()
+tr=paintlib.TraceRunner
 a='s 123 l 3456 r 345 '
 print(tr.reversePath(a))
 a='s_ 123 n3[ l 3456 n3[ l 3456 r 345] r 345] r4567 '
