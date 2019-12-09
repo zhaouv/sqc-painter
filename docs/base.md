@@ -144,8 +144,9 @@ radius为正时是右转,为负时是左转
 + 成员`painter.end_ext`  
 ![](img_md/2018-04-19-18-29-12.png)  
 + 方法`painter.Run(path)`  
-path(painter)是通过painter.Straight和painter.Turning描述LinePainter的运动从而画腔的函数,Run返回path的返回值(长度)  
+path(painter)是通过painter.Straight和painter.Turning描述内径LinePainter的运动从而画腔的函数,Run返回path的返回值(长度)  
 `Run`执行后,`bgn_ext`和`end_ext`会被置为0, 如果一个腔由多次`Run`构成, 需要把`end_ext`设为0, 直到最后一次`Run`之前再把`end_ext`设为想要的值  
+当设置了`bgn_ext`时, 通过`x,y`或`pointc`设置的是外径始端的中点的位置, 此情况下外径会先直行`bgn_ext`, 之后内外径一起沿着路径运动. 之后外径向前`end_ext`再退回来, 结束时停在内径的末端的中点  
 path也可以是由`s`代表直行,`r`代表右转,`l`代表左转,`n`代表重复的字符串用来描述运动  
 使用详见demo  
 + 方法`painter.Electrode(wid=368000,length=360000,` `midwid=200000,midlength=200000,narrowlength=120000,reverse=False)`  

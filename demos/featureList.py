@@ -43,22 +43,13 @@ painter3 = paintlib.CavityPainter(pya.DPoint(
 # painter3.painterin.Turning=painter3.painterin.TurningInterpolation
 # painter3.painterout.Turning=painter3.painterout.TurningInterpolation
 
+path = 'r 40000 s 50000 r 40000'
+for i in range(7):
+    path += f's{500000+40000*i} l 40000,180 s{500000+40000*i} r 40000,180'
+path += 's 28500'
 
-def path(painter):  # 设置内轮廓路径
-    painter.Turning(40000)
-    painter.Straight(50000)
-    painter.Turning(40000)
-    for i in range(7):
-        painter.Straight(500000+40000*i)  # 1
-        painter.Turning(-40000)
-        painter.Turning(-40000)
-        painter.Straight(500000+40000*i)  # 2
-        painter.Turning(40000)
-        painter.Turning(40000)
-    painter.Straight(28500)
-
-
-painter3.Run(path)  # Run内填函数(如上)或字符串(见下一个例子)来描述的内径的运动
+painter3.Run(path)  # Run内填字符串来描述的内径的运动
+# s <length> 直行 r <radius[,angle]> 右转 l <radius[,angle]> 左转 n<number>[<content>] 重复number次content,可以嵌套循环
 
 painter3.Draw(cell2, layer1)  # 把画好的腔置入
 # 画Crossover
@@ -76,7 +67,7 @@ paintlib.IO.centerlineratio = 3
 painter7.cavityLength = painter7.Run('''s 184000 r 50000 s 50000 
 n3[ r 50000 s 500000 l 50000,180 s 500000 r 50000]
 r 50000 s 500000 l 50000,180 s 210000
-''')  # s <length> 直行 r <radius[,angle]> 右转 l <radius[,angle]> 左转 n<number>[<content>] 重复number次content,可以嵌套循环
+''')
 paintlib.IO.centerlineratio = 1
 # 画腔到比特的连接(更复杂的版本)
 paintlib.SpecialPainter.ConnectionOnPainter(

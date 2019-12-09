@@ -170,7 +170,7 @@ class TraceRunnerClass:
                 for cn in node.getChildren()[::-1]:
                     traversal(cn)
             if node.type == self.straight:
-                push('s{minus} {length} '.format(
+                push('s {minus} {length} '.format(
                     minus='_'if node.enableMinus else '', length=node.length))
             if node.type == self.turning:
                 push('t {radius},{angle} '.format(

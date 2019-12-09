@@ -80,6 +80,7 @@ class Interactive:
     
     @staticmethod
     def link(brush1=None, brush2=None, spts=None, print_=True):
+        return Interactive.link_new_wrapper(brush1=brush1, brush2=brush2, spts=spts, print_=print_)
         '''
         输入两个CavityBrush作为参数, 并点击图中的一个路径, 生成一个连接两个brush的路径的函数  
         缺省时会在Interactive.searchr内搜索最近的brush
@@ -420,10 +421,10 @@ class Interactive:
 
         n=len(edges)
         if not reverse:
-            argsArr=[0,(lambda ii:ii<n-2),0,1,0,1,1,1] 
+            argsArr=[0,1,(lambda ii:ii<n-2),0,1,0,1,1,1] 
         else:
-            argsArr=[n,(lambda ii:ii>2),-2,-1,-1,-2,-2,-2]
-        initii,condition,dad,dld,angle0d,angled,ptd,eid=argsArr
+            argsArr=[n,-1,(lambda ii:ii>2),-2,-1,-1,-2,-2,-2]
+        initii,iid,condition,dad,dld,angle0d,angled,ptd,eid=argsArr
         
         ii=initii
         last=0
@@ -453,6 +454,7 @@ class Interactive:
                 pts[ei]=edges[ei].crossing_point(edges[ei-1])
                 pts[ei+1]=edges[ei].crossing_point(edges[ei+1])
                 moved=True
+            ii+=iid
         return moved,angles,pts,edges,das
 
 
