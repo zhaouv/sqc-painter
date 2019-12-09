@@ -224,6 +224,8 @@ class Interactive:
     def _link_define_utils():
         deltaangle = Interactive.deltaangle
         maxlength = Interactive.maxlength
+        extendlength=Interactive.extendlength
+        turningr=Interactive.turningr
         def boundAngle(angle):
             '''
             (-180,180]
@@ -235,16 +237,16 @@ class Interactive:
             return angle
         def gridAngle(angle):
             return boundAngle(round(angle/deltaangle)*deltaangle)
-        return deltaangle,maxlength,boundAngle,gridAngle
+        return deltaangle,maxlength,boundAngle,gridAngle,extendlength,turningr
 
     @staticmethod
-    def link_rebuild_wrapper(brush1=None, brush2=None, spts=None, print_=True):
+    def link_new_wrapper(brush1=None, brush2=None, spts=None, print_=True):
         '''
         输入两个CavityBrush作为参数, 并点击图中的一个路径, 生成一个连接两个brush的路径的函数  
         缺省时会在Interactive.searchr内搜索最近的brush
         第二个brush可为None, 此时取path的终点作为路径终点
         '''
-        deltaangle,maxlength,boundAngle,gridAngle=Interactive._link_define_utils()
+        deltaangle,maxlength,boundAngle,gridAngle,extendlength,turningr=Interactive._link_define_utils()
 
         if spts == None:
             spts = Interactive._pts_path_selected()
@@ -266,7 +268,9 @@ class Interactive:
             IO.warning.warning("paintlib.Interactive.link",
                                 "Argument 2 must be CavityBrush or None", pya.MessageBox.Ok)
             return
-        ss=Interactive.link_rebuild(brush1=brush1, brush2=brush2, spts=spts)
+
+        ss=Interactive.link_process(brush1=brush1, brush2=brush2, spts=spts)
+
         if print_:
             print('##################################')
             print(ss)
@@ -275,7 +279,7 @@ class Interactive:
         return ss
 
     @staticmethod
-    def link_rebuild(brush1, brush2, spts):
+    def link_process(brush1, brush2, spts):
         
         '''
         主流程:
@@ -287,15 +291,15 @@ class Interactive:
         扫角度:
         如果发现起点终点只有两个有效点且平行, 改为额外的处理
 
-        挪点:
-        在一个点转向后, 如果线段不够长, 把这个点向冲突的线段方向延长至足够且增加额外延长extendlength
+        挪边:
+        在一个点转向后, 如果线段不够长, 把这个转向后的边向冲突的线段方向延长至足够且增加额外延长extendlength
         '''
-        deltaangle,maxlength,boundAngle,gridAngle=Interactive._link_define_utils()
 
         angles,pts,edges,das=Interactive._link_scan_angles(brush1, brush2, spts)
 
-        Interactive._link_move_pts
-        Interactive._link_move_pts
+        moved,angles,pts,edges,das=Interactive._link_move_edges(angles,pts,edges,das,reverse=False)
+        if moved:
+            moved,angles,pts,edges,das=Interactive._link_move_edges(angles,pts,edges,das,reverse=True)
 
         ss = Interactive._generatepath(pts, das)
 
@@ -306,7 +310,7 @@ class Interactive:
         '''
         扫角度
         '''
-        deltaangle,maxlength,boundAngle,gridAngle=Interactive._link_define_utils()
+        deltaangle,maxlength,boundAngle,gridAngle,extendlength,turningr=Interactive._link_define_utils()
 
         #起点
         angles = [boundAngle(brush1.angle)]
@@ -408,42 +412,49 @@ class Interactive:
         return angles,pts,edges,das
 
     @staticmethod
-    def _link_move_pts(angles,pts,edges,das):
+    def _link_move_edges(angles,pts,edges,das,reverse=False):
         '''
-        挪点
+        挪边
         '''
-        deltaangle,maxlength,boundAngle,gridAngle=Interactive._link_define_utils()
-        extendlength=Interactive.extendlength
-        turningr=Interactive.turningr
+        deltaangle,maxlength,boundAngle,gridAngle,extendlength,turningr=Interactive._link_define_utils()
 
-        # 正向
-        ii=0
         n=len(edges)
+        if not reverse:
+            argsArr=[0,(lambda ii:ii<n-2),0,1,0,1,1,1] 
+        else:
+            argsArr=[n,(lambda ii:ii>2),-2,-1,-1,-2,-2,-2]
+        initii,condition,dad,dld,angle0d,angled,ptd,eid=argsArr
+        
+        ii=initii
         last=0
-        while ii<n-2:
-            da=das[ii]
+        moved=False
+        while condition(ii):
+            da=das[ii+dad]
             sda=(da>0)-(da<0)
             da*=sda
             dl=turningr*tan(da/180*pi/2)
-            ll=pts[ii].distance(pts[ii+1])-last-dl
+            ll=pts[ii].distance(pts[ii+dld])-last-dl
             last=dl
             if(ll<0):
                 # move pt
-                angle0=angles[ii]
-                angle=angles[ii+1]
-                pt=pts[ii+1]
-                edges[ii+1]=pya.DEdge(
+                angle0=angles[ii+angle0d]
+                angle=angles[ii+angled]
+                pt=pts[ii+ptd]
+                ei=ii+eid
+                edges[ei]=pya.DEdge(
                     pt.x+maxlength*cos(angle/180*pi)+(extendlength-ll)*cos(angle0/180*pi), 
                     pt.y+maxlength*sin(angle/180*pi)+(extendlength-ll)*sin(angle0/180*pi),
                     pt.x-maxlength*cos(angle/180*pi)+(extendlength-ll)*cos(angle0/180*pi), 
                     pt.y-maxlength*sin(angle/180*pi)+(extendlength-ll)*sin(angle0/180*pi))
-                if not all([edges[ii+1].crossed_by(edges[ii]),edges[ii+1].crossed_by(edges[ii+2])]):
+                if not all([edges[ei].crossed_by(edges[ei-1]),edges[ei].crossed_by(edges[ei+1])]):
                     IO.warning.warning(
                         "paintlib.Interactive.link", "Error : Invalid path leads to no crossing point when adjusting conflict", pya.MessageBox.Ok)
                     return
-                pts[ii+1]=edges[ii+1].crossing_point(edges[ii])
-                pts[ii+2]=edges[ii+1].crossing_point(edges[ii+2])
-            pass
+                pts[ei]=edges[ei].crossing_point(edges[ei-1])
+                pts[ei+1]=edges[ei].crossing_point(edges[ei+1])
+                moved=True
+        return moved,angles,pts,edges,das
+
 
 
 
