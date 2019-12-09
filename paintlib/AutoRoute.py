@@ -5,10 +5,10 @@ import queue
 
 import pya
 from .IO import IO
-from .CavityPainter import CavityPainter
+from .CavityPainter import CavityPainter,TraceRunner
 from .Collision import Collision
 from .Interactive import Interactive
-
+from .SpecialPainter import SpecialPainter
 
 class AutoRoute:
 
@@ -272,3 +272,282 @@ class AutoRoute:
         if err:
             raise RuntimeError(err)
         return paths[0]
+
+class linkTwoBrushWithPassClass:
+    # 类
+    cache = {}
+    cacheFilename='linkCache.json'
+    # 可覆盖
+    cell=IO.link
+    layer=IO.layer
+    linksize = 150000
+    layerList = None
+    radius = 50000  # contortion的半径
+    # 实例
+    testMode=False
+    printRange=True
+    cacheId = ''
+    _pass = []
+    brush1 = None
+    brushs = []  # 中介的刷子对
+    brush4 = None
+    pre = ''
+    pres = []
+    post = ''
+    manual = ''
+    posts = []
+    paths1 = []
+    paths2 = []  # 1比2多1个
+    lengths1 = []
+    lengths2 = []  # 1比2多1个
+    minlengths = []
+    maxlengths = []
+    minlength = 0
+    maxlength = 0
+    finalPath = ''
+    manualDict = {}  # 形如 {3:'s1000'}, 索引为3的线手动来布, 也可以在_pass中指定, 在_pass中优先级高
+    x0 = 0
+    y0 = 0
+
+    @staticmethod
+    def loadcache():
+        with open(IO.workingDir+'/'+linkTwoBrushWithPassClass.cacheFilename) as fid:
+            linkTwoBrushWithPassClass.cache = json.load(fid)
+    
+    @staticmethod
+    def savecache():
+        with open(IO.workingDir+'/'+linkTwoBrushWithPassClass.cacheFilename, 'w') as fid:
+            json.dump(linkTwoBrushWithPassClass.cache, fid)
+
+    def reversePath(self, pstr):
+        if not pstr:
+            return ''
+        return TraceRunner.reversePath(pstr)
+
+    def setArgs(self, **args):
+        '''
+        args={
+            "brush1": paintlib.CavityBrush(pointc=pya.DPoint(0,0), angle=0,widout=20000,widin=10000,bgn_ext=0),
+            "brush4": paintlib.CavityBrush(pointc=pya.DPoint(0,500000), angle=0,widout=20000,widin=10000,bgn_ext=0),
+            "cacheId":"",
+            "testMode":False,
+
+            "x0": 782828,
+            "y0": 2181652,
+            "pre": "",
+            "manual": "",
+            "post": "s40000 l30000 s260000 r30000",
+            "_pass": [
+                {
+                    "x": 837544,
+                    "y": 3029618,
+                    "angle": -45,
+                    "height": 0,
+                    "width": 300000,
+                    "pre": "",
+                    "manual": "",
+                    "post": "s40000 l30000 s260000 r30000"
+                },
+                {
+                    "x": 867086,
+                    "y": 2565715,
+                    "angle": -135,
+                    "height": 245000,
+                    "width": 300000,
+                    "manual": "s131153 l40000 s4053"
+                }
+            ],
+            "radius":50000,
+            "linksize":150000,
+            "layerList":None
+        }
+        '''
+        for k in [
+            '_pass',
+            'brushs',
+            'pres',
+            'posts',
+            'paths1',
+            'paths2',
+            'lengths1',
+            'lengths2',
+            'minlengths',
+            'maxlengths',
+        ]:
+            self.__setattr__(k, [])
+        for k in [
+            'manualDict',
+        ]:
+            self.__setattr__(k, {})
+        for k, v in args.items():
+            self.__setattr__(k, v)
+        return self
+
+    def link(self, strategy='max', **args):
+        '''
+        strategy: max,min,set
+        args['length']: target length
+        '''
+        brush1 = self.brush1
+        brush4 = self.brush4
+        minlengths = self.minlengths
+        maxlengths = self.maxlengths
+        cacheId = self.cacheId
+
+        contortion_args_list = []
+        if self.manual:
+            self.manualDict[0] = self.manual
+        for ii, midv in enumerate(self._pass):
+            if 'manual' in midv and midv['manual']:
+                self.manualDict[ii+1] = midv['manual']
+            self.pres.append('' if 'pre' not in midv else midv['pre'])
+            self.posts.append('' if 'post' not in midv else midv['post'])
+            contortion_args = dict(x=self.x0+midv['x'], y=self.y0+midv['y'], angle=midv['angle'], width=midv['width'],
+                                   height=midv['height'], radius=self.radius, widout=brush1.widout,
+                                   widin=brush1.widin, strategy='width')
+            contortion_args_list.append(contortion_args)
+            _, brush2, brush3, minlength, maxlength = SpecialPainter.contortion(
+                infoOnly=True, length=0, **contortion_args)
+            self.brushs.append(brush2)
+            self.brushs.append(brush3)
+            minlengths.append(minlength)
+            maxlengths.append(maxlength)
+            if strategy != 'set':
+                length = maxlength
+                if strategy == 'min':
+                    length = minlength
+                path2, _, _, _, _ = SpecialPainter.contortion(
+                    infoOnly=False, length=length, **contortion_args)
+                if self.testMode:
+                    Interactive._show_path(
+                        self.cell, self.layer, brush2.reversed(), path2)
+                self.paths2.append(path2)
+
+        if cacheId and cacheId in self.cache:
+            cache = self.cache[cacheId]
+            self.paths1 = cache['path']
+            self.lengths1 = cache['length']
+            if self.testMode:
+                brushs = [brush1]+self.brushs+[brush4]
+                for ii in range(int(len(brushs)/2)):
+                    pass
+                    Interactive._show_path(
+                        self.cell, self.layer, brushs[2*ii], self.paths1[ii])
+        else:
+
+            brushs = [brush1]+self.brushs+[brush4]
+            posts = [self.post]+self.posts
+            pres = self.pres+[self.pre]
+            for ii in range(int(len(brushs)/2)):
+
+                painter = CavityPainter(brushs[2*ii])
+                if posts[ii]:
+                    painter.Run(posts[ii])
+                brush_link_s = painter.brush
+
+                painter = CavityPainter(brushs[2*ii+1])
+                if pres[ii]:
+                    painter.Run(pres[ii])
+                brush_link_e = painter.brush
+
+                if ii in self.manualDict:
+                    path1 = self.manualDict[ii]
+                else:
+                    path1 = AutoRoute.linkTwoBrush(
+                        brush_link_s, brush_link_e, size=self.linksize, layerList=self.layerList)
+                path1 = posts[ii]+path1+self.reversePath(pres[ii])
+                self.paths1.append(path1)
+
+                painter = CavityPainter(brushs[2*ii])
+                length1 = painter.Run(self.paths1[ii])
+                if self.testMode:
+                    painter.Draw(celltest, layertest3)
+                self.lengths1.append(length1)
+
+                cache = {'path': self.paths1, 'length': self.lengths1}
+                self.cache[cacheId] = cache
+            if self.printRange:
+                print('range', cacheId, sum(self.lengths1) +
+                  sum(minlengths), sum(self.lengths1)+sum(maxlengths))
+        self.minlength = sum(self.lengths1)+sum(minlengths)
+        self.maxlength = sum(self.lengths1)+sum(maxlengths)
+
+        if strategy == 'set':
+            if 'length' not in args:
+                raise RuntimeError(
+                    "put ',length=<a number>' in your function call")
+            if self.minlength <= args['length'] <= self.maxlength:
+                pass
+            else:
+                raise RuntimeError(
+                    f"{self.minlength}<={args['length']}<={self.maxlength} is not True")
+            if self.minlength == self.maxlength:
+                k = 0
+            else:
+                k = (args['length']-self.minlength) / \
+                    (self.maxlength-self.minlength)
+            for ii in range(len(contortion_args_list)):
+                contortion_args = contortion_args_list[ii]
+                brush2 = self.brushs[2*ii]
+                length = minlengths[ii]+k*(maxlengths[ii]-minlengths[ii])
+                path2, _, _, _, _ = SpecialPainter.contortion(
+                    infoOnly=False, length=length, **contortion_args)
+                if self.testMode:
+                    Interactive._show_path(
+                        self.cell, self.layer, brush2.reversed(), path2)
+                self.paths2.append(path2)
+
+        path = self.paths1[0]
+        for p1, p2 in zip(self.paths1[1:], self.paths2):
+            path = path+p2+p1
+        self.finalPath = path
+        return path
+
+
+"""
+
+class linkBrushToPinWithPassClass:
+    armLength = 250000
+    linking = paintlib.linkTwoBrushWithPassClass()
+    pinStraghtSimulationMode = False
+
+    def setArgs(self, **args):
+        '''
+        x0=unit.x0,
+        y0=unit.y0,
+        _pass=args['pass'],
+        pre=args['pre'],
+        post=args['post'],
+        radius=args2['radius'],
+        brush1= self.brushs[ri],
+        cacheId=args['cacheId'],
+
+        x
+        y
+        angle
+        '''
+        self.linking = paintlib.linkTwoBrushWithPassClass()
+        x = args['x']
+        y = args['y']
+        angle = args['angle']
+        x0 = args['x0']
+        y0 = args['y0']
+        self.brush4 = args['brush4'] = paintlib.CavityBrush(pointc=pya.DPoint(x0+x+self.armLength*cos(angle*pi/180), y0+y+self.armLength*sin(
+            angle*pi/180)), angle=angle, widout=args['brush1'].widout, widin=args['brush1'].widin, bgn_ext=0)
+        self.linking.setArgs(**args)
+        return self
+
+    def link(self, strategy='max', **args):
+        painter = paintlib.CavityPainter(self.brush4)
+        if self.pinStraghtSimulationMode:
+            painter.Run('s_-1000000')
+        else:
+            painter.Electrode(reverse=True)
+        painter.Draw(self.linking.cell, self.linking.layer)
+        pass
+        return self.linking.link(strategy=strategy, **args)
+
+    @property
+    def finalPath(self):
+        return self.linking.finalPath
+"""

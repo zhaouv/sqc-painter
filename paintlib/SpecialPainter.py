@@ -23,50 +23,57 @@ class SpecialPainter(Painter):
             tr = brush.DCplxTrans
         else:
             tr = pya.DCplxTrans(1, angle, False, x, y)
-        rp = turningRadiusPlus
-        r = turningRadiusPlus+linewid/2
-        polygons = []
-        pts = [
-            pya.DPoint(0, widin/2),
-            pya.DPoint(slength1, widin/2),
-            pya.DPoint(slength1, widout/2),
-            pya.DPoint(0, widout/2),
-        ]
-        polygons.append(pya.DPolygon(pts))
-        pts = [
-            pya.DPoint(0, -widin/2),
-            pya.DPoint(slength1, -widin/2),
-            pya.DPoint(slength1, -widout/2),
-            pya.DPoint(0, -widout/2),
-        ]
-        polygons.append(pya.DPolygon(pts))
-        dx = widout/2-cwid/2-2*linewid
-        tangle = 90-atan2(clengthplus, dx)*180/pi
-        lp = LinePainter(pointl=pya.DPoint(slength1, widout/2),
-                         pointr=pya.DPoint(slength1, widout/2-linewid))
-        #
-        lp.Straight(slength2+clength-rp*tan(tangle/2*pi/180))
-        lp.Turning(r, tangle)
-        lp.Straight(-rp*tan(tangle/2*pi/180)+dx /
-                    sin(tangle*pi/180)-rp/tan(tangle/2*pi/180))
-        lp.Turning(r, 180-tangle)
-        lp.Straight(-rp/tan(tangle/2*pi/180)+clengthplus+clength-linewid)
-        #
-        lp.Turning(-linewid/2, 90)
-        lp._Straight(-linewid)
-        lp.Straight(linewid+cwid)
-        lp.Turning(-linewid/2, 90)
-        lp._Straight(-linewid)
-        lp.Straight(linewid)
-        #
-        lp.Straight(-rp/tan(tangle/2*pi/180)+clengthplus+clength-linewid)
-        lp.Turning(r, 180-tangle)
-        lp.Straight(-rp*tan(tangle/2*pi/180)+dx /
-                    sin(tangle*pi/180)-rp/tan(tangle/2*pi/180))
-        lp.Turning(r, tangle)
-        lp.Straight(slength2+clength-rp*tan(tangle/2*pi/180))
-        #
-        polygons.extend(lp.outputlist)
+        oldpointdistance=IO.pointdistance
+        IO.pointdistance=max(100,int(IO.pointdistance/10))
+        try:
+            rp = turningRadiusPlus
+            r = turningRadiusPlus+linewid/2
+            polygons = []
+            pts = [
+                pya.DPoint(0, widin/2),
+                pya.DPoint(slength1, widin/2),
+                pya.DPoint(slength1, widout/2),
+                pya.DPoint(0, widout/2),
+            ]
+            polygons.append(pya.DPolygon(pts))
+            pts = [
+                pya.DPoint(0, -widin/2),
+                pya.DPoint(slength1, -widin/2),
+                pya.DPoint(slength1, -widout/2),
+                pya.DPoint(0, -widout/2),
+            ]
+            polygons.append(pya.DPolygon(pts))
+            dx = widout/2-cwid/2-2*linewid
+            tangle = 90-atan2(clengthplus, dx)*180/pi
+            lp = LinePainter(pointl=pya.DPoint(slength1, widout/2),
+                            pointr=pya.DPoint(slength1, widout/2-linewid))
+            #
+            lp.Straight(slength2+clength-rp*tan(tangle/2*pi/180))
+            lp.Turning(r, tangle)
+            lp.Straight(-rp*tan(tangle/2*pi/180)+dx /
+                        sin(tangle*pi/180)-rp/tan(tangle/2*pi/180))
+            lp.Turning(r, 180-tangle)
+            lp.Straight(-rp/tan(tangle/2*pi/180)+clengthplus+clength-linewid)
+            #
+            lp.Turning(-linewid/2, 90)
+            lp._Straight(-linewid)
+            lp.Straight(linewid+cwid)
+            lp.Turning(-linewid/2, 90)
+            lp._Straight(-linewid)
+            lp.Straight(linewid)
+            #
+            lp.Straight(-rp/tan(tangle/2*pi/180)+clengthplus+clength-linewid)
+            lp.Turning(r, 180-tangle)
+            lp.Straight(-rp*tan(tangle/2*pi/180)+dx /
+                        sin(tangle*pi/180)-rp/tan(tangle/2*pi/180))
+            lp.Turning(r, tangle)
+            lp.Straight(slength2+clength-rp*tan(tangle/2*pi/180))
+            #
+            polygons.extend(lp.outputlist)
+        except:
+            raise
+        finally:
+            IO.pointdistance=oldpointdistance
 
         return [p.transformed(tr) for p in polygons]
 
