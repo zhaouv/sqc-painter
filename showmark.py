@@ -19,6 +19,7 @@ paintlib.IO.pointdistance = 1000  # 设置腔的精度,转弯处相邻两点的�
 paintlib.IO.SetWoringDir(__file__)
 
 marks = paintlib.Interactive.scanBoxes()
+# marks = paintlib.Interactive.scanBoxes(position='center')
 paintlib.IO.Show()
 
 print(json.dumps(marks, indent=4))

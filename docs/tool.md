@@ -156,7 +156,8 @@ def path(painter):
 生成layer(0,1)中所有图形左下角的坐标
 
 ```python
-marks = paintlib.Interactive.scanBoxes()
+marks = paintlib.Interactive.scanBoxes() # 左下角
+# marks = paintlib.Interactive.scanBoxes(position='center') # 中心
 paintlib.IO.Show()
 import json
 print(json.dumps(marks,indent=4))

@@ -2,7 +2,7 @@
 
 ## sonnet微波仿真
 
-生成matlab文件, 通过 [SonnetLab_v7.4](http://www.sonnetsoftware.com/support/sonnet-suites/sonnetlab.html) 调用 [sonnet](http://www.sonnetsoftware.com/) 实现微波仿真.
+生成matlab文件, 通过 [SonnetLab_v7.4](http://www.sonnetsoftware.com/support/sonnet-suites/sonnetlab.html) 调用 [sonnet v14.52](http://www.sonnetsoftware.com/) 实现微波仿真.
 
 需要将 SonnetLab_v7.4/Scripts/SonnetPath.m 的117行 `aWasteCharacter=aRegistryFileLine(4);`  
 改为 `aWasteCharacter=aRegistryFileLine(5);` 才能正常工作.

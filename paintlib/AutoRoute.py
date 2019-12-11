@@ -5,10 +5,11 @@ import queue
 
 import pya
 from .IO import IO
-from .CavityPainter import CavityPainter,TraceRunner
+from .CavityPainter import CavityPainter, TraceRunner
 from .Collision import Collision
 from .Interactive import Interactive
 from .SpecialPainter import SpecialPainter
+
 
 class AutoRoute:
 
@@ -273,19 +274,32 @@ class AutoRoute:
             raise RuntimeError(err)
         return paths[0]
 
-class linkTwoBrushWithPassClass:
+    @staticmethod
+    def getLinkTwoBrushWithPassClass():
+        return LinkTwoBrushWithPassClass
+
+    @staticmethod
+    def linkTwoBrushWithPass(**args):
+        linking = LinkTwoBrushWithPassClass()
+        linking.setArgs(**args)
+        linking.link(strategy=args['strategy'], length=args["length"])
+        return linking.finalPath
+
+
+class LinkTwoBrushWithPassClass:
     # 类
     cache = {}
-    cacheFilename='linkCache.json'
+    cacheFilename = 'linkCache.json'
     # 可覆盖
-    cell=IO.link
-    layer=IO.layer
+    cell = None
+    layer = None
     linksize = 150000
+    enlargesize = 600000
     layerList = None
     radius = 50000  # contortion的半径
     # 实例
-    testMode=False
-    printRange=True
+    testMode = False
+    printRange = True
     cacheId = ''
     _pass = []
     brush1 = None
@@ -311,13 +325,13 @@ class linkTwoBrushWithPassClass:
 
     @staticmethod
     def loadcache():
-        with open(IO.workingDir+'/'+linkTwoBrushWithPassClass.cacheFilename) as fid:
-            linkTwoBrushWithPassClass.cache = json.load(fid)
-    
+        with open(IO.workingDir+'/'+LinkTwoBrushWithPassClass.cacheFilename) as fid:
+            LinkTwoBrushWithPassClass.cache = json.load(fid)
+
     @staticmethod
     def savecache():
-        with open(IO.workingDir+'/'+linkTwoBrushWithPassClass.cacheFilename, 'w') as fid:
-            json.dump(linkTwoBrushWithPassClass.cache, fid)
+        with open(IO.workingDir+'/'+LinkTwoBrushWithPassClass.cacheFilename, 'w') as fid:
+            json.dump(LinkTwoBrushWithPassClass.cache, fid)
 
     def reversePath(self, pstr):
         if not pstr:
@@ -359,6 +373,7 @@ class linkTwoBrushWithPassClass:
             ],
             "radius":50000,
             "linksize":150000,
+            "enlargesize":600000,
             "layerList":None
         }
         '''
@@ -393,6 +408,11 @@ class linkTwoBrushWithPassClass:
         minlengths = self.minlengths
         maxlengths = self.maxlengths
         cacheId = self.cacheId
+
+        if self.cell == None:
+            self.cell = IO.link
+        if self.layer == None:
+            self.layer = IO.layer
 
         contortion_args_list = []
         if self.manual:
@@ -454,21 +474,21 @@ class linkTwoBrushWithPassClass:
                     path1 = self.manualDict[ii]
                 else:
                     path1 = AutoRoute.linkTwoBrush(
-                        brush_link_s, brush_link_e, size=self.linksize, layerList=self.layerList)
+                        brush_link_s, brush_link_e, size=self.linksize, layerList=self.layerList, enlargesize=self.enlargesize)
                 path1 = posts[ii]+path1+self.reversePath(pres[ii])
                 self.paths1.append(path1)
 
                 painter = CavityPainter(brushs[2*ii])
                 length1 = painter.Run(self.paths1[ii])
                 if self.testMode:
-                    painter.Draw(celltest, layertest3)
+                    painter.Draw(self.cell, self.layer)
                 self.lengths1.append(length1)
 
                 cache = {'path': self.paths1, 'length': self.lengths1}
                 self.cache[cacheId] = cache
             if self.printRange:
                 print('range', cacheId, sum(self.lengths1) +
-                  sum(minlengths), sum(self.lengths1)+sum(maxlengths))
+                      sum(minlengths), sum(self.lengths1)+sum(maxlengths))
         self.minlength = sum(self.lengths1)+sum(minlengths)
         self.maxlength = sum(self.lengths1)+sum(maxlengths)
 
@@ -508,7 +528,7 @@ class linkTwoBrushWithPassClass:
 
 class linkBrushToPinWithPassClass:
     armLength = 250000
-    linking = paintlib.linkTwoBrushWithPassClass()
+    linking = paintlib.LinkTwoBrushWithPassClass()
     pinStraghtSimulationMode = False
 
     def setArgs(self, **args):
@@ -526,7 +546,7 @@ class linkBrushToPinWithPassClass:
         y
         angle
         '''
-        self.linking = paintlib.linkTwoBrushWithPassClass()
+        self.linking = paintlib.LinkTwoBrushWithPassClass()
         x = args['x']
         y = args['y']
         angle = args['angle']

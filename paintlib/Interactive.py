@@ -360,7 +360,7 @@ class Interactive:
         return Interactive._merge_and_draw(outregion,inregion)[0]
     
     @staticmethod
-    def scanBoxes(cellList=None,layerList=None,layermod='in'):
+    def scanBoxes(cellList=None,layerList=None,layermod='in',position='leftdown'):
         if cellList==None:cellList=[IO.top]
         if layerList==None:layerList=[(0,1)]
         _layerlist=[]
@@ -385,7 +385,7 @@ class Interactive:
             finally:
                 pass
             print(polygon)
-            pt=polygon.p1
+            pt=polygon.p1 if position=='leftdown' else polygon.center
             pts.append(pt)
         output=[]
         layer=IO.layout.layer(0, 2)

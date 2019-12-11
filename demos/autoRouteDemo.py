@@ -69,6 +69,46 @@ err, lengths, paths = paintlib.AutoRoute.autoRoute(cell, layer, size, cellList, 
 if not err:
     print(lengths)
 
+args = {
+    "brush1": paintlib.CavityBrush(pointc=pya.DPoint(-4564152, -5268197), angle=0, widout=20000, widin=10000, bgn_ext=0),
+    "brush4": paintlib.CavityBrush(pointc=pya.DPoint(5899409, -9638130), angle=180, widout=20000, widin=10000, bgn_ext=0),
+    "cacheId": "",
+    "testMode": True,
+    "strategy": "max",
+    "length": 0,
+
+    "x0": 0,
+    "y0": 0,
+    "pre": "",
+    "manual": "",
+    "post": "",
+    "_pass": [
+        {
+            "x": 1491604,
+            "y": -3433796,
+            "angle": -30,
+            "height": 700000,
+            "width": 1111000,
+            "pre": "",
+            "manual": "",
+            "post": ""
+        },
+        {
+            "x": -1732074,
+            "y": -7056598,
+            "angle": 180,
+            "height": 800000,
+            "width": 600000
+        }
+    ],
+    "radius": 50000,
+    "linksize": 150000,
+    "enlargesize": 600000,
+    "layerList": []
+}
+path = paintlib.AutoRoute.linkTwoBrushWithPass(**args)
+paintlib.Interactive._show_path(cell, layer, args['brush1'], path)
+
 # 输出
 print(TBD.isFinish())
 paintlib.IO.Show()  # 输出到屏幕上
