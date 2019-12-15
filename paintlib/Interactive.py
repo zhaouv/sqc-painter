@@ -385,7 +385,7 @@ class Interactive:
             finally:
                 pass
             print(polygon)
-            pt=polygon.p1 if position=='leftdown' else polygon.center
+            pt=polygon.p1 if position=='leftdown' else polygon.center()
             pts.append(pt)
         output=[]
         layer=IO.layout.layer(0, 2)
