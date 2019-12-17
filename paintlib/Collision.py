@@ -38,18 +38,7 @@ class Collision(object):
         raise TypeError('Invalid input')
 
     @staticmethod
-    def getRegionFromLayer(layerInfo):
-        region = pya.Region()
-        if type(layerInfo) == str:
-            layer = IO.layout.find_layer(layerInfo)
-        else:
-            layer = IO.layout.find_layer(layerInfo[0], layerInfo[1])
-        region.insert(IO.top.begin_shapes_rec(layer))
-        region.merge()
-        return region
-
-    @staticmethod
-    def getShapesFromCellAndLayer(cellList, box, layerList=None, layermod='not in'):
+    def getLayers(layerList=None, layermod='not in'):
         if layerList == None:
             layerList = [(0, 0), (0, 1), (0, 2)]
         _layerlist = []
@@ -62,6 +51,24 @@ class Collision(object):
                     _layerlist.append(IO.layout.find_layer(ii[0], ii[1]))
         layers = [index for index in IO.layout.layer_indices() if index in _layerlist] if layermod == 'in' else [
             index for index in IO.layout.layer_indices() if index not in _layerlist]
+        return layers
+
+    @staticmethod
+    def getRegionFromLayers(layerList=None, layermod='in'):
+        layers = Collision.getLayers(layerList=layerList, layermod=layermod)
+        region = pya.Region()
+        for layer in layers:
+            region.insert(IO.top.begin_shapes_rec(layer))
+        region.merge()
+        return region
+
+    @staticmethod
+    def getRegionFromLayer(layerInfo):
+        return Collision.getRegionFromLayers(layerList=[layerInfo], layermod='in')
+
+    @staticmethod
+    def getShapesFromCellAndLayer(cellList, box, layerList=None, layermod='not in'):
+        layers = Collision.getLayers(layerList=layerList, layermod=layermod)
         outregion = pya.Region(box)
         inregion = pya.Region()
         for cell in cellList:

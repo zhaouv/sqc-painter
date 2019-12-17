@@ -184,3 +184,4 @@ print(TBD.isFinish())
 paintlib.IO.Show()  # 输出到屏幕上
 # paintlib.IO.Write()#输出到文件中
 #
+
