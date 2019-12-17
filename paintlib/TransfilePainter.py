@@ -59,9 +59,9 @@ class TransfilePainter(Painter):
         或者是 {
             'region': pya.Region, 
             'regionInsert': pya.Region, 
-            'push': int
+            'push': int,
+            'extend': int,
         } 进行碰撞检测
-        push需要小于airbridge间距, 否侧可能会有奇怪的行为
         '''
         IO.layout.read(self.filename)
         for icell in IO.layout.top_cells():
@@ -69,43 +69,67 @@ class TransfilePainter(Painter):
                 icell.name = newcellname
                 break
         counts = []
+        distancesList = []
         for cpts, brush in centerlinelist:
-            distance = 0
+            distance = dp = 0  # distance 是实际距离,dp 用来计算是否放置airbridge
+            distances = []
             if not hasattr(self.airbridgedistance, '__call__'):
-                distance = self.airbridgedistance*0.25
+                distance = dp = self.airbridgedistance*0.25
             dt_int = 0
+            pushlength = 0  # 下一个airbridge要额外推迟的距离
+            pushstatus = 'none' # none push extend
             for i, pt in enumerate(cpts[1:-1], 1):
-                distance = distance+pt.distance(cpts[i-1])
+                dis = pt.distance(cpts[i-1])
+                distance += dis
+                if pushlength > 0:
+                    pushlength -= dis
+                    if pushlength > 0:
+                        continue
+                    else:
+                        dis = -pushlength
+                        pushlength = 0
+                dp += dis
                 if hasattr(self.airbridgedistance, '__call__'):
-                    calt_int = self.airbridgedistance(distance)
+                    calt_int = self.airbridgedistance(dp)
                 else:
-                    calt_int = distance//self.airbridgedistance
+                    calt_int = dp//self.airbridgedistance
                 if calt_int != dt_int:
                     dx = cpts[i+1].x-cpts[i-1].x
                     dy = cpts[i+1].y-cpts[i-1].y
                     tr = pya.CplxTrans(
                         1, atan2(dy, dx)/pi*180, False, pt.x, pt.y)
-                    draw_=True
+                    draw_ = True
                     if collision:
-                        region_=collision['regionInsert'].transformed(pya.ICplxTrans.from_trans(tr))
-                        if (region_ & collision['region']).is_empty():
-                            collision['region']=collision['region']+region_
-                        else:
-                            draw_=False
-                            distance-=collision['push']
+                        region_ = collision['regionInsert'].transformed(
+                            pya.ICplxTrans.from_trans(tr))
+                        noconflict=(region_ & collision['region']).is_empty()
+                        if noconflict and pushstatus in ['none','extend']:
+                            collision['region'] = collision['region']+region_
+                            collision['region'].merge()
+                            pushstatus='none'
+                        elif noconflict and pushstatus=='push':
+                            draw_ = False
+                            pushlength = collision['extend']
+                            pushstatus='extend'
+                        else: # noconflict==False
+                            draw_ = False
+                            pushlength = collision['push']
+                            pushstatus='push'
                     if draw_:
                         new_instance = pya.CellInstArray(
                             icell.cell_index(), tr)
                         cell.insert(new_instance)
                         dt_int = dt_int+1
+                        distances.append(distance)
             counts.append(dt_int)
+            distancesList.append(distances)
         for icell in IO.layout.top_cells():
             if (icell.name == self.insertcellname):
                 icell.flatten(True)
                 icell.delete()
-        return counts
+        return counts, distancesList
 
-    def DrawAirbridgeWithCollisionCheck(self, cell, centerlinelist, newcellname, boxY, boxWidth, boxHeight):
+    def DrawAirbridgeWithCollisionCheck(self, cell, centerlinelist, newcellname, boxY, boxWidth, boxHeight, push=10000, extend=5000):
         # get all shapes
         region = Collision.getRegionFromLayers(layerList=[], layermod='not in')
         # insert
@@ -114,7 +138,7 @@ class TransfilePainter(Painter):
             pya.Box(-boxWidth/2, boxY-boxHeight/2, boxWidth/2, boxY+boxHeight/2))
         regionInsert.insert(
             pya.Box(-boxWidth/2, -boxY-boxHeight/2, boxWidth/2, -boxY+boxHeight/2))
-        return self.DrawAirbridge(cell, centerlinelist, newcellname, collision={'region': region, 'regionInsert': regionInsert, 'push': 10000})
+        return self.DrawAirbridge(cell, centerlinelist, newcellname, collision={'region': region, 'regionInsert': regionInsert, 'push': push,'extend': extend})
 
     def DrawMark(self, cell, pts, newcellname="Mark"):
         IO.layout.read(self.filename)
