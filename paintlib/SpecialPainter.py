@@ -48,6 +48,9 @@ class SpecialPainter(Painter):
             lp = LinePainter(pointl=pya.DPoint(slength1, widout/2),
                             pointr=pya.DPoint(slength1, widout/2-linewid))
             #
+            lp._Straight(-1)
+            lp._Straight(1)
+            #
             lp.Straight(slength2+clength-rp*tan(tangle/2*pi/180))
             lp.Turning(r, tangle)
             lp.Straight(-rp*tan(tangle/2*pi/180)+dx /
@@ -68,6 +71,9 @@ class SpecialPainter(Painter):
                         sin(tangle*pi/180)-rp/tan(tangle/2*pi/180))
             lp.Turning(r, tangle)
             lp.Straight(slength2+clength-rp*tan(tangle/2*pi/180))
+            #
+            lp._Straight(1)
+            lp._Straight(-1)
             #
             polygons.extend(lp.outputlist)
         except:
