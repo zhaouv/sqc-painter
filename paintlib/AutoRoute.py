@@ -90,6 +90,8 @@ class AutoRoute:
                         return [], estr
                     area[px][py] = is1*BIGNUMBERPID+pid
         return pairs, ''
+    
+    
 
     @staticmethod
     def _BFSTwoPoint(area, pair):
@@ -253,6 +255,51 @@ class AutoRoute:
             lengths.append(length)
             paths.append(pathstr)
         return '', lengths, paths
+    
+    @staticmethod
+    def stackedRoute(cell, layer, size, brushScatter, brushLine, stacks, cellList, layerList=None, box=None, layermod='not in'):
+        ''' 
+        层叠布线
+
+        输入: 
+
+        1. 端口组1, 散布, 朝向一致
+
+        2. 端口组2, 排在一个直线上, 朝向一致垂直于排布的直线, 端口组1全部在端口组2的同一侧, 两组端口只需要两两连接不要求指定的配对
+
+        3. 切割线组, 从远到近的接近端口组2, 与端口组2平行, 且覆盖全部端口组1
+
+        4. 区域, 覆盖所有端口和切割线
+
+        过程:
+
+        1. 栅格化区域
+
+        2. 沿着切割线组推进
+
+        1. 检测线上的新增端口数
+
+        2. 检测并编号线上可用的空间
+
+        3. 均匀的放置中间端口
+
+        4. 把中间端口和前一组的端口连接
+
+        3. 把最后一组端口和端口组2连接
+
+        '''
+        if type(box) == type(None):
+            box = Interactive._box_selected()
+        if not box:
+            raise RuntimeError('no box set')
+        outregion, inregion = Collision.getShapesFromCellAndLayer(
+            cellList, layerList=layerList, box=box, layermod=layermod)
+        region = outregion & inregion
+        area, xyToAreaxy, areaxyToXy = AutoRoute._Rasterized(size, box, region)
+        # def _getStackedPairs(xyToAreaxy, brushs, area, size):
+        #     pass
+        # pairs=_getStackedPairs(xyToAreaxy, brushs, area, size)
+        pass
 
     @staticmethod
     def linkTwoBrush(brush1, brush2, size=150000, enlargesize=600000, layerList=None, box=None, layermod='not in', cellList=None):
