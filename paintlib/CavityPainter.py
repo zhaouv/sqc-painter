@@ -508,3 +508,75 @@ class CavityPainter(Painter):
         cptinfos = self.centerlineinfos
         self.centerlineinfos = []
         return cptinfos
+
+
+class TriCavityPainter(CavityPainter):
+
+    def Getexinfo(self):
+        #  la lb la lb la
+        # p1 p2 p3 p4 p5 p6
+        brush = self.brush
+        widout = brush.edgeout.length()
+        widin = brush.edgein.length()
+        p1 = brush.edgeout.p1
+        p2 = brush.edgein.p1
+        p5 = brush.edgein.p2
+        p6 = brush.edgeout.p2
+        la = (widout-widin)/2
+        lb = (widin-la)/2
+        p3 = pya.DPoint((p2.x*(la+lb)+p5.x*lb)/widin,
+                        (p2.y*(la+lb)+p5.y*lb)/widin)
+        p4 = pya.DPoint((p2.x*lb+p5.x*(la+lb))/widin,
+                        (p2.y*lb+p5.y*(la+lb))/widin)
+        return dict(p1=p1, p2=p2, p3=p3, p4=p4, p5=p5, p6=p6, la=la, lb=lb)
+
+    def constructors2(self, brush, end_ext=0):
+        super().constructors2(brush, end_ext)
+        self.regionlistex = []
+        _info = self.Getexinfo()
+        self.painterex = LinePainter(_info['p3'], _info['p4'])
+
+    def Run(self, path=None):
+        result = super().Run(path)
+        if path == None:
+            pathFunction = self.path
+        elif hasattr(path, '__call__'):
+            pathFunction = path
+        else:  # type(path)==str
+            pathFunction = TraceRunner.getPathFunction(path)
+        # 修复1nm线的bug
+        self.painterex._Straight(-0.414)
+        self.painterex._Straight(0.414)
+        pathFunction(self.painterex)
+        self.painterex._Straight(0.414)
+        self.painterex._Straight(-0.414)
+        self.regionlistex.extend(self.painterex.outputlist)
+        self.painterex.outputlist = []
+        return result
+
+    def Narrow(self, widout, widin, length=6000):
+        super().Narrow(widout, widin, length)
+        raise RuntimeError('not supported now')
+        return length
+
+    def Output_Region(self):
+        region = super().Output_Region()
+        polygonsex = []
+        for x in self.regionlistex:
+            if isinstance(x, pya.DPolygon):
+                polygonsex.append(pya.Polygon.from_dpoly(x))
+        self.regionlistex = []
+        region2 = pya.Region(polygonsex)
+        region2.merge()
+        self.region = region2+region
+        return self.region
+
+    @property
+    def brushl(self):
+        _info = self.Getexinfo()
+        return CavityBrush(_info['p1'], _info['p2'], _info['p3'], _info['p4'])
+
+    @property
+    def brushr(self):
+        _info = self.Getexinfo()
+        return CavityBrush(_info['p3'], _info['p4'], _info['p5'], _info['p6'])

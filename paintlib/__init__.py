@@ -10,7 +10,7 @@ from .BasicPainter import BasicPainter
 from .Collision import Collision
 from .PcellPainter import PcellPainter
 from .TransfilePainter import TransfilePainter
-from .CavityPainter import TraceRunner, LinePainter, CavityPainter
+from .CavityPainter import TraceRunner, LinePainter, CavityPainter, TriCavityPainter
 from .Interactive import Interactive
 from .SpecialPainter import SpecialPainter
 from .AutoRoute import AutoRoute
