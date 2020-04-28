@@ -187,6 +187,9 @@ asdasdasdasd(targetLayer=tl)
 #         i.shape.delete()
 #         i.shape.layer=tl
 #         # i.shape.transform(pya.CplxTrans(1,0,False,1000*34048,0))
+
+# shape to region
+# b=pya.Shapes();b.insert(shape_);c=pya.Region(b);
 # %%输出
 print(TBD.isFinish())
 paintlib.IO.Show()  # 输出到屏幕上
