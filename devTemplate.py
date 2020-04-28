@@ -51,7 +51,7 @@ layer1 = layout.layer(10, 10)  # 创建新层
 
 cell2 = layout.create_cell("Cavity1")  # 创建一个子cell
 top.insert(pya.CellInstArray(cell2.cell_index(), pya.Trans()))
-'''
+''' # 三平行线的腔
 painter3 = paintlib.TriCavityPainter(pya.DPoint(
     0, 24000), angle=180, widout=48000, widin=36000, bgn_ext=0, end_ext=0)
 
@@ -159,6 +159,34 @@ def drawtext(cell,layer,string,cellname,tr=pya.DCplxTrans(1, 0, False, 0, 0)):
 drawtext(cell,layer,string,cellname,tr=pya.DCplxTrans(1, 0, False, 0, 0))
 # drawtext(cell,layer,string,cellname,tr=pya.DCplxTrans(0.6, 15, True, 9000, -6000))
     
+# %% 删小面积区域
+
+tl=layout.layer(10, 2)
+def asdasdasdasd(targetLayer,sourceLayerList=[(10,10)]):
+    layers = paintlib.Collision.getLayers(layerList=sourceLayerList, layermod='in')
+
+    for layer in layers:
+        it=paintlib.IO.top.begin_shapes_rec(layer)
+        while not it.at_end():
+            shape_=it.shape()
+            area_=shape_.area()
+            if area_ > 200000:
+                shape_.layer=tl
+                # shape_.delete() 也可以放弃上一句直接这样删除
+            it.next()
+asdasdasdasd(targetLayer=tl)
+
+# RecursiveShapeIterator begin_shapes_rec
+# #  ObjectInstPath each_object_selected
+# for i in paintlib.IO.layout_view.each_object_selected():    
+#     # i.shape.transform(pya.CplxTrans(1,90,False,1000*10,1000*0))
+#     if not i.shape.is_box():
+#         continue
+#     b=i.shape.bbox()
+#     if b.height()==200 and b.width()==100:
+#         i.shape.delete()
+#         i.shape.layer=tl
+#         # i.shape.transform(pya.CplxTrans(1,0,False,1000*34048,0))
 # %%输出
 print(TBD.isFinish())
 paintlib.IO.Show()  # 输出到屏幕上
