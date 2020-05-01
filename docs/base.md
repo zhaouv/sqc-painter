@@ -207,9 +207,12 @@ infoOnly为True时只返回笔刷和长度信息, 此时path为`''`
 ### PcellPainter  
 用来画文字的类  
 + 构造`painter=paintlib.PcellPainter()`  
-+ 方法`painter.Draw(cell,layer,textstr:str,tr:pya.DCplxTrans)`  
++ 方法`painter.DrawText(cell,layer,textstr:str,tr:pya.DCplxTrans)`  
 把字符textstr加以转置tr画到指定的cell和layer中  
 返回字符图形对应的矩形的末端的两个点  
++ 方法`painter.DrawText_LiftOff(cell,layer,textstr:str,tr:pya.DCplxTrans)`  
+把字符textstr加以转置tr画到指定的cell和layer中  
+使用为lift-off设计的字体  
 
 ### TransfilePainter  
 用来导入已有gds文件的类  

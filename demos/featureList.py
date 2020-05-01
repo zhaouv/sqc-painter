@@ -10,7 +10,8 @@ if 1:
     import pya
     import paintlib
 
-layout, top = paintlib.IO.Start("guiopen")  # 在当前的图上继续画,如果没有就创建一个新的
+# layout, top = paintlib.IO.Start("guiopen")  # 在当前的图上继续画,如果没有就创建一个新的
+layout, top = paintlib.IO.Start("guinew")  # 创建一个新的
 layout.dbu = 0.001  # 设置单位长度为1nm
 paintlib.IO.pointdistance = 1000  # 设置腔的精度,转弯处相邻两点的距离
 paintlib.IO.SetWoringDir(__file__)
@@ -146,6 +147,21 @@ paintlib.BasicPainter.Draw(top, layer2, border)
 painter2 = paintlib.PcellPainter()
 painter2.DrawText(top, layer2, "Python",
                   pya.DCplxTrans(100, 15, False, 1000000, 0))
+painter2.DrawText_LiftOff(top, layer2, '''
+sqc-painter
+
+0123456789ab 
+z          c
+y alphabet d
+x          e
+w for      f
+v lift-off g
+u          h
+tsrqponmlkji
+
+~!@#$%^&*()-=_+[]
+{}\\|;:'\",.<>/?`
+''',pya.DCplxTrans(30, 0, False, 1350000, 0))
 
 # 画Mark
 painter1 = paintlib.TransfilePainter(filepath+"mark.gds")
