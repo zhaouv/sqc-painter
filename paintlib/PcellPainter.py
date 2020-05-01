@@ -88,7 +88,7 @@ class PcellPainter(Painter):
         cell.insert(pya.CellInstArray(ncell.cell_index(), tr))
 
         currentx=0
-        currenty=-1
+        currenty=0
 
         for cc in teststr.upper():
             if cc=='\n':

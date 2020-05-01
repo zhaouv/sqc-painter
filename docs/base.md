@@ -165,6 +165,18 @@ path也可以是由`s`代表直行,`r`代表右转,`l`代表左转,`n`代表重�
 + 方法`painter.Getcenterlineinfo()`  
 得到当前腔的中心线(用于画airbridge), 每执行过一次`Run`, 返回的List中就会有一条中心线对应该路径  
 
+### TriCavityPainter  
+用来画三平行腔的类, 用法与通常的腔相同, 是CavityPainter的子类  
+腔向右时, 末端的六个点从上到下依次是 p1 p2 p3 p4 p5 p6, 长度间隔依次是la lb la lb la,  
+la+lb+la+lb+la=widout  
+lb+la+lb=widin  
+具体使用时参看[demos/featureList.py](files/?../../demos/featureList.py ':ignore')中相应的例子  
+新增了以下内容  
++ 方法`painter.Getexinfo()`  
+返回以下字典`dict(p1=p1, p2=p2, p3=p3, p4=p4, p5=p5, p6=p6, la=la, lb=lb)`  
++ 成员`painter.brushl` p1 p2 p3 p4构成的画笔  
++ 成员`painter.brushr` p3 p4 p5 p6构成的画笔  
+
 ### SpecialPainter  
 用于画一些较复杂图形的静态类,不需要产生实例,以`paintlib.SpecialPainter.func()`的形式直接执行其方法  
 + 方法`Connection(x,widin=16000, widout=114000, linewid=5000, slength1=16000, slength2=16000, clength=30000, cwid=54000 ,clengthplus=0, turningRadiusPlus=5000,y=0,angle=0)`  
@@ -218,10 +230,18 @@ infoOnly为True时只返回笔刷和长度信息, 此时path为`''`
 用来导入已有gds文件的类  
 + 构造`painter=paintlib.TransfilePainter(filename="[insert].gds")`  
 文件名为[insert].gds, 此文件只能有一个顶部的cell, 且名字不能为'TOP'  
-+ 方法`painter.DrawAirbridge(cell,centerlinelist,newcellname="Airbige")`  
++ 方法`painter.DrawAirbridge(cell,centerlinelist,` `newcellname="Airbige",collision={})`  
 把文件沿着中心线centerlinelist画到指定的cell中(文件会沿着路线旋转),并把cell命名为newcellname  
+`collision = {}`表示不做碰撞检查  
+`collision = {'region': pya.Region, 'regionInsert': pya.Region, 'push': int, 'extend': int}` 时进行碰撞检测, 详见DrawAirbridgeWithCollisionCheck中的解释  
+返回置入的图形的计数和每个置入的距离  
++ 方法`painter.DrawAirbridgeWithCollisionCheck(cell,centerlinelist,` `newcellname,boxY,boxWidth,boxHeight,push=10000,extend=5000)`  
+DrawAirbridge中填入了朴素实用的碰撞检测, (在腔向右时)在待置入的位置上下boxY处各测试一个宽boxWidth高boxHeight的盒子, 如果内部均无图形才置入, 否则向前推push的距离再次检测, 无碰撞后extend之后才允许继续放置  
+`region`是用来测试碰撞的图形, 此处是所有图形  
+`regionInsert`是用来检测的形状, 此处是两个盒子  
 + 成员`painter.airbridgedistance=100000`  
 airbridge的间隔,也可以是函数:输入是distance,输出是distance内包含的airbridge的数量  
+[demos/featureList.py](files/?../../demos/featureList.py ':ignore')有具体指定置入距离来控制的例子  
 + 方法`painter.DrawMark(cell,pts,newcellname="Mark")`  
 把文件画到pts中的每个点上,置入指定的cell中(文件不会旋转),并把cell命名为newcellname  
 + 方法`painter.DrawGds(cell,newcellname,tr:pya.DCplxTrans)`  
