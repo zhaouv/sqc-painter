@@ -16,9 +16,9 @@ Superconducting Quantum Chip Painter
 
 弹出的窗口中, 先点击左上的Python, 选中Python的环境, 在下方右键Add Location, 选中sqc-painter的路径添加到环境中
 
-双击paintlib, 点击右侧上方的![](img_md/2018-04-15-15-41-16.png), 之后重启KLayout, 完成环境的配置
-
 ![](img_md/2018-04-15-15-35-33.png)
+
+双击demos/featureList.py, 点击右侧上方的![](img_md/2018-04-15-15-41-16.png), 验证功能正常
 
 运行脚本时, 在左侧双击该脚本, 之后点击![](img_md/2018-04-15-15-41-16.png)运行
 
