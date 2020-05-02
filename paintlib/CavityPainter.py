@@ -556,7 +556,10 @@ class TriCavityPainter(CavityPainter):
 
     def Narrow(self, widout, widin, length=6000):
         super().Narrow(widout, widin, length)
-        raise RuntimeError('not supported now')
+        ex=self.Getexinfo()
+        self.regionlistex.append(pya.DPolygon(
+            [self.painterex.pointl, self.painterex.pointr, ex['p4'], ex['p3']]))
+        self.painterex.Setpoint(ex['p3'], ex['p4'])
         return length
 
     def Output_Region(self):

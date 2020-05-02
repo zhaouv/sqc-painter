@@ -23,8 +23,8 @@ class SpecialPainter(Painter):
             tr = brush.DCplxTrans
         else:
             tr = pya.DCplxTrans(1, angle, False, x, y)
-        oldpointdistance=IO.pointdistance
-        IO.pointdistance=max(100,int(IO.pointdistance/10))
+        oldpointdistance = IO.pointdistance
+        IO.pointdistance = max(100, int(IO.pointdistance/10))
         try:
             rp = turningRadiusPlus
             r = turningRadiusPlus+linewid/2
@@ -46,7 +46,7 @@ class SpecialPainter(Painter):
             dx = widout/2-cwid/2-2*linewid
             tangle = 90-atan2(clengthplus, dx)*180/pi
             lp = LinePainter(pointl=pya.DPoint(slength1, widout/2),
-                            pointr=pya.DPoint(slength1, widout/2-linewid))
+                             pointr=pya.DPoint(slength1, widout/2-linewid))
             #
             lp._Straight(-1)
             lp._Straight(1)
@@ -79,7 +79,7 @@ class SpecialPainter(Painter):
         except:
             raise
         finally:
-            IO.pointdistance=oldpointdistance
+            IO.pointdistance = oldpointdistance
 
         return [p.transformed(tr) for p in polygons]
 
@@ -313,7 +313,7 @@ class SpecialPainter(Painter):
         return SpecialPainter._boxes_merge_and_draw(cell, layer, outregion, inregion, regions, cutbool)
 
     @staticmethod
-    def DrawBoxesInRegion(cell, layer, region, dlength, dgap, dx=0, dy=0):
+    def DrawBoxesInRegion(cell, layer, region, dlength, dgap, dx=0, dy=0, filterfunc=None):
         d = dlength+dgap
         area = region.bbox()
         dx = dx % d
@@ -332,18 +332,28 @@ class SpecialPainter(Painter):
                 box = pya.Box(x1, y1, x1+dlength, y1+dlength)
                 boxesregion.insert(box)
         andRegion = boxesregion & region
+        if filterfunc:
+            andRegion_ = pya.Region()
+            for pp in andRegion.each():
+                if filterfunc(pp):
+                    andRegion_.insert(pp)
+            andRegion = andRegion_
         BasicPainter.Draw(cell, layer, andRegion)
         return andRegion
 
     @staticmethod
-    def DrawBoxes(cell, layer, dlength, dgap, radius, number, layerlist=None, layermod='not in', box=None, cutbool=True, dx=0, dy=0):
+    def DrawBoxes(cell, layer, dlength, dgap, radius, number, layerlist=None, layermod='not in', box=None, cutbool=True, dx=0, dy=0, filterfunc=None):
+        '''
+        filterfunc=lambda pp:pp.area()>=20000
+        则只保留面积大于20000的部分, filterfunc为None时不检查
+        '''
         fillCell = IO.layout.create_cell("fill")
         IO.auxiliary.insert(pya.CellInstArray(
             fillCell.cell_index(), pya.Trans()))
         fillRegion = SpecialPainter.DrawFillRegion(
             cell=fillCell, layer=IO.layer, radius=radius, number=number, layerlist=layerlist, layermod=layermod, box=box, cutbool=cutbool)
         boxesRegion = SpecialPainter.DrawBoxesInRegion(
-            cell=cell, layer=layer, region=fillRegion, dlength=dlength, dgap=dgap, dx=dx, dy=dy)
+            cell=cell, layer=layer, region=fillRegion, dlength=dlength, dgap=dgap, dx=dx, dy=dy, filterfunc=filterfunc)
         return fillCell, fillRegion, boxesRegion
         # box=pya.Box(-170000,-60000,110000,190000)
         # paintlib.SpecialPainter.DrawBoxes(cell=cell7,layer=layer6,dlength=80000,dgap=2000,radius=20000,number=70,layerlist=None,layermod='not in',box=box,cutbool=True,dx=0,dy=0)

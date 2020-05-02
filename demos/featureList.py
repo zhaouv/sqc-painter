@@ -41,7 +41,8 @@ top.insert(pya.CellInstArray(cell6.cell_index(), pya.Trans()))
 layer3 = layout.layer(2, 0)
 layer4 = layout.layer(3, 0)
 
-# %% 画腔_1
+# %% 画腔+Crossover+基于碰撞检测的Crossover
+# 画腔
 painter3 = paintlib.CavityPainter(pya.DPoint(
     0, 24000), angle=180, widout=48000, widin=16000, bgn_ext=48000, end_ext=16000)
 # painter3.painterin.Turning=painter3.painterin.TurningInterpolation
@@ -61,7 +62,19 @@ painter4 = paintlib.TransfilePainter(filepath+"crossover.gds")
 painter4.airbridgedistance = 100000  # 设置Crossover的间距
 painter4.DrawAirbridge(cell2, painter3.Getcenterlineinfo(), "Crossover1")
 
-# %% 画腔_2
+# 画腔
+painter13 = paintlib.CavityPainter(pya.DPoint(
+    -125000, 350000), angle=90, widout=16000, widin=8000, bgn_ext=0, end_ext=0)
+painter13.Run('s 500000 l 50000 r 50000 s200000')
+painter13.Draw(cell2, layer1)
+# 画基于碰撞检测的Crossover
+painter14 = paintlib.TransfilePainter(filepath+"crossover.gds")
+painter14.airbridgedistance = 30000  # 设置Crossover的间距
+painter14.DrawAirbridgeWithCollisionCheck(cell2, painter13.Getcenterlineinfo(
+), "Crossover3", boxY=16000+8000, boxWidth=15000, boxHeight=6000, push=2000, extend=20000)
+
+# %% 画腔+耦合器+精确指定Crossover位置+连续的airbridge构成的同轴线
+# 画腔
 painter7 = paintlib.CavityPainter(pya.DPoint(
     300000, -900000), angle=180, widout=24000, widin=8000, bgn_ext=0, end_ext=0)
 # 画腔到比特的连接
@@ -89,17 +102,18 @@ paintlib.SpecialPainter.DrawContinueAirbridgePainter(
     cell4, layer4, layer3, centerlineinfo, s1=700000, s2=700000+85000, e1=painter7.cavityLength-15000, e2=painter7.cavityLength-15000-8500)
 
 # %% 三平行线的腔
+# 画腔
 painter10 = paintlib.TriCavityPainter(pya.DPoint(
     800000, 200000), angle=180, widout=48000, widin=36000, bgn_ext=0, end_ext=0)
-
-path = 'r 40000 s 50000 r 40000'
 
 painter11 = paintlib.CavityPainter(painter10.brushr.reversed())
 painter11.Run('s80000 r45000')
 # painter11.Electrode()
 painter11.Draw(cell6, layer1)  # 把画好的腔置入
 
-painter10.Run(path)
+painter10.Run('r 40000 s 10000')
+painter10.Narrow(24000, 18000, 30000)
+painter10.Run('s 10000 r 40000')
 
 painter10.Draw(cell6, layer1)  # 把画好的腔置入
 
@@ -197,9 +211,9 @@ tr = pya.DCplxTrans(1, -90, False, 1000000, -300000)
 painter6.DrawGds(top, "Qubit", tr)
 
 # %% 在区域内填充网格
-box = pya.Box(-170000, -60000, 110000, 190000)
-paintlib.SpecialPainter.DrawBoxes(cell=cell5, layer=layer4, dlength=80000, dgap=2000, radius=20000,
-                                  number=70, layerlist=None, layermod='not in', box=box, cutbool=True, dx=0, dy=0)
+box = pya.Box(-140000, -30000, 40000, 190000)
+paintlib.SpecialPainter.DrawBoxes(cell=cell5, layer=layer4, dlength=2000, dgap=5000, radius=20000,
+                                  number=70, layerlist=None, layermod='not in', box=box, cutbool=True, dx=0, dy=0,filterfunc=lambda pp:pp.area()>=3900000)
 
 # %% 以某点为中心矩形区域内画定长的腔并产生两个刷子
 _, brush1, brush2, minlength, maxlength = paintlib.SpecialPainter.contortion(
