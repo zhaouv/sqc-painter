@@ -61,7 +61,26 @@ cell2 = layout.create_cell("Cavity1")
 top.insert(pya.CellInstArray(cell2.cell_index(), pya.Trans()))
 
 # %% 
-
+''' extended ContinueAirbridge demo
+# 原来的
+a=paintlib.CavityPainter()
+a.Run(path)
+a.Draw(cell,layer)
+paintlib.SpecialPainter.DrawContinueAirbridgePainter(
+    cell4, layer4, layer3, a.Getcenterlineinfo(), s1=700000, s2=700000+85000, e1=painter7.cavityLength-15000, e2=a.cavityLength-15000-8500)
+# 更改为
+a=paintlib.CavityPainter()
+b=paintlib.CavityPainter(a.brush.reversed())
+a.Run(path)
+a.Draw(cell,layer)
+p1='s10000'
+p2='s10000'
+b.Run(paintlib.TraceRunner.reversePath(p1))
+b=paintlib.CavityPainter(b.brush.reversed())
+b.Run(p1+path+p2)
+paintlib.SpecialPainter.DrawContinueAirbridgePainter(
+    cell4, layer4, layer3, b.Getcenterlineinfo(), s1=700000, s2=700000+85000, e1=painter7.cavityLength-15000, e2=a.cavityLength-15000-8500)
+'''
 # %%输出
 print(TBD.isFinish())
 paintlib.IO.Show()  # 输出到屏幕上
