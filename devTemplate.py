@@ -24,10 +24,10 @@ for moduleName in [
     # 'TransfilePainter',
 ]:
     pass
-#     asdasfaese = imp.load_source(
-#         'paintlib.'+moduleName, 'paintlib\\'+moduleName+'.py')
-#     imp.reload(asdasfaese)
-# imp.reload(paintlib)
+    asdasfaese = imp.load_source(
+        'paintlib.'+moduleName, 'paintlib\\'+moduleName+'.py')
+    imp.reload(asdasfaese)
+imp.reload(paintlib)
 
 layout, top = paintlib.IO.Start("guinew")  # 在当前的图上继续画,如果没有就创建一个新的
 layout.dbu = 0.001  # 设置单位长度为1nm
@@ -40,7 +40,8 @@ TBD = paintlib.TBD.init(676987)
 # + [ ] ?碰撞检测的ab, 通过切分来优化速度
 
 # + [ ] DrawContinueAirbridgePainter 想要超出腔的说明
-# + [ ] DrawContinueAirbridgePainter 圆角
+# + [x] DrawContinueAirbridgePainter 圆角
+# + [ ] DrawContinueAirbridgePainter 圆角 textcover/文档
 # %%
 layer = layout.layer(10, 10)  
 layer1 = layout.layer(10, 3)  
