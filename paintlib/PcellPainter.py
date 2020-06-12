@@ -4,18 +4,41 @@ import pya
 
 from .IO import IO
 from .Painter import Painter
-from .BasicPainter import BasicPainter
 
 class PcellPainter(Painter):
     def __init__(self):
         self.outputlist = []
-        # DrawText
         self.Basic = pya.Library.library_by_name("Basic")
+        # round
+        self.ROUND_POLYGON_decl = self.Basic.layout().pcell_declaration("ROUND_POLYGON")
+        # DrawText
         self.TEXT_decl = self.Basic.layout().pcell_declaration("TEXT")
         # DrawText_LiftOff
         self.charset = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ ~!@#$%^&*()-=_+[]{}\\|;:'\",.<>/?`"
         self.charfile = IO.path+'/paintlib/gds/chars.gds'
         self.charLayerList = [(10, 10)]
+
+    def round(self,polygon,npoints,radius):
+        '''
+        返回一个pya.DPolygon的圆滑版
+        '''
+        param = {
+            "polygon": pya.DPolygon([pya.DPoint(pt.x*IO.layout.dbu,pt.y*IO.layout.dbu) for pt in polygon.each_point_hull()]),
+            "npoints": npoints,
+            "layer": IO.layer,
+            "radius": radius*IO.layout.dbu
+        }
+        pv = []
+        for p in self.ROUND_POLYGON_decl.get_parameters():
+            if p.name in param:
+                pv.append(param[p.name])
+            else:
+                pv.append(p.default)
+        cell = IO.layout.create_cell("ROUND_POLYGON")
+        self.ROUND_POLYGON_decl.produce(IO.layout, [IO.layer], pv, cell)
+        target=list(cell.each_shape(IO.layer))[0].dpolygon
+        cell.delete()
+        return pya.DPolygon([pya.DPoint(pt.x/IO.layout.dbu,pt.y/IO.layout.dbu) for pt in target.each_point_hull()])
 
     def DrawText(self, cell, layer1, textstr, DCplxTrans1):
         '''
@@ -80,7 +103,7 @@ class PcellPainter(Painter):
             subregion.merge()
             subregion.transform(pya.ICplxTrans(1, 0, False, -ii*600, 0))
             charshapes.append(subregion)
-            # BasicPainter.Draw(cell,layer1,subregion)
+            # cell.shapes(layer1).insert(subregion)
             pass
 
 
@@ -97,7 +120,7 @@ class PcellPainter(Painter):
                 continue
             if cc in charset:
                 ii=charset.index(cc)
-                BasicPainter.Draw(ncell,layer1,charshapes[ii].transformed(pya.ICplxTrans(1, 0, False, currentx*600, -currenty*800)))
+                ncell.shapes(layer1).insert(charshapes[ii].transformed(pya.ICplxTrans(1, 0, False, currentx*600, -currenty*800)))
                 currentx+=1
                 continue
             if cc in '\r\t\b\f':

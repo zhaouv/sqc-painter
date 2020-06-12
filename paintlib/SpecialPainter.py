@@ -7,6 +7,7 @@ import pya
 from .IO import IO
 from .CavityBrush import CavityBrush
 from .Painter import Painter
+from .PcellPainter import PcellPainter
 from .BasicPainter import BasicPainter
 from .CavityPainter import LinePainter, CavityPainter
 from .Collision import Collision
@@ -94,10 +95,23 @@ class SpecialPainter(Painter):
         self.regionlistout.extend(polygons)
 
     @staticmethod
-    def DrawContinueAirbridgePainter(cell, layerup, layerdown, centerlinelist, s1=300000, s2=300000+8500, e1=5200637-15000, e2=5200637-15000-8500, w1=20000, w2=30000, w3=40000, l1=28000, l2=22000, cnum=9):
+    def DrawContinueAirbridgePainter(cell, layerup, layerdown, centerlinelist, s1=300000, s2=300000+8500, e1=5200637-15000, e2=5200637-15000-8500, w1=20000, w2=30000, w3=40000, l1=28000, l2=22000, cnum=9,rounded=0, roundedNum=256):
         ''' 画连续的airbridge构成的同轴线 '''
         gl = {1: l1, 2: l2}
         wl = {1: w3, 2: w1}
+
+        def DPathPolygon(pts,width,start,end,giveupsomepoints=False):
+            region1=pya.Region([pya.Polygon.from_dpoly(pya.DPath(pts,width,start,end).polygon())])
+            region2=pya.Region([pya.Polygon.from_dpoly(pya.DPath(pts,width+2000,start,end).polygon())])
+            polygon=list((region1&region2).each_merged())[0]
+            if giveupsomepoints:
+                pts=[]
+                sourcepts=list(polygon.each_point_hull())
+                for i,pt in enumerate(sourcepts):
+                    if i==0 or pt.distance(pts[-1])>=min(1000,max(100,rounded)):
+                        pts.append(pt)
+                return pya.DPolygon(pts)
+            return polygon
 
         def getp(ll, p1, p2):
             bl = p1.distance(p2)
@@ -105,6 +119,11 @@ class SpecialPainter(Painter):
             dy = p2.y-p1.y
             k = 1.0*ll/bl
             return pya.DPoint(p1.x+k*dx, p1.y+k*dy)
+
+        if rounded:
+            pPainter=PcellPainter()
+            def roundp(pp):
+                return pPainter.round(pp,roundedNum,rounded)
 
         for cpts, brush in centerlinelist:
             distance = 0
@@ -134,8 +153,7 @@ class SpecialPainter(Painter):
                     temp = [downstartp]
                     temp.extend(cpts[downstartindex:downendindex-1])
                     temp.append(downendp)
-                    path = pya.DPath(temp, w2, 0, 0)
-                    polygon = path.polygon()
+                    polygon = DPathPolygon(temp, w2, 0, 0)
                     BasicPainter.Draw(cell, layerdown, polygon)
                 # 画上层
                 if not status and distance >= slength:
@@ -156,8 +174,9 @@ class SpecialPainter(Painter):
                         temp.append(ep)
                     else:
                         temp = cpts[si-1-cnum:ei+cnum]
-                    path = pya.DPath(temp, wl[status], 0, 0)
-                    polygon = path.polygon()
+                    polygon = DPathPolygon(temp, wl[status], 0, 0, status == 1)
+                    if rounded and status == 1:
+                        polygon=roundp(polygon)
                     polygons.append(polygon)
                     si = ei
                     sp = ep

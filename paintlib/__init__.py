@@ -6,9 +6,9 @@ from .IO import IO
 from .TBD import TBD
 from .CavityBrush import CavityBrush
 from .Painter import Painter
+from .PcellPainter import PcellPainter
 from .BasicPainter import BasicPainter
 from .Collision import Collision
-from .PcellPainter import PcellPainter
 from .TransfilePainter import TransfilePainter
 from .CavityPainter import TraceRunner, LinePainter, CavityPainter, TriCavityPainter
 from .Interactive import Interactive
