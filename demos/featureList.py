@@ -99,7 +99,7 @@ painter8.airbridgedistance = painter8.airbridgeDistanceFunc
 painter8.DrawAirbridge(cell4, centerlineinfo, "Crossover2")
 # 画连续的airbridge构成的同轴线
 paintlib.SpecialPainter.DrawContinueAirbridgePainter(
-    cell4, layer4, layer3, centerlineinfo, s1=700000, s2=700000+85000, e1=painter7.cavityLength-15000, e2=painter7.cavityLength-15000-8500)
+    cell4, layer4, layer3, centerlineinfo, s1=700000, s2=700000+85000, e1=painter7.cavityLength-15000, e2=painter7.cavityLength-15000-8500,rounded=1000)
 
 # %% 三平行线的腔
 # 画腔

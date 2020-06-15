@@ -185,9 +185,11 @@ lb+la+lb=widin
 产生给定尺寸的与Qubit的连接,作用在CavityPainter上  
 相比BasicPainter中的版本增加了两个参数  
 ![](img_md/2019-04-17-11-56-53.png)
-+ 方法`DrawContinueAirbridgePainter(cell,layerup,layerdown,` `centerlinelist=painter.Getcenterlineinfo(),s1=300000,s2=300000+8500,` `e1=length-15000,e2=length-15000-8500,w1=20000,w2=30000,w3=40000,l1=28000,l2=22000,cnum=9)`  
-e2处的该长度\>length-e2是因为宽w1和w3的图形要作为固定长度成组出现
-![](img_md/2019-04-17-14-47-06.png)
++ 方法`DrawContinueAirbridgePainter(cell,layerup,layerdown,` `centerlinelist=painter.Getcenterlineinfo(),s1=300000,s2=300000+8500,` `e1=length-15000,e2=length-15000-8500,w1=20000,w2=30000,w3=40000,l1=28000,l2=22000,` `cnum=9,rounded=0,roundedNum=256)`  
+e2处的该长度\>length-e2是因为宽w1和w3的图形要作为固定长度成组出现  
+rounded不为0则w3的使用圆角的图形, 半径rounded, 点的数量roundedNum  
+![](img_md/2019-04-17-14-47-06.png)  
+此方法由于是沿着原来的腔的中心线画图, 无法超出中心线并全部盖住腔, 此时需要拓展中心线, 详见[demo](demo?id=超出中心线绘制全包裹的airbridge)
 + 方法`DrawParametricCurve(cell,layer,brush:paintlib.CavityBrush,xfunc,yfunc,` `pointnumber,startlength,deltalength,number,lengthlist)`  
 沿参数曲线画空心线, 并每一段间隔变宽一小段  
 返回曲线参数为0和参数为1的两端的笔刷 [brush0,brush1]  

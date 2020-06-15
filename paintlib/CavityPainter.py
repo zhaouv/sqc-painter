@@ -409,6 +409,8 @@ class CavityPainter(Painter):
         # 把中心线的(点列表,笔刷)成组添加
         self.centerlineinfos.append(
             (self.painterin.Getcenterline(), self.brush))
+        #
+        self._length=result
         return result
 
     def Electrode(self, wid=368000, length=360000, midwid=200000, midlength=200000, narrowlength=120000, reverse=False):

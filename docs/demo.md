@@ -50,6 +50,35 @@ paintlib.IO.Show()
 
 ![](img_md/tmp2.png)
 
+## 超出中心线绘制全包裹的airbridge
+
+``` python
+import paintlib
+layout, top = paintlib.IO.Start("guinew")
+layout.dbu = 0.001 
+paintlib.IO.pointdistance = 1000 
+TBD = paintlib.TBD.init(676987)
+layer = layout.layer(10, 10)  
+layer1 = layout.layer(10, 3)  
+layer2 = layout.layer(10, 2)  
+cell = layout.create_cell("Cavity1")  
+top.insert(pya.CellInstArray(cell.cell_index(), pya.Trans()))
+
+path='n5[r50000 s50000 l50000]' # 此为原始的腔
+p1='s300000' # 通过在两侧增加额外的路径来实现超出的部分
+p2='s300000'
+a=paintlib.CavityPainter(pya.DPoint(0, 24000), angle=90, widout=16000, widin=8000) # 用来画原始的腔
+b=paintlib.CavityPainter(a.brush.reversed()) # 用来生成拓展了p1 p2的中心线
+a.Run(path)
+a.Draw(cell,layer) # 正常画原来的腔
+b.Run(paintlib.TraceRunner.reversePath(p1)) # 将b逆着p1运动到拓展的腔的真正的起点
+b=paintlib.CavityPainter(b.brush.reversed())
+b.cavityLength=b.Run(p1+path+p2) # 生成拓展的中心线
+centerlineinfo=b.Getcenterlineinfo()
+paintlib.SpecialPainter.DrawContinueAirbridgePainter(
+    cell, layer1, layer2, centerlineinfo, s1=70000, s2=70000+85000, e1=b.cavityLength-15000, e2=b.cavityLength-15000-8500,rounded=1000)
+```
+
 - - -
 
 - [Start Page](README.md)  
