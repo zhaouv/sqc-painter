@@ -96,6 +96,7 @@ class Simulation:
         if crossoverLayerList!=None:
             for layerlist in crossoverLayerList:
                 crossover_inregion=Interactive.cut(layerlist=layerlist[1:],layermod='in',box=box,mergeanddraw=False)[1]
+                crossover_inregion=tr_back(crossover_inregion,itr=True)
                 crossover_region_list.append(Interactive._merge_and_draw(outregion,crossover_inregion,None,cell,layerlist[0])[0])
 
         return final_region,crossover_region_list,cell,ports
