@@ -95,7 +95,7 @@ class SpecialPainter(Painter):
         self.regionlistout.extend(polygons)
 
     @staticmethod
-    def DrawContinueAirbridgePainter(cell, layerup, layerdown, centerlinelist, s1=300000, s2=300000+8500, e1=5200637-15000, e2=5200637-15000-8500, w1=20000, w2=30000, w3=40000, l1=28000, l2=22000, cnum=9,rounded=0, roundedNum=256):
+    def DrawContinueAirbridgePainter(cell, layerup, layerdown, centerlinelist, s1=300000, s2=300000+8500, e1=5200637-15000, e2=5200637-15000-8500, w1=20000, w2=30000, w3=40000, l1=28000, l2=22000, cnum=9,rounded=0, roundedNum=256, recordw3pts=None, droplastw3=False):
         ''' 画连续的airbridge构成的同轴线 '''
         gl = {1: l1, 2: l2}
         wl = {1: w3, 2: w1}
@@ -177,6 +177,8 @@ class SpecialPainter(Painter):
                     polygon = DPathPolygon(temp, wl[status], 0, 0, status == 1)
                     if rounded and status == 1:
                         polygon=roundp(polygon)
+                    if type(recordw3pts)==list and status == 1:
+                        recordw3pts.append([temp[0],temp[-1]])
                     polygons.append(polygon)
                     si = ei
                     sp = ep
@@ -184,6 +186,9 @@ class SpecialPainter(Painter):
                     slength += gl[status]
 
             if not len(polygons) % 2:
+                polygons.pop()
+            
+            if droplastw3:
                 polygons.pop()
 
             for i, polygon in enumerate(polygons):

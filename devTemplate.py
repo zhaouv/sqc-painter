@@ -42,6 +42,8 @@ TBD = paintlib.TBD.init(676987)
 # + [x] DrawContinueAirbridgePainter 想要超出腔的说明
 # + [x] DrawContinueAirbridgePainter 圆角
 # + [x] DrawContinueAirbridgePainter 圆角 textcover/文档
+# + [ ] DrawContinueAirbridgePainter recordw3pts droplastw3 textcover/文档
+
 # %%
 layer = layout.layer(10, 10)  
 layer1 = layout.layer(10, 3)  
