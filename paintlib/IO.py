@@ -108,3 +108,14 @@ class IO:
                 "/[pythonout%s].gds" % (time.strftime("%Y%m%d_%H%M%S"))
         print(filename)
         IO.layout.write(filename)
+    
+    @staticmethod
+    def Flatten(newcellname=''):
+        IO.top.flatten(True)
+        if newcellname:
+            IO.top.name=str(newcellname)
+
+    @staticmethod
+    def RemoveAuxiliary():
+        IO.auxiliary.flatten(True)
+        IO.auxiliary.delete()
