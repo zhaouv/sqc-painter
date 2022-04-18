@@ -14,3 +14,4 @@ from .CavityPainter import TraceRunner, LinePainter, CavityPainter, TriCavityPai
 from .Interactive import Interactive
 from .SpecialPainter import SpecialPainter
 from .AutoRoute import AutoRoute
+from .CascadeRoute import CascadeRoute
