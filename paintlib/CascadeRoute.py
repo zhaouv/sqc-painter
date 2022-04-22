@@ -1,15 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from math import cos, sin, pi, tan, atan2, sqrt, ceil, floor
-import queue
 
 import pya
 from .IO import IO
-from .CavityPainter import CavityPainter, TraceRunner
 from .Collision import Collision
 from .Interactive import Interactive
-from .SpecialPainter import SpecialPainter
-from .AutoRoute import AutoRoute
 
 class hungarian:
     # modified from https://gist.github.com/KartikTalwar/3158534

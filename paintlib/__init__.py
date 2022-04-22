@@ -15,3 +15,4 @@ from .Interactive import Interactive
 from .SpecialPainter import SpecialPainter
 from .AutoRoute import AutoRoute
 from .CascadeRoute import CascadeRoute
+from .GridLayout import GridLayout
