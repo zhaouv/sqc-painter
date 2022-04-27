@@ -98,13 +98,15 @@ class Interactive:
         return deltaangle,maxlength,boundAngle,gridAngle,extendlength,turningr
 
     @staticmethod
-    def link(brush1=None, brush2=None, spts=None, print_=True):
+    def link(brush1=None, brush2=None, spts=None, print_=True, direct=False, pre_straight=0):
         '''
         输入两个CavityBrush作为参数, 并点击图中的一个路径, 生成一个连接两个brush的路径的函数  
         缺省时会在Interactive.searchr内搜索最近的brush
         第二个brush可为None, 此时取path的终点作为路径终点
         '''
         deltaangle,maxlength,boundAngle,gridAngle,extendlength,turningr=Interactive._link_define_utils()
+        if direct:
+            gridAngle=boundAngle
 
         if spts == None:
             spts = Interactive._pts_path_selected()
@@ -127,13 +129,40 @@ class Interactive:
                                 "Argument 2 must be CavityBrush or None", pya.MessageBox.Ok)
             return
 
-        ss=Interactive.link_process(brush1=brush1, brush2=brush2, spts=spts)
+        if pre_straight:
+            painter = CavityPainter(brush1)
+            painter.Run(lambda x:x.Straight(pre_straight))
+            brush=painter.brush
+            spts.insert(0,pya.DPoint(brush.centerx,brush.centery))
+            painter = CavityPainter(brush2)
+            painter.Run(lambda x:x.Straight(pre_straight))
+            brush=painter.brush
+            spts.append(pya.DPoint(brush.centerx,brush.centery))
+            
+        if direct:
+            ss=Interactive.direct_link_process(brush1=brush1, brush2=brush2, spts=spts)
+        else:
+            ss=Interactive.link_process(brush1=brush1, brush2=brush2, spts=spts)
 
         if print_:
             print('##################################')
             print(ss)
             print('##################################')
             Interactive._show_path(IO.link, IO.layer, brush1, ss)
+        return ss
+
+    @staticmethod
+    def direct_link_process(brush1, brush2, spts):
+        
+        '''
+        + 起点到终点走一轮, 扫出所有转向的角度和边(直线/射线)
+        + 渲染成路径字符串
+        '''
+        cache_deltaangle=Interactive.deltaangle
+        Interactive.deltaangle=0.00000001
+        angles,pts,edges,das=Interactive._link_scan_angles(brush1, brush2, spts)
+        Interactive.deltaangle=cache_deltaangle
+        ss = Interactive._generatepath(pts, das)
         return ss
 
     @staticmethod
