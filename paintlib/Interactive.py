@@ -110,8 +110,7 @@ class Interactive:
 
         if spts == None:
             spts = Interactive._pts_path_selected()
-        if spts == []:
-            return
+
         if brush1 == None:
             brush1 = Interactive._get_nearest_brush(spts[0].x, spts[0].y)
         if not isinstance(brush1, CavityBrush):
@@ -138,6 +137,9 @@ class Interactive:
             painter.Run(lambda x:x.Straight(pre_straight))
             brush=painter.brush
             spts.append(pya.DPoint(brush.centerx,brush.centery))
+
+        if spts == []:
+            return
             
         if direct:
             ss=Interactive.direct_link_process(brush1=brush1, brush2=brush2, spts=spts)

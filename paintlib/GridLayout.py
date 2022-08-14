@@ -60,7 +60,7 @@ class GridLayout:
         starti=min([arr[0] for arr in spans])
         endi=max([arr[0]+arr[1] for arr in spans])
         ret = [list((line+' '*endi)[starti:endi]) for line in lines]
-        for ai in list(range(len(ret)))[::-1]:
+        for ai in list(range(len(ret[0])))[::-1]:
             if all([arr[ai]==' ' for arr in ret]):
                 for arr in ret:
                     arr.pop(ai)

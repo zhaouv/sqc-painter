@@ -187,6 +187,72 @@ class TraceRunnerClass:
         return self.pathString
 
 
+    def calculatePath(self, rawString, a=0, b=None):
+        '''
+        计算一个路径的长度,
+        如果b不为None, 也返回从长度a到长度b之间的路径(还需要函数外部手动检查一下length是否大于想要的b)
+        这两个功能本来应该用两个函数分别实现以提高效率, 懒得拆开了
+        > print(paintlib.TraceRunner.calculatePath('n3[s1000t50000,360]',800,9700))
+        '''
+        AST = self.buildAST(rawString)
+        length, pathString = self.traversalAST_calculatePath(AST, a=a, b=b)
+        if b==None:
+            return length
+        return length, pathString
+
+    def traversalAST_calculatePath(self, AST, a=0, b=None):
+        if b==None:
+            b=float('inf')
+        output = ['']
+        pathLength = [0]
+
+        def saveRate(before,after):
+            if before>=after:
+                return 1
+            if before>=b or after<=a:
+                return 0
+            if before<=a<=after<=b:
+                return (after-a)/(after-before)
+            if a<=before<=b<=after:
+                return (b-before)/(after-before)
+            if before<=a<=b<=after:
+                return (b-a)/(after-before)
+            return 1
+
+        def push(s):
+            output.append(s)
+
+        def traversal(node):
+            if node.type == self.top:
+                for cn in node.getChildren():
+                    traversal(cn)
+            if node.type == self.straight:
+                tolength=pathLength[0]+node.length
+                sr=saveRate(pathLength[0],tolength)
+                if sr!=0:
+                    push('s {minus} {length} '.format(
+                    minus='_'if node.enableMinus else '', length=node.length*sr))
+
+                pathLength[0]=tolength
+            if node.type == self.turning:
+                tolength=pathLength[0]+pi*abs(node.angle)/180*abs(node.radius)
+                sr=saveRate(pathLength[0],tolength)
+                if sr!=0:
+                    push('t {radius},{angle} '.format(
+                    radius=node.left*node.radius, angle=node.angle*sr))
+                    
+                pathLength[0]=tolength
+            if node.type == self.repeatStart:
+                for repeatii in range(node.times):
+                    for cn in node.getChildren():
+                        traversal(cn)
+            if node.type == self.repeatEnd:
+                pass
+        traversal(AST)
+        self.pathString = ''.join(output)
+        return pathLength[0], self.pathString
+
+
 TraceRunner = TraceRunnerClass()
 
 
@@ -228,7 +294,7 @@ class LinePainter(Painter):
         # 接下来是画矩形，再之后是画中心线
         # 修复1nm线的bug
         rectangle1, _, _ = BasicPainter.rectangle(
-            self.pointr, self.pointl, length+(length > 0)-(length < 0))
+            self.pointr, self.pointl, length+2*(length > 0)-2*(length < 0))
         _, self.pointr, self.pointl = BasicPainter.rectangle(
             self.pointr, self.pointl, length)
         self.outputlist.append(rectangle1)

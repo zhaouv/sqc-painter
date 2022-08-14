@@ -160,7 +160,6 @@ class TransfilePainter(Painter):
         tr=pya.DCplxTrans(1,0,False,0,0)
         倍数,逆时针度数,是否绕x翻转,平移x,平移y
         '''
-        tr = pya.CplxTrans.from_dtrans(DCplxTrans1)
         resultcell = None
         IO.layout.read(self.filename)
         for icell in IO.layout.top_cells():
@@ -168,8 +167,12 @@ class TransfilePainter(Painter):
                 icell.name = newcellname
                 resultcell = icell
                 break
-        new_instance = pya.CellInstArray(icell.cell_index(), tr)
-        cell.insert(new_instance)
+        if type(DCplxTrans1)!=list:
+            DCplxTrans1=[DCplxTrans1]
+        for ctr in DCplxTrans1:
+            tr = pya.CplxTrans.from_dtrans(ctr)
+            new_instance = pya.CellInstArray(icell.cell_index(), tr)
+            cell.insert(new_instance)
         for icell in IO.layout.top_cells():
             if (icell.name == self.insertcellname):
                 icell.flatten(True)
