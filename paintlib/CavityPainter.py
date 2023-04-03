@@ -282,7 +282,59 @@ class TraceRunnerClass:
         traversal(AST)
         self.pathString = ''.join(output)
         return pathLength[0], self.pathString
+    
+    def getPathFunction_withMarkTurning(self, rawString):
+        AST = self.buildAST(rawString)
+        pathString = self.traversalAST_withMarkTurning(AST)
+        localscope = {'path': None}
+        exec(pathString, None, localscope)
+        self.pathFunction = localscope['path']
+        return self.pathFunction
 
+    def traversalAST_withMarkTurning(self, AST):
+        output = []
+        prefix = ['']
+
+        def pushln(s):
+            output.append(prefix[0]+s+'\n')
+
+        def cpre(n=4):
+            if n > 0:
+                prefix[0] = prefix[0]+' '*n
+            if n < 0:
+                prefix[0] = prefix[0][0:-1*n]
+
+        def npre():
+            return len(prefix[0])
+        pushln('def path(painter):')
+        cpre()
+        pushln('length=0')
+
+        def traversal(node):
+            if node.type == self.top:
+                for cn in node.getChildren():
+                    traversal(cn)
+            if node.type == self.straight:
+                pushln('length+=painter.{minus}Straight({length})'.format(
+                    minus='_'if node.enableMinus else '', length=node.length))
+            if node.type == self.turning:
+                pushln('painter.Markpoint()')
+                pushln('length+=painter.Turning({radius},{angle})'.format(
+                    radius=node.left*node.radius, angle=node.angle))
+                pushln('painter.Markpoint()')
+            if node.type == self.repeatStart:
+                pushln('for _index{n} in range({times}):'.format(
+                    n=npre(), times=node.times))
+                cpre()
+                for cn in node.getChildren():
+                    traversal(cn)
+            if node.type == self.repeatEnd:
+                cpre(-4)
+
+        traversal(AST)
+        pushln('return length')
+        self.pathString = ''.join(output)
+        return self.pathString
 
 TraceRunner = TraceRunnerClass()
 
@@ -295,6 +347,7 @@ class LinePainter(Painter):
         self.pointl = pointl
         # pointdistance=IO.pointdistance
         self.centerlinepts = []
+        self.marks = []
         self.warning = True
 
     def Setpoint(self, pointl=pya.DPoint(0, 1000), pointr=pya.DPoint(0, 0)):
@@ -302,6 +355,10 @@ class LinePainter(Painter):
         self.pointl = pointl
         self.centerlinepts = []
         self.outputlist = []
+        self.marks = []
+
+    def Markpoint(self):
+        self.marks.append([self.pointl,self.pointr])
 
     def Straight(self, length, centerline=True):
         if length < -10 and self.warning and IO.warning.minus_stright:
