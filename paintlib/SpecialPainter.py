@@ -97,8 +97,19 @@ class SpecialPainter(Painter):
     @staticmethod
     def DrawContinueAirbridgePainter(cell, layerup, layerdown, centerlinelist, s1=300000, s2=300000+8500, e1=5200637-15000, e2=5200637-15000-8500, w1=20000, w2=30000, w3=40000, l1=28000, l2=22000, cnum=9,rounded=0, roundedNum=256, recordw3pts=None, droplastw3=0):
         ''' 画连续的airbridge构成的同轴线 '''
-        gl = {1: l1, 2: l2}
+        def gl(status):
+            return {1: l1, 2: l2}[status]
         wl = {1: w3, 2: w1}
+        if type(l2)==list:
+            l2index=[0]
+            def gl(status):
+                if status==1:
+                    return l1
+                if status==2:
+                    ret=l2[l2index[0]]
+                    l2index[0]=(l2index[0]+1)%len(l2)
+                    return ret
+                raise KeyError(status)
 
         def DPathPolygon(pts,width,start,end,giveupsomepoints=False):
             region1=pya.Region([pya.Polygon.from_dpoly(pya.DPath(pts,width,start,end).polygon())])
@@ -161,7 +172,7 @@ class SpecialPainter(Painter):
                     status = 1
                     si = i
                     sp = getp(distance-slength, pt, cpts[i-1])
-                    slength += gl[status]
+                    slength += gl(status)
                     continue
                 if distance >= e2:
                     continue
@@ -183,7 +194,7 @@ class SpecialPainter(Painter):
                     si = ei
                     sp = ep
                     status = 3-status
-                    slength += gl[status]
+                    slength += gl(status)
 
             if not len(polygons) % 2:
                 polygons.pop()
