@@ -186,6 +186,37 @@ class TraceRunnerClass:
         self.pathString = ''.join(output)
         return self.pathString
 
+    def mirrorPath(self, rawString):
+        AST = self.buildAST(rawString)
+        pathString = self.traversalAST_mirrorPath(AST)
+        return pathString
+
+    def traversalAST_mirrorPath(self, AST):
+        output = ['']
+
+        def push(s):
+            output.append(s)
+
+        def traversal(node):
+            if node.type == self.top:
+                for cn in node.getChildren():
+                    traversal(cn)
+            if node.type == self.straight:
+                push('s {minus} {length} '.format(
+                    minus='_'if node.enableMinus else '', length=node.length))
+            if node.type == self.turning:
+                push('t {radius},{angle} '.format(
+                    radius=-node.left*node.radius, angle=node.angle))
+            if node.type == self.repeatStart:
+                push('n{times}[ '.format(times=node.times))
+                for cn in node.getChildren():
+                    traversal(cn)
+                push('] ')
+            if node.type == self.repeatEnd:
+                pass
+        traversal(AST)
+        self.pathString = ''.join(output)
+        return self.pathString
 
     def calculatePath(self, rawString, a=0, b=None):
         '''

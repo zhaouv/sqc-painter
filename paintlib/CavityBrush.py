@@ -91,3 +91,7 @@ class CavityBrush(object):
     @property
     def DCplxTrans(self):
         return pya.DCplxTrans(1, self.angle, False, self.centerx, self.centery)
+
+    @property
+    def backDCplxTrans(self):
+        return pya.DCplxTrans(1, -self.angle, False, 0, 0)*pya.DCplxTrans(1, 0, False, -self.centerx, -self.centery)
