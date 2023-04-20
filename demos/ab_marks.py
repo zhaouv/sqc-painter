@@ -54,17 +54,31 @@ painter13.Draw(cell2, layer1)
 # 画点阵
 
 
+# for plr in painter13.painterout.marks:
+#     for pt in plr:
+#         pts=paintlib.BasicPainter.arc(pt,15000,3*4+1,0,360)
+#         hole=pya.DPolygon(pts)
+#         paintlib.BasicPainter.Draw(cell3,layer1,hole)
+
+# # 画基于碰撞检测的Crossover
+# painter14 = paintlib.TransfilePainter(filepath+"crossover.gds")
+# painter14.airbridgedistance = 50000  # 设置Crossover的间距
+# painter14.DrawAirbridgeWithCollisionCheck(cell2, painter13.Getcenterlineinfo(
+# ), "Crossover3", boxY=16000+8000, boxWidth=15000, boxHeight=6000, push=2000, extend=20000)
+
+mixpts=[]
 for plr in painter13.painterout.marks:
-    for pt in plr:
-        pts=paintlib.BasicPainter.arc(pt,15000,3*4+1,0,360)
-        hole=pya.DPolygon(pts)
-        paintlib.BasicPainter.Draw(cell3,layer1,hole)
+    pt=pya.DPoint(plr[0].x/2+plr[1].x/2,plr[0].y/2+plr[1].y/2)
+    mixpts.append(pt)
+
+    pts=paintlib.BasicPainter.arc(pt,15000,3*4+1,0,360)
+    hole=pya.DPolygon(pts)
+    paintlib.BasicPainter.Draw(cell3,layer1,hole)
 
 # 画基于碰撞检测的Crossover
 painter14 = paintlib.TransfilePainter(filepath+"crossover.gds")
 painter14.airbridgedistance = 50000  # 设置Crossover的间距
-painter14.DrawAirbridgeWithCollisionCheck(cell2, painter13.Getcenterlineinfo(
-), "Crossover3", boxY=16000+8000, boxWidth=15000, boxHeight=6000, push=2000, extend=20000)
+painter14.DrawAirbridge(cell2, painter13.Getcenterlineinfo(), "Crossover3", avoidpts={'pts': mixpts, 'distance': 15000})
 
 # %% ref
 
@@ -76,11 +90,11 @@ painter13.Run(paintlib.TraceRunner.getPathFunction_withMarkTurning('s 500000 l 5
 painter13.Draw(cell2, layer1)
 
 
-# 画基于碰撞检测的Crossover
+# 画Crossover
 painter14 = paintlib.TransfilePainter(filepath+"crossover.gds")
 painter14.airbridgedistance = 50000  # 设置Crossover的间距
-painter14.DrawAirbridgeWithCollisionCheck(cell2, painter13.Getcenterlineinfo(
-), "Crossover3", boxY=16000+8000, boxWidth=15000, boxHeight=6000, push=2000, extend=20000)
+painter14.DrawAirbridge(cell2, painter13.Getcenterlineinfo(
+), "Crossover3")
 
 # %% 画边界
 border = paintlib.BasicPainter.Border(leng=3050000, siz=3050000, wed=50000)

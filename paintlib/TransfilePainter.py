@@ -53,7 +53,7 @@ class TransfilePainter(Painter):
                 staticList[1] -= 1
         return staticList[1]
 
-    def DrawAirbridge(self, cell, centerlinelist, newcellname="Airbige", collision={}):
+    def DrawAirbridge(self, cell, centerlinelist, newcellname="Airbige", collision={}, avoidpts={}):
         '''
         collision = {} 表示不做检查
         或者是 {
@@ -62,6 +62,12 @@ class TransfilePainter(Painter):
             'push': int,
             'extend': int,
         } 进行碰撞检测
+
+        avoidpts={} 表示不避开点
+        或者是 {
+            'pts': pya.DPoint[], 
+            'distance': float, 
+        } 来避开点
         '''
         IO.layout.read(self.filename)
         for icell in IO.layout.top_cells():
@@ -115,6 +121,15 @@ class TransfilePainter(Painter):
                             draw_ = False
                             pushlength = collision['push']
                             pushstatus='push'
+                    if avoidpts:
+                        noconflict=True
+                        for checkpt in avoidpts['pts']:
+                            if checkpt.distance(pt)<=avoidpts['distance']:
+                                noconflict=False
+                                break
+                        if noconflict==False:
+                            draw_ = False
+                            pushlength = avoidpts['distance']*2
                     if draw_:
                         new_instance = pya.CellInstArray(
                             icell.cell_index(), tr)
