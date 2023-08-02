@@ -1,15 +1,148 @@
 # -*- coding: utf-8 -*-
 
-from math import cos, sin, pi, tan, atan2, sqrt, ceil, floor
+from math import cos, sin, pi, tan, atan2, asin, sqrt, ceil, floor
 import queue
 
 import pya
 from .IO import IO
+from .CavityBrush import CavityBrush
 from .CavityPainter import CavityPainter, TraceRunner
 from .Collision import Collision
 from .Interactive import Interactive
 from .SpecialPainter import SpecialPainter
 
+class BrushLinker:
+    '''处理确定性的连接两个笔刷的类, 考虑移动到CavityPainter.py'''
+
+    @staticmethod
+    def link(brush1,brush2,radius=50000,pre_straight=0,linktype='45'):
+        pathtpl,brush1,brush2=BrushLinker._pre_straight(brush1,brush2,pre_straight)
+        if linktype=='45':
+            pathstr=BrushLinker.angle45Link(brush1,brush2,radius)
+        else: # linktype=='any':
+            pathstr=BrushLinker.TurningStraightTurningLink(brush1,brush2,radius)
+        return pathtpl.format(pathstr)
+
+    @staticmethod
+    def _pre_straight(brush1,brush2,pre_straight):
+        if pre_straight!=0:
+            def runStraight(brush):
+                painter=CavityPainter(brush)
+                painter.Run(f's{pre_straight}')
+                return painter.brush
+            return f's{pre_straight} {{}} s{pre_straight}',runStraight(brush1),runStraight(brush2)
+        return '{}',brush1,brush2
+
+    @staticmethod
+    def TurningStraightTurningLink(brush1,brush2,radius=50000):
+        def getInfo(brush,radius_info=radius):
+            centerx, centery, angle, widout=brush.Getinfo()
+            lcenter = pya.DPoint(centerx+radius_info*cos(pi/180*(angle+90)),centery+radius_info*sin(pi/180*(angle+90)))
+            rcenter = pya.DPoint(centerx+radius_info*cos(pi/180*(angle-90)),centery+radius_info*sin(pi/180*(angle-90)))
+            return lcenter,rcenter,centerx,centery,angle
+        # 使用一个小的半径来计算应该选取哪两个圆
+        def getSide(brush1,brush2):
+            info1=getInfo(brush1,radius_info=10)
+            info2=getInfo(brush2,radius_info=10)
+            # print(info1,info2)
+            distances=[]
+            for m1 in [0,1]:
+                for m2 in [0,1]:
+                    distances.append([info1[m1].distance(info2[m2]),m1,m2])
+            distance,m1,m2=min(distances)
+            # print(distances,[distance,m1,m2])
+            return m1,m2
+        m1,m2=getSide(brush1,brush2)
+        info1=getInfo(brush1)
+        info2=getInfo(brush2)
+        # m1,m2 0是左侧 1是右侧 
+        # 反侧取平行切边, 同侧取内部切边
+        centerDistance=info1[m1].distance(info2[m2])
+        centerAngle=atan2(-info1[m1].y+info2[m2].y,-info1[m1].x+info2[m2].x)*180/pi
+        if m1!=m2:
+            # 如果两边的圆半径不一样此处也需要计算一个反正弦. radius1-radius2=0
+            deltaAngle=0
+            l1=centerDistance
+        else:
+            # radius1+radius2=2*radius
+            if radius*2>=centerDistance:
+                if IO.warning.link_brush_too_close:
+                    IO.warning.warning("paintlib.BrushLinker.TurningStraightTurningLink", "Warning : brushs too close, using radius/2", pya.MessageBox.Ok)
+                return BrushLinker.TurningStraightTurningLink(brush1,brush2,radius=radius/2)
+            deltaAngle=asin(radius*2/centerDistance)*180/pi
+            l1=sqrt(centerDistance**2-(2*radius)**2)
+        def angleDistance(a,b,reverse=0):
+            return (b+3600-a)%360 if reverse==0 else (a+3600-b)%360
+        # 计算在圆心角上, 那个边更接近
+        targetAngle=centerAngle-deltaAngle if angleDistance(info1[4]+90*([-1,1][m1]),centerAngle+90-deltaAngle,m1)<=angleDistance(info1[4]+90*([-1,1][m1]),centerAngle+deltaAngle-90,m1) else centerAngle+deltaAngle
+        a1=angleDistance(info1[4],targetAngle,m1)
+        a2=angleDistance(targetAngle,info2[4]+180,1-m2)
+        # print(['centerAngle,deltaAngle,targetAngle,a1,a2,m1,m2,info1,info2',centerAngle,deltaAngle,targetAngle,a1,a2,m1,m2,info1,info2])
+        def lr(mi,reverse=0):
+            return ['l','r'][mi if reverse==0 else 1-mi]
+        return f'{lr(m1)} {radius},{a1} s {l1} {lr(1-m2)} {radius},{a2}'
+    
+    @staticmethod
+    def _preparelink45(brush1,brush2):
+        angle45=abs((brush2.angle-brush1.angle)%45)
+        if angle45>22:
+            angle45=45-angle45
+        if angle45>0.001:
+            return False,None,None,None
+        brush10=brush1.transformed(brush1.backDCplxTrans)
+        brush20=brush2.transformed(brush1.backDCplxTrans)
+        mirrorFlag=False
+        if brush20.centery<0:
+            brush20=CavityBrush(pointc=pya.DPoint(brush20.centerx,-brush20.centery), angle=-brush20.angle,widout=brush20.widout,widin=brush20.widin)
+            mirrorFlag=True
+        return True,brush10,brush20,mirrorFlag
+
+    @staticmethod
+    def _link2Brush45cases(brush1,brush2,radius=50000):
+        #cases
+        [xx,yy,angle]=[brush2.centerx,brush2.centery,round(brush2.angle)]
+        r1=radius
+        r2=radius/2**0.5
+        rh=r1-r2
+
+        # 1: s [0] l 45 s [1]
+        if angle==225 and xx-r2-(yy-rh)>=0 and yy-rh>=0:
+            return 's [0] l 45 s [1]',f's {xx-r2-(yy-rh)} l{radius},45 s{(yy-rh)*2**0.5}'
+        
+        # 2: s [0] l 45 s [1] r 45 s [0]
+        if angle==180 and xx-2*r2-(yy-2*rh)>=0 and yy-2*rh>=0:
+            return 's [0] l 45 s [1] r 45 s [0]',f's{(xx-2*r2-(yy-2*rh))/2} l{radius},45 s{(yy-2*rh)*2**0.5} r{radius},45 s{(xx-2*r2-(yy-2*rh))/2}'
+        
+        # 3: s [0] l 45 s [^1] l 45 s [2]
+        if angle==270 and xx>=r1 and yy>=r1:
+            return 's [0] l 45 s [^1] l 45 s [2]',f's{xx-yy if xx>yy else 0} l{radius},45 s{min(xx,yy)*2**0.5-2*r2} l{radius},45 s{yy-xx if xx<yy else 0}'
+
+        # 4: l 45 s [0] l 45 s [1] r 45
+        if angle==225 and xx>=r1+rh and yy>=r1+r2:
+            return 'l 45 s [0] l 45 s [1] r 45',f'l{radius},45 s{(xx-r1-rh)*2**0.5} l{radius},45 s{yy-r1-r2-(xx-r1-rh)} r{radius},45'
+        
+        # 5: s[0] l 45 s[1] r 45 s[0] r 45
+        if angle==135 and xx>=3*r2 and yy>=rh:
+            return 's[0] l 45 s[1] r 45 s[0] r 45',f's{(xx-3*r2-(yy-rh))/2} l{radius},45 s{(yy-rh)*2**0.5} r{radius},45 s{(xx-3*r2-(yy-rh))/2} r{radius},45'
+
+        return '',''
+
+    @staticmethod
+    def angle45Link(brush1,brush2,radius=50000):
+        angle45,brush10,brush20,mirrorFlag = BrushLinker._preparelink45(brush1,brush2)
+        if not angle45:
+            if not IO.warning.angle_45_link_fallback:
+                IO.warning.warning("paintlib.BrushLinker.angle45Link", "Error : not 45x angle", pya.MessageBox.Ok)
+            return BrushLinker.TurningStraightTurningLink(brush1,brush2,radius=radius)
+
+        case,pathstr = BrushLinker._link2Brush45cases(brush1=brush10,brush2=brush20,radius=radius)
+        if not case:
+            if not IO.warning.angle_45_link_fallback:
+                IO.warning.warning("paintlib.BrushLinker.angle45Link", "Error : no cases match", pya.MessageBox.Ok)
+            return BrushLinker.TurningStraightTurningLink(brush1,brush2,radius=radius)
+        if mirrorFlag:
+            pathstr = TraceRunner.mirrorPath(pathstr)
+        return pathstr
 
 class AutoRoute:
 

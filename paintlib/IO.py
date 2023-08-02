@@ -7,6 +7,8 @@ class warningClass:
     #
     minus_stright = True
     big_angle_turning = True
+    angle_45_link_fallback = True
+    link_brush_too_close = True
     #
     level = 0
 

@@ -553,11 +553,11 @@ class CavityPainter(Painter):
         self.bgn_ext = 0
         self.end_ext = 0
         # 修复1nm线的bug
-        self.painterin._Straight(-1.414)
-        self.painterin._Straight(1.414)
+        self.painterin._Straight(-2.414)
+        self.painterin._Straight(2.414)
         result = pathFunction(self.painterin)
-        self.painterin._Straight(1.414)
-        self.painterin._Straight(-1.414)
+        self.painterin._Straight(2.414)
+        self.painterin._Straight(-2.414)
         self.regionlistin.extend(self.painterin.outputlist)
         self.painterin.outputlist = []
         # 把中心线的(点列表,笔刷)成组添加

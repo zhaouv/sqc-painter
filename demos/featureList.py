@@ -230,6 +230,15 @@ brush2 = paintlib.CavityBrush(pointc=pya.DPoint(473000, -900000), angle=-90)
 path = paintlib.AutoRoute.linkTwoBrush(brush1, brush2)
 paintlib.Interactive._show_path(cell2, layer1, brush1, path)
 
+# 用BrushLinker连接笔刷
+paintlib.IO.warning.angle_45_link_fallback=False
+for ii,xx,yy,aa in zip([1,2,3,4,5],[1484000,1484000,1484000,1313000,1484000],[-500000,-500000,-530000,-273000,-500000],[135,180,90,225,225]):
+    brush1 = paintlib.CavityBrush(pointc=pya.DPoint(1212000, -450000-ii*60000), angle=0)
+    brush2 = paintlib.CavityBrush(pointc=pya.DPoint(xx, yy-ii*60000), angle=aa)
+    path = paintlib.BrushLinker.link(brush1, brush2)
+    paintlib.Interactive._show_path(cell2, layer1, brush1, path)
+    path = paintlib.BrushLinker.link(brush1, brush2, linktype='any')
+    paintlib.Interactive._show_path(cell2, layer1, brush1, path)
 
 # %% 输出
 print(TBD.isFinish())
