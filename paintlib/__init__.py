@@ -8,6 +8,7 @@ from .CavityBrush import CavityBrush
 from .Painter import Painter
 from .PcellPainter import PcellPainter
 from .BasicPainter import BasicPainter
+from .AttachmentTree import AttachmentTree
 from .Collision import Collision
 from .TransfilePainter import TransfilePainter
 from .CavityPainter import TraceRunner, LinePainter, CavityPainter, TriCavityPainter

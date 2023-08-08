@@ -1,0 +1,328 @@
+{
+    "type": "root",
+    "define": [
+        {
+            "type": "variable",
+            "id": "xx",
+            "value": 50000,
+            "description": ""
+        },
+        {
+            "type": "variable",
+            "id": "yy",
+            "value": 80000,
+            "description": ""
+        }
+    ],
+    "structure": [
+        {
+            "type": "structure",
+            "side": "ur",
+            "collection": 0,
+            "width": 200000,
+            "height": 150000,
+            "shape": {
+                "type": "rectangle"
+            },
+            "attachment": [
+                {
+                    "type": "attachment",
+                    "side": "ur",
+                    "structure": [
+                        {
+                            "type": "structure",
+                            "side": "ul",
+                            "collection": 1,
+                            "width": "xx",
+                            "height": "yy",
+                            "shape": {
+                                "type": "arc",
+                                "side": "dr"
+                            },
+                            "attachment": [
+                                {
+                                    "type": "attachmentnone"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "structure",
+                            "side": "ur",
+                            "collection": 1,
+                            "width": "xx",
+                            "height": "yy",
+                            "shape": {
+                                "type": "arc",
+                                "side": "dl"
+                            },
+                            "attachment": [
+                                {
+                                    "type": "attachmentnone"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "structure",
+                            "side": "dr",
+                            "collection": 1,
+                            "width": "xx",
+                            "height": "yy",
+                            "shape": {
+                                "type": "arc",
+                                "side": "ul"
+                            },
+                            "attachment": [
+                                {
+                                    "type": "attachmentnone"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "structure",
+                            "side": "dl",
+                            "collection": 1,
+                            "width": "xx",
+                            "height": "yy",
+                            "shape": {
+                                "type": "arc",
+                                "side": "ur"
+                            },
+                            "attachment": [
+                                {
+                                    "type": "attachmentnone"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "attachment",
+                    "side": "dr",
+                    "structure": [
+                        {
+                            "type": "structure",
+                            "side": "ul",
+                            "collection": 1,
+                            "width": "yy",
+                            "height": "xx",
+                            "shape": {
+                                "type": "arc",
+                                "side": "dr"
+                            },
+                            "attachment": [
+                                {
+                                    "type": "attachmentnone"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "structure",
+                            "side": "ur",
+                            "collection": 1,
+                            "width": "yy",
+                            "height": "xx",
+                            "shape": {
+                                "type": "arc",
+                                "side": "dl"
+                            },
+                            "attachment": [
+                                {
+                                    "type": "attachmentnone"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "structure",
+                            "side": "dr",
+                            "collection": 1,
+                            "width": "yy",
+                            "height": "xx",
+                            "shape": {
+                                "type": "arc",
+                                "side": "ul"
+                            },
+                            "attachment": [
+                                {
+                                    "type": "attachmentnone"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "structure",
+                            "side": "dl",
+                            "collection": 1,
+                            "width": "yy",
+                            "height": "xx",
+                            "shape": {
+                                "type": "arc",
+                                "side": "ur"
+                            },
+                            "attachment": [
+                                {
+                                    "type": "attachmentnone"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "structure",
+            "side": "ur",
+            "collection": 0,
+            "width": 60000,
+            "height": 50000,
+            "shape": {
+                "type": "rectangle"
+            },
+            "attachment": [
+                {
+                    "type": "attachment",
+                    "side": "ur",
+                    "structure": [
+                        {
+                            "type": "structure",
+                            "side": "ul",
+                            "collection": 2,
+                            "width": "xx",
+                            "height": "yy",
+                            "shape": {
+                                "type": "triangle",
+                                "side": "dr"
+                            },
+                            "attachment": [
+                                {
+                                    "type": "attachmentnone"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "structure",
+                            "side": "ur",
+                            "collection": 2,
+                            "width": "xx",
+                            "height": "yy",
+                            "shape": {
+                                "type": "triangle",
+                                "side": "dl"
+                            },
+                            "attachment": [
+                                {
+                                    "type": "attachmentnone"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "structure",
+                            "side": "dr",
+                            "collection": 2,
+                            "width": "xx",
+                            "height": "yy",
+                            "shape": {
+                                "type": "triangle",
+                                "side": "ul"
+                            },
+                            "attachment": [
+                                {
+                                    "type": "attachmentnone"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "structure",
+                            "side": "dl",
+                            "collection": 2,
+                            "width": "xx",
+                            "height": "yy",
+                            "shape": {
+                                "type": "triangle",
+                                "side": "ur"
+                            },
+                            "attachment": [
+                                {
+                                    "type": "attachmentnone"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "structure",
+            "side": "ur",
+            "collection": 0,
+            "width": 80000,
+            "height": 130000,
+            "shape": {
+                "type": "rectangle"
+            },
+            "attachment": [
+                {
+                    "type": "attachment",
+                    "side": "ur",
+                    "structure": [
+                        {
+                            "type": "structure",
+                            "side": "ul",
+                            "collection": 1,
+                            "width": 0,
+                            "height": 0,
+                            "shape": {
+                                "type": "brush",
+                                "brushid": "brush1",
+                                "widout": 8000,
+                                "widin": 4000,
+                                "angle": 90
+                            },
+                            "attachment": [
+                                {
+                                    "type": "attachmentnone"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "structure",
+                            "side": "ur",
+                            "collection": 3,
+                            "width": 50000,
+                            "height": 60000,
+                            "shape": {
+                                "type": "quadrilateral",
+                                "ul": 20000,
+                                "ur": 30000,
+                                "dr": 40000,
+                                "dl": 50000
+                            },
+                            "attachment": [
+                                {
+                                    "type": "attachmentnone"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "structure",
+                            "side": "ur",
+                            "collection": 3,
+                            "width": 50000,
+                            "height": 60000,
+                            "shape": {
+                                "type": "quadrilateral",
+                                "ul": 0,
+                                "ur": 0,
+                                "dr": 0,
+                                "dl": 0
+                            },
+                            "attachment": [
+                                {
+                                    "type": "attachmentnone"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

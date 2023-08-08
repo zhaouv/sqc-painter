@@ -38,6 +38,9 @@ top.insert(pya.CellInstArray(cell5.cell_index(), pya.Trans()))
 cell6 = layout.create_cell("Cavity4")
 top.insert(pya.CellInstArray(cell6.cell_index(), pya.Trans()))
 
+cell7 = layout.create_cell("AttachmentTree")
+top.insert(pya.CellInstArray(cell7.cell_index(), pya.Trans()))
+
 layer3 = layout.layer(2, 0)
 layer4 = layout.layer(3, 0)
 
@@ -239,6 +242,17 @@ for ii,xx,yy,aa in zip([1,2,3,4,5],[1484000,1484000,1484000,1313000,1484000],[-5
     paintlib.Interactive._show_path(cell2, layer1, brush1, path)
     path = paintlib.BrushLinker.link(brush1, brush2, linktype='any')
     paintlib.Interactive._show_path(cell2, layer1, brush1, path)
+
+# %% 附着树
+import json
+with open(filepath+'AttachmentTreeDemo.json') as fid:
+    root=json.load(fid)
+
+walker=paintlib.AttachmentTree().load(root,{'yy':90000}).transform(pya.Trans(-904000,728000))
+g.walker=walker
+
+for k in walker.collection:
+    paintlib.BasicPainter.Draw(cell7,layout.layer(13, k),walker.collection[k])
 
 # %% 输出
 print(TBD.isFinish())
