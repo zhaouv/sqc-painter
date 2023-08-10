@@ -32,7 +32,7 @@ class AttachmentTree:
         self.vars.update({"widin":brush.widin,"widout":brush.widout})
         self.loadvars(root["define"])
         self.walk(root["structure"])
-        self.transform(pya.ICplxTrans.from_dtrans(brush.DCplxTrans))
+        self.transform(pya.CplxTrans.from_dtrans(brush.DCplxTrans))
         return self
 
     def loadvars(self, defineList):
