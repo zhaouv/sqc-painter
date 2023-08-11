@@ -272,9 +272,9 @@
                             "shape": {
                                 "type": "brush",
                                 "brushid": "brush1",
+                                "angle": 90,
                                 "widout": 8000,
-                                "widin": 4000,
-                                "angle": 90
+                                "widin": 4000
                             },
                             "attachment": [
                                 {
@@ -314,6 +314,52 @@
                                 "dr": 0,
                                 "dl": 0
                             },
+                            "attachment": [
+                                {
+                                    "type": "attachmentnone"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "structure",
+                            "side": "ur",
+                            "collection": 3,
+                            "width": 50000,
+                            "height": 60000,
+                            "shape": {
+                                "type": "quadrilateraldagger",
+                                "ur": 20000,
+                                "dr": 30000,
+                                "dl": 40000,
+                                "ul": 50000
+                            },
+                            "attachment": [
+                                {
+                                    "type": "attachmentnone"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "structurefrompts",
+            "collection": 4,
+            "scale": 1000,
+            "absolute": true,
+            "points": "0 0 100 0 180 200",
+            "attachment": [
+                {
+                    "type": "attachment",
+                    "side": "ur",
+                    "structure": [
+                        {
+                            "type": "structurefrompts",
+                            "collection": 4,
+                            "scale": 1000,
+                            "absolute": false,
+                            "points": "0 0 0 -100 -60 -100",
                             "attachment": [
                                 {
                                     "type": "attachmentnone"

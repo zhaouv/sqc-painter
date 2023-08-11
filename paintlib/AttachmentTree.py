@@ -70,18 +70,38 @@ class AttachmentTree:
             walker.xx =walker.x1 if attachment["side"][1] == 'l' else walker.x2
             walker.yy =walker.y1 if attachment["side"][0] == 'd' else walker.y2
             for structure in attachment["structure"]:
-                if structure["type"] != 'structure':
+                if structure["type"] == 'structurenone':
                     continue
                 pos12 = [walker.x1, walker.y1, walker.x2, walker.y2]
-                width = walker.eval(structure["width"])
-                height = walker.eval(structure["height"])
+                if structure["type"] == 'structure':
+                    width = walker.eval(structure["width"])
+                    height = walker.eval(structure["height"])
 
-                walker.x1 =walker.xx - width if structure["side"][1] == 'l' else walker.xx
-                walker.y1 =walker.yy - height if structure["side"][0] == 'd' else walker.yy
-                walker.x2 = walker.x1 + width
-                walker.y2 = walker.y1 + height
+                    walker.x1 =walker.xx - width if structure["side"][1] == 'l' else walker.xx
+                    walker.y1 =walker.yy - height if structure["side"][0] == 'd' else walker.yy
+                    walker.x2 = walker.x1 + width
+                    walker.y2 = walker.y1 + height
 
-                walker.buildshape(structure["shape"], width, height, structure["collection"])
+                    walker.buildshape(structure["shape"], width, height, structure["collection"])
+                else: # structure["type"] == 'structurefrompts'
+                    ptsstr=re.split(r'[\s,]+', structure['points'])
+                    pts=[]
+                    walker.x1=walker.y1=float('inf')
+                    walker.x2=walker.y2=float('-inf')
+                    scale=walker.eval(structure['scale'])
+                    while ptsstr:
+                        xx=walker.xx+scale*walker.eval(ptsstr.pop(0))
+                        yy=walker.yy+scale*walker.eval(ptsstr.pop(0))
+                        walker.x1=min(walker.x1,xx)
+                        walker.x2=max(walker.x2,xx)
+                        walker.y1=min(walker.y1,yy)
+                        walker.y2=max(walker.y2,yy)
+                        if not structure['absolute']:
+                            walker.xx=xx
+                            walker.yy=yy
+                        pts.append(pya.DPoint(xx,yy))
+                    dshape=pya.DPolygon(pts)
+                    walker.addto(dshape, structure['collection'])
                 walker.traversal(structure["attachment"])
                 [walker.x1,walker.y1,walker.x2,walker.y2]=pos12
 
@@ -120,6 +140,13 @@ class AttachmentTree:
                 pya.DPoint(self.x2,self.y2 - self.eval(shape['ur'])),
                 pya.DPoint(self.x2 - self.eval(shape['dr']),self.y1),
                 pya.DPoint(self.x1,self.y1 + self.eval(shape['dl'])),
+            ])
+        elif shape["type"] == 'quadrilateraldagger':
+            dshape=pya.DPolygon([
+                pya.DPoint(self.x2 - self.eval(shape['ur']),self.y2),
+                pya.DPoint(self.x2,self.y1 + self.eval(shape['dr'])),
+                pya.DPoint(self.x1 + self.eval(shape['dl']),self.y1),
+                pya.DPoint(self.x1,self.y2 - self.eval(shape['ul'])),
             ])
         elif shape["type"] == 'triangle':
             pts = [

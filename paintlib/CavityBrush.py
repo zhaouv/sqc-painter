@@ -38,13 +38,19 @@ class CavityBrush(object):
         self.edgein = pya.DEdge(pointinl, pointinr)
 
     def transform(self, tr):
-        tr=pya.DCplxTrans(tr)
+        if type(tr)==pya.Trans:
+            tr=pya.DCplxTrans(tr,1)
+        if not type(tr)==pya.DCplxTrans:
+            tr=pya.DCplxTrans(tr)
         self.edgeout = self.edgeout.transformed(tr)
         self.edgein = self.edgein.transformed(tr)
         return self
 
     def transformed(self, tr):
-        tr=pya.DCplxTrans(tr)
+        if type(tr)==pya.Trans:
+            tr=pya.DCplxTrans(tr,1)
+        if not type(tr)==pya.DCplxTrans:
+            tr=pya.DCplxTrans(tr)
         edgeout = self.edgeout.transformed(tr)
         edgein = self.edgein.transformed(tr)
         newCavityBrush = CavityBrush(edgeout, edgein)
