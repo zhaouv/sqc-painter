@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import pya
+from .IO import IO
 from math import atan2, pi
-
 
 class CavityBrush(object):
     last = [None, None]
+    drawid = 1
 
     def __init__(self, *args, **keys):
         if 'pointc' in keys or (isinstance(args[0], pya.DPoint) and ('angle' in keys or type(args[1]) in [int, float])):
@@ -103,3 +104,14 @@ class CavityBrush(object):
     @property
     def backDCplxTrans(self):
         return pya.DCplxTrans(1, -self.angle, False, 0, 0)*pya.DCplxTrans(1, 0, False, -self.centerx, -self.centery)
+
+    def Draw(self,name='',cell=None,layer=None):
+        cell=cell or IO.brush
+        layer=layer or IO.brushlayer
+        if name=='':
+            name='brush'+str(CavityBrush.drawid)
+            CavityBrush.drawid+=1
+        content=f'brush({name},{self.angle},{self.widout},{self.widin})'
+        text=pya.Text(content,self.centerx,self.centery)
+        cell.shapes(layer).insert(text)
+        

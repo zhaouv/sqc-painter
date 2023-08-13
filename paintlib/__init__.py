@@ -10,7 +10,7 @@ from .PcellPainter import PcellPainter
 from .BasicPainter import BasicPainter
 from .AttachmentTree import AttachmentTree
 from .Collision import Collision
-from .TransfilePainter import TransfilePainter
+from .TransfilePainter import TransfilePainter, GDSLoader
 from .CavityPainter import TraceRunner, LinePainter, CavityPainter, TriCavityPainter
 from .Interactive import Interactive
 from .SpecialPainter import SpecialPainter

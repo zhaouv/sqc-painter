@@ -2,6 +2,7 @@
 
 
 from math import cos,sin,pi,tan,atan2,sqrt,ceil,floor
+import re
 
 import pya
 
@@ -22,6 +23,24 @@ class Interactive:
     searchr=500000
     extendlength=10000
 
+    @staticmethod
+    def extractBrushs(cell=None,layer=None):
+        cell=cell or IO.brush
+        layer=layer or IO.brushlayer
+        brushlist=[]
+        it=cell.begin_shapes_rec(layer)
+        while not it.at_end():
+            shape_=it.shape()
+            if shape_.is_text():
+                match = re.match(r'brush\(([^,]+),([^,]+),([^,]+),([^\)]+)\)', shape_.text.string)
+                if match:
+                    brush=CavityBrush(pointc=pya.DPoint(shape_.text.x, shape_.text.y), angle=float(match.group(2)), widout=float(match.group(3)), widin=float(match.group(4)), bgn_ext=0)
+                    brushid=match.group(1).strip()
+                    brushlist.append([brush,brushid])
+                    Interactive.brushlist.append(brush)
+            it.next()
+        return brushlist
+    
     @staticmethod
     def show(brush):
         Interactive.brushlist.append(brush)

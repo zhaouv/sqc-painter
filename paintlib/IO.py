@@ -72,15 +72,19 @@ class IO:
         else:
             IO.top = IO.layout.create_cell("TOP")
         #
-        IO.auxiliary = IO.layout.create_cell("auxiliary")
-        IO.top.insert(pya.CellInstArray(
-            IO.auxiliary.cell_index(), pya.Trans()))
+        IO.auxiliary = IO.layout.cell("auxiliary") or IO.layout.create_cell("auxiliary")
+        IO.top.insert(pya.CellInstArray(IO.auxiliary.cell_index(), pya.Trans()))
         #
-        IO.link = IO.layout.create_cell("link")
-        IO.auxiliary.insert(pya.CellInstArray(
-            IO.link.cell_index(), pya.Trans()))
+        IO.link = IO.layout.cell("link") or IO.layout.create_cell("link")
+        IO.auxiliary.insert(pya.CellInstArray(IO.link.cell_index(), pya.Trans()))
+        #
+        IO.brush = IO.layout.cell("brush") or IO.layout.create_cell("brush")
+        IO.auxiliary.insert(pya.CellInstArray(IO.brush.cell_index(), pya.Trans()))
         #
         IO.layer = IO.layout.layer(0, 0)
+        IO.brushlayer = IO.layout.layer(0, 3)
+        # 01 for showmark.py
+        # 02 for Interactive.scanBoxes
         for li1, li2 in [(0, 1), (0, 2)]:
             IO.layout.layer(li1, li2)
         return IO.layout, IO.top

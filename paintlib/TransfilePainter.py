@@ -3,6 +3,7 @@
 from math import pi, atan2
 import pya
 from .IO import IO
+from .CavityBrush import CavityBrush
 from .Painter import Painter
 from .Collision import Collision
 
@@ -193,3 +194,53 @@ class TransfilePainter(Painter):
                 icell.flatten(True)
                 icell.delete()
         return resultcell
+
+class GDSLoader: # gds version of AttachmentTree
+    def __init__(self):
+        self.collection = {}
+        self.brush = {}
+        self.vars = {}
+
+    def load(self, filename):
+        self.filename = filename
+        layout = pya.Layout()
+        layout.read(filename)
+        cells = [i for i in layout.top_cells()]
+        if(len(cells) != 1):
+            raise RuntimeError('load file must have only one top cell')
+        self.layout=layout
+        layers = [(index,info.layer,info.datatype) for index,info in zip(layout.layer_indices(),layout.layer_infos())]
+        for layer,layer1,layer2 in layers:
+            collection=f'{layer1}_{layer2}'
+            it=cells[0].begin_shapes_rec(layer)
+            shapes=pya.Shapes()
+            while not it.at_end():
+                shape_=it.shape()
+                if shape_.is_text():
+                    match = re.match(r'brush\(([^,]+),([^,]+),([^,]+),([^\)]+)\)', shape_.text.string)
+                    if match:
+                        brush=CavityBrush(pointc=pya.DPoint(shape_.text.x, shape_.text.y), angle=float(match.group(2)), widout=float(match.group(3)), widin=float(match.group(4)), bgn_ext=0)
+                        brushid=match.group(1).strip()
+                        self.brush[brushid]=brush
+                else:
+                    shapes.insert(shape_)
+                it.next()
+            self.addto(shapes, collection)
+        return self
+
+    def attachAtBrush(self,filename,brush):
+        self.load(filename)
+        self.transform(pya.CplxTrans.from_dtrans(brush.DCplxTrans))
+        return self
+
+    def addto(self, shape, collection):
+        self.collection[collection] = self.collection.get(collection, pya.Region())
+        self.collection[collection].insert(shape)
+
+    def transform(self, tr):
+        for k in self.brush:
+            self.brush[k].transform(tr)
+        for k in self.collection:
+            self.collection[k].transform(tr)
+        return self
+
