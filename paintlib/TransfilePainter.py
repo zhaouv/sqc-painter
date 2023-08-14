@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import re
 from math import pi, atan2
 import pya
 from .IO import IO
