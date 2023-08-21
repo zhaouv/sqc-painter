@@ -5,7 +5,7 @@ from math import pi, atan2
 import pya
 from .IO import IO
 from .CavityBrush import CavityBrush
-from .Painter import Painter
+from .Painter import Painter, Component
 from .Collision import Collision
 
 
@@ -196,11 +196,7 @@ class TransfilePainter(Painter):
                 icell.delete()
         return resultcell
 
-class GDSLoader: # gds version of AttachmentTree
-    def __init__(self):
-        self.collection = {}
-        self.brush = {}
-        self.vars = {}
+class GDSLoader(Component): # gds version of AttachmentTree
 
     def load(self, filename):
         self.filename = filename
@@ -238,10 +234,4 @@ class GDSLoader: # gds version of AttachmentTree
         self.collection[collection] = self.collection.get(collection, pya.Region())
         self.collection[collection].insert(shape)
 
-    def transform(self, tr):
-        for k in self.brush:
-            self.brush[k].transform(tr)
-        for k in self.collection:
-            self.collection[k].transform(tr)
-        return self
 

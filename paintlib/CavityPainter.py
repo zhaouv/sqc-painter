@@ -642,7 +642,7 @@ class CavityPainter(Painter):
         self.regionlistin.pop()
         self.Narrow(oldbrush.widout, oldbrush.widin, arg2)
 
-    def Output_Region(self):
+    def Output_Region(self,notmerge=False):
         polygonsout = []
         for x in self.regionlistout:
             if isinstance(x, pya.DPolygon):
@@ -653,6 +653,10 @@ class CavityPainter(Painter):
             if isinstance(x, pya.DPolygon):
                 polygonsin.append(pya.Polygon.from_dpoly(x))
         self.regionlistin = []
+        if notmerge:
+            self.regionin=pya.Region(polygonsin)
+            self.regionout=pya.Region(polygonsin)
+            return self.regionout,self.regionin
         self.region = pya.Region(polygonsout)-pya.Region(polygonsin)
         return self.region
 

@@ -5,7 +5,7 @@
 from .IO import IO
 from .TBD import TBD
 from .CavityBrush import CavityBrush
-from .Painter import Painter
+from .Painter import Painter, Component
 from .PcellPainter import PcellPainter
 from .BasicPainter import BasicPainter
 from .AttachmentTree import AttachmentTree

@@ -1,33 +1,35 @@
 # -*- coding: utf-8 -*-
 import re
+import json
 from math import cos, sin, pi, tan, atan2, sqrt, ceil, floor
 
 import pya
 
 from .IO import IO
 from .CavityBrush import CavityBrush
+from .Painter import Component
 from .BasicPainter import BasicPainter
 
-class AttachmentTree:
-    def __init__(self):
-        self.collection = {}
-        self.brush = {}
-        self.vars = {}
+class AttachmentTree(Component):
+
+    def loadifjson(self,filename):
+        ret=filename
+        if type(filename) == type('') and filename.endswith('.json'):
+            self.filename=filename
+            with open(filename) as fid:
+                ret=json.load(fid)
+        self.root=ret
+        return ret
 
     def load(self, root, args={}):
+        root=self.loadifjson(root)
         self.vars.update(args)
         self.loadvars(root["define"])
         self.walk(root["structure"])
         return self
 
-    def transform(self, tr):
-        for k in self.brush:
-            self.brush[k].transform(tr)
-        for k in self.collection:
-            self.collection[k].transform(tr)
-        return self
-
     def attachAtBrush(self,root,brush,args={}):
+        root=self.loadifjson(root)
         self.vars.update(args)
         self.vars.update({"widin":brush.widin,"widout":brush.widout})
         self.loadvars(root["define"])
@@ -41,11 +43,6 @@ class AttachmentTree:
                 pass
             else:
                 self.vars[element["id"]] = self.eval(element["value"])
-
-    def eval(self, number):
-        if type(number)==str:
-            return eval(re.sub(r'[a-zA-Z_]+\w+',lambda ii: str(self.vars[ii.group(0)]),number))
-        return number
 
     def addto(self, shape, collection):
         self.collection[collection] = self.collection.get(collection, pya.Region())
