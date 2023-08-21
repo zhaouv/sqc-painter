@@ -15,5 +15,6 @@ from .CavityPainter import TraceRunner, LinePainter, CavityPainter, TriCavityPai
 from .Interactive import Interactive
 from .SpecialPainter import SpecialPainter
 from .AutoRoute import AutoRoute, BrushLinker
+from .Combiner import Combiner
 from .CascadeRoute import CascadeRoute
 from .GridLayout import GridLayout

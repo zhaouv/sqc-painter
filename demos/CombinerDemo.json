@@ -1,0 +1,93 @@
+{
+    "type": "combiner",
+    "statement": [
+        {
+            "type": "variableDefine",
+            "id": "aa1",
+            "value": 50000,
+            "description": ""
+        },
+        {
+            "type": "brushDefine",
+            "id": "brush1",
+            "x": 50000,
+            "y": 40000,
+            "angle": 90,
+            "widout": 8000,
+            "widin": 4000,
+            "description": ""
+        },
+        {
+            "type": "traceDefine",
+            "id": "trace1",
+            "value": "s aa1",
+            "using": "aa1",
+            "description": ""
+        },
+        {
+            "type": "traceDefine",
+            "id": "trace2",
+            "value": "s aa1 r 30000,90 trace1",
+            "using": "aa1,trace1",
+            "description": ""
+        },
+        {
+            "type": "dispatch",
+            "keytype": "trace.length",
+            "id": "trace2",
+            "value": "aa2"
+        },
+        {
+            "type": "evalStatement",
+            "content": "print(self.vars[\"aa2\"])"
+        },
+        {
+            "type": "structureAt",
+            "id": "",
+            "brushid": "brush1",
+            "reverse": true,
+            "content": {
+                "type": "component",
+                "componentType": "Electrode",
+                "collection": 1,
+                "args": "{\"length\":aa2+300000}",
+                "using": "aa2"
+            }
+        },
+        {
+            "type": "structureAt",
+            "id": "brush2",
+            "brushid": "brush1",
+            "reverse": false,
+            "content": {
+                "type": "trace",
+                "traceid": "trace1",
+                "reverse": false,
+                "mirror": false
+            }
+        },
+        {
+            "type": "structureAt",
+            "id": "brush3",
+            "brushid": "brush2",
+            "reverse": false,
+            "content": {
+                "type": "component",
+                "componentType": "Narrow",
+                "collection": 1,
+                "args": "{\"widout\":20000,\"widin\":10000,\"length\":30000}",
+                "using": ""
+            }
+        },
+        {
+            "type": "structureAt",
+            "id": "sub1",
+            "brushid": "brush3",
+            "reverse": false,
+            "content": {
+                "type": "gdsLoader",
+                "id": "sub1"
+            }
+        }
+    ]
+}

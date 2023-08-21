@@ -1,12 +1,13 @@
 
 import re
 
+import pya
 from .IO import IO
 from .CavityBrush import CavityBrush
 from .Painter import Component
 from .AttachmentTree import AttachmentTree
 from .TransfilePainter import GDSLoader
-from .CavityPainter import TraceRunner
+from .CavityPainter import TraceRunner, CavityPainter
 from .AutoRoute import BrushLinker
 
 class Combiner(Component):
@@ -34,9 +35,11 @@ class Combiner(Component):
         return self
 
     def render(self, rawString, using):
+        if not using:
+            return rawString
         words='|'.join(sorted(using.split(','),key=lambda x:-len(x)))
         pa=re.compile(r'(?!")\b('+words+r')\b(?!")')
-        return re.sub(pa,lambda ii: str(self.vars[ii.group(0)]),rawString)
+        return re.sub(pa,lambda ii: str(self.vars.get(ii.group(0),self.trace.get(ii.group(0),0))),rawString)
 
     def execStatement(self,statement):
         # todo: split complex cases to function
@@ -99,13 +102,14 @@ class Combiner(Component):
         if content['type']=='component':
             args={}
             if content['args']:
-                args=eval(this.render(content["args"],content["using"]))
+                print(content,self.render(content["args"],content["using"]))
+                args=eval(self.render(content["args"],content["using"]))
                 self.addComponent(outids,content['componentType'],brush,args,content['collection'])
         elif content['type']=='attachmentTree':
             self.structure[outids[0]]=AttachmentTree().attachAtBrush(self.metal[content['id']],brush,args=self.dispatchedvars.get(outids[0],Component()).vars)
         elif content['type']=='gdsLoader':
             self.structure[outids[0]]=GDSLoader().attachAtBrush(self.metal[content['id']],brush)
-        elif content['type']=='combiner':
+        elif content['type']=='combinercontent':
             self.structure[outids[0]]=Combiner().attachAtBrush(self.metal[content['id']],brush,metal=self.metal,args=self.dispatchedvars.get(outids[0],Component()).vars)
         elif content['type']=='linkBrush':
             brush2=self.brush[content['id']]
@@ -128,7 +132,11 @@ class Combiner(Component):
             painter=CavityPainter(brush)
             eval(f'painter.{componentType}(**args)')
             self.brush[outids[0]]=painter.brush
-            self.collection[collection]=painter.Output_Region()
+            self.addto(painter.Output_Region(),collection)
+    
+    def addto(self, region, collection):
+        self.collection[collection] = self.collection.get(collection, pya.Region())
+        self.collection[collection].insert(region)
 
 
 

@@ -253,6 +253,16 @@ walker=paintlib.AttachmentTree().load(root,{'yy':90000}).transform(pya.Trans(-90
 for k in walker.collection:
     paintlib.BasicPainter.Draw(cell7,layout.layer(13, k),walker.collection[k])
 
+# %% 组合器
+
+combiner=paintlib.Combiner()
+
+combiner.attachAtBrush(paintlib.IO.path+'/demos/CombinerDemo.json',paintlib.CavityBrush(pointc=pya.DPoint(-904000, 1428000), angle=45),metal={"sub1":paintlib.IO.path+'/demos/crossover.gds'})
+
+for collection in [combiner.collection]+[combiner.structure[k].collection for k in combiner.structure]:
+    for k in collection:
+        paintlib.BasicPainter.Draw(cell7,layer1,collection[k])
+
 # %% 输出
 print(TBD.isFinish())
 paintlib.IO.Show()  # 输出到屏幕上
