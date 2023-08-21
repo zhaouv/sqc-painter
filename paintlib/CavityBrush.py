@@ -4,7 +4,7 @@ import pya
 from .IO import IO
 from math import atan2, pi
 
-class CavityBrush(object):
+class CavityBrush:
     last = [None, None]
     drawid = 1
 

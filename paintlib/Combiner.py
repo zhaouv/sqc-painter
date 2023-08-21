@@ -16,10 +16,21 @@ class Combiner(Component):
         self.metal = {}
 
     def load(self, root, metal={}, args={}):
+        root=self.loadifjson(root)
         self.metal.update(metal)
         self.vars.update(args)
         for statement in root['statement']:
             self.execStatement(statement)
+        return self
+
+    def attachAtBrush(self,root,brush, metal={},args={}):
+        root=self.loadifjson(root)
+        self.metal.update(metal)
+        self.vars.update(args)
+        self.vars.update({"widin":brush.widin,"widout":brush.widout})
+        for statement in root['statement']:
+            self.execStatement(statement)
+        self.transform(pya.CplxTrans.from_dtrans(brush.DCplxTrans))
         return self
 
     def render(self, rawString, using):
@@ -28,7 +39,7 @@ class Combiner(Component):
         return re.sub(pa,lambda ii: str(self.vars[ii.group(0)]),rawString)
 
     def execStatement(self,statement):
-        # todo: split each case to a function
+        # todo: split complex cases to function
         if statement['type']=='variableDefine':
             if statement["id"] in self.vars:
                 pass
@@ -54,52 +65,71 @@ class Combiner(Component):
                 if statement['keytype'] == 'variable':
                     key = 'vars'
                 for k,v in pairs:
-                    if '.' in k:
-                        k0,k1=k.split('.')
-                        todispatch=self.structure[k0].__getattribute__(key)[k1]
-                    else:
-                        todispatch=self.__getattribute__(key)[k]
-                    if '.' in v:
-                        v0,v1=v.split('.')
-                        if v0 in self.structure:
-                            self.structure[v0].__getattribute__(key)[v1]=todispatch
-                        else:
-                            self.dispatchedvars[v0] = self.dispatchedvars.get(v0,Component())
-                            self.dispatchedvars[v0].__getattribute__(key)[v1]=todispatch
-                    else:
-                        self.__getattribute__(key)[v]=todispatch
-
+                    self.dispatchOne(key,k,v)
+                    
         elif statement['type']=='structureAt':
             outids=statement['id'].split(',')
             content=statement['content']
             brush=self.brush[statement['brushid']]
             if statement['reverse']:
                 brush=brush.reversed()
-            if content['type']=='component':
-                args={}
-                if content['args']:
-                    args=eval(this.render(content["args"],content["using"]))
-                raise 'unfinished'
-            elif content['type']=='attachmentTree':
-                self.structure[outids[0]]=AttachmentTree().attachAtBrush(self.metal[content['id']],brush,args=self.dispatchedvars.get(outids[0],Component()))
-            elif content['type']=='gdsLoader':
-                self.structure[outids[0]]=GDSLoader().attachAtBrush(self.metal[content['id']],brush)
-            elif content['type']=='linkBrush':
-                brush2=self.brush[content['id']]
-                if content['reverse']:
-                    brush2=brush2.reversed()
-                self.trace[outids[0]] = BrushLinker.link(brush, brush2, linktype=content['linktype'])
-            elif content['type']=='trace':
-                path=self.trace[content['traceid']]
-                if content['reverse']:
-                    path=TraceRunner.reversePath(path)
-                if content['mirror']:
-                    path=TraceRunner.mirrorPath(path)
-                painter=CavityPainter(brush)
-                painter.Run(path)
-                self.brush[outids[0]]=painter.brush
+            self.structureAt(outids,content,brush)
             
         elif statement['type']=='evalStatement':
             exec(statement['content'])
+    
+    def dispatchOne(self,key,pairs):
+        if '.' in k:
+            k0,k1=k.split('.')
+            todispatch=self.structure[k0].__getattribute__(key)[k1]
+        else:
+            todispatch=self.__getattribute__(key)[k]
+        if '.' in v:
+            v0,v1=v.split('.')
+            if v0 in self.structure:
+                self.structure[v0].__getattribute__(key)[v1]=todispatch
+            else:
+                self.dispatchedvars[v0] = self.dispatchedvars.get(v0,Component())
+                self.dispatchedvars[v0].__getattribute__(key)[v1]=todispatch
+        else:
+            self.__getattribute__(key)[v]=todispatch
+
+
+    def structureAt(self,outids,content,brush):
+        if content['type']=='component':
+            args={}
+            if content['args']:
+                args=eval(this.render(content["args"],content["using"]))
+                self.addComponent(outids,content['componentType'],brush,args,content['collection'])
+        elif content['type']=='attachmentTree':
+            self.structure[outids[0]]=AttachmentTree().attachAtBrush(self.metal[content['id']],brush,args=self.dispatchedvars.get(outids[0],Component()).vars)
+        elif content['type']=='gdsLoader':
+            self.structure[outids[0]]=GDSLoader().attachAtBrush(self.metal[content['id']],brush)
+        elif content['type']=='combiner':
+            self.structure[outids[0]]=Combiner().attachAtBrush(self.metal[content['id']],brush,metal=self.metal,args=self.dispatchedvars.get(outids[0],Component()).vars)
+        elif content['type']=='linkBrush':
+            brush2=self.brush[content['id']]
+            if content['reverse']:
+                brush2=brush2.reversed()
+            self.trace[outids[0]] = BrushLinker.link(brush, brush2, linktype=content['linktype'])
+        elif content['type']=='trace':
+            path=self.trace[content['traceid']]
+            if content['reverse']:
+                path=TraceRunner.reversePath(path)
+            if content['mirror']:
+                path=TraceRunner.mirrorPath(path)
+            painter=CavityPainter(brush)
+            painter.Run(path)
+            self.brush[outids[0]]=painter.brush
+
+
+    def addComponent(self,outids,componentType,brush,args,collection):
+        if componentType in ['Electrode','Connection','Narrow','InterdigitedCapacitor']:
+            painter=CavityPainter(brush)
+            eval(f'painter.{componentType}(**args)')
+            self.brush[outids[0]]=painter.brush
+            self.collection[collection]=painter.Output_Region()
+
+
 
 

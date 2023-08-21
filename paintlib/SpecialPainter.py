@@ -14,7 +14,7 @@ from .Collision import Collision
 from .Interactive import Interactive
 
 
-class SpecialPainter(Painter):
+class SpecialPainter:
     ''' 画一些较复杂图形的静态类 '''
     @staticmethod
     def Connection(x, widin=16000, widout=114000, linewid=5000, slength1=16000, slength2=16000, clength=30000, cwid=54000, clengthplus=0, turningRadiusPlus=5000, y=0, angle=0):

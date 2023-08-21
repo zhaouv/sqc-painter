@@ -12,15 +12,6 @@ from .BasicPainter import BasicPainter
 
 class AttachmentTree(Component):
 
-    def loadifjson(self,filename):
-        ret=filename
-        if type(filename) == type('') and filename.endswith('.json'):
-            self.filename=filename
-            with open(filename) as fid:
-                ret=json.load(fid)
-        self.root=ret
-        return ret
-
     def load(self, root, args={}):
         root=self.loadifjson(root)
         self.vars.update(args)

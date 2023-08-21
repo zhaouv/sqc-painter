@@ -7,7 +7,7 @@ from .IO import IO
 from .BasicPainter import BasicPainter
 
 
-class Collision(object):
+class Collision:
     '''处理图形冲突的类'''
     pointRadius = 1000
 

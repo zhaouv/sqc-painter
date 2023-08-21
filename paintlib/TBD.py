@@ -3,7 +3,7 @@
 from .IO import IO
 
 
-class TBD(object):
+class TBD:
     '''处理待定数值的静态类'''
     id = 'not init'
     filename = 'TBD.txt'

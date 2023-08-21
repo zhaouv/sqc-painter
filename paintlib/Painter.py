@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 import re
 
-class Painter(object):
+class Painter:
     pass
 
-class Component(object):
+class Component:
     def __init__(self):
         self.collection = {}
         self.brush = {}
@@ -12,6 +12,15 @@ class Component(object):
         self.trace = {}
         self.structure = {}
 
+    def loadifjson(self,filename):
+        ret=filename
+        if type(filename) == type('') and filename.endswith('.json'):
+            self.filename=filename
+            with open(filename) as fid:
+                ret=json.load(fid)
+        self.root=ret
+        return ret
+        
     def eval(self, number):
         if type(number)==str:
             return eval(re.sub(r'[a-zA-Z_]+\w+',lambda ii: str(self.vars[ii.group(0)]),number))
