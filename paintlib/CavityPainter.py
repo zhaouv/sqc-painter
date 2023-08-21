@@ -12,13 +12,15 @@ from .BasicPainter import BasicPainter
 
 
 class TraceRunnerClass:
-    patternNames = ['straight', 'turning', 'repeatStart', 'repeatEnd']
+    patternNames = ['mark','straight', 'turning', 'repeatStart', 'repeatEnd']
 
+    mark_pattern = re.compile(r'^m(\[[^\]]+\])?')
     straight_pattern = re.compile(r'^s_?(-?\d+\.?\d*)')
     turning_pattern = re.compile(r'^(l|r|t)_?(-?\d+\.?\d*)(?:,(-?\d+\.?\d*))?')
     repeatStart_pattern = re.compile(r'^n(\d+)\[')
     repeatEnd_pattern = re.compile(r'^\]')
 
+    mark = 'mark'
     straight = 'straight'
     turning = 'turning'
     repeatStart = 'repeatStart'
@@ -86,6 +88,9 @@ class TraceRunnerClass:
                 break
         if match == None:
             raise RuntimeError('invaild trace at '+currentString)
+        if patternName == self.mark:
+            content = match.group(1) or '[]'
+            node = self.Node(match=match, type=patternName, content=content[1:-1])
         if patternName == self.repeatStart:
             times = int(match.group(1))
             node = self.Node(match=match, type=patternName, times=times)
@@ -134,6 +139,9 @@ class TraceRunnerClass:
             if node.type == self.top:
                 for cn in node.getChildren():
                     traversal(cn)
+            if node.type == self.mark:
+                pushln('painter.Markpoint({content})'.format(
+                    content='"'+node.content+'"' if node.content else ''))
             if node.type == self.straight:
                 pushln('length+=painter.{minus}Straight({length})'.format(
                     minus='_'if node.enableMinus else '', length=node.length))
@@ -169,6 +177,9 @@ class TraceRunnerClass:
             if node.type == self.top:
                 for cn in node.getChildren()[::-1]:
                     traversal(cn)
+            if node.type == self.mark:
+                push('m{content} '.format(
+                    content='['+node.content+']' if node.content else ''))
             if node.type == self.straight:
                 push('s {minus} {length} '.format(
                     minus='_'if node.enableMinus else '', length=node.length))
@@ -201,6 +212,9 @@ class TraceRunnerClass:
             if node.type == self.top:
                 for cn in node.getChildren():
                     traversal(cn)
+            if node.type == self.mark:
+                push('m{content} '.format(
+                    content='['+node.content+']' if node.content else ''))
             if node.type == self.straight:
                 push('s {minus} {length} '.format(
                     minus='_'if node.enableMinus else '', length=node.length))
@@ -257,6 +271,9 @@ class TraceRunnerClass:
             if node.type == self.top:
                 for cn in node.getChildren():
                     traversal(cn)
+            if node.type == self.mark:
+                push('m{content} '.format(
+                    content='['+node.content+']' if node.content else ''))
             if node.type == self.straight:
                 tolength=pathLength[0]+node.length
                 sr=saveRate(pathLength[0],tolength)
@@ -314,14 +331,17 @@ class TraceRunnerClass:
             if node.type == self.top:
                 for cn in node.getChildren():
                     traversal(cn)
+            if node.type == self.mark:
+                pushln('painter.Markpoint({content})'.format(
+                    content='"'+node.content+'"' if node.content else ''))
             if node.type == self.straight:
                 pushln('length+=painter.{minus}Straight({length})'.format(
                     minus='_'if node.enableMinus else '', length=node.length))
             if node.type == self.turning:
-                pushln('painter.Markpoint()')
+                pushln('painter.Markpoint("Turning")')
                 pushln('length+=painter.Turning({radius},{angle})'.format(
                     radius=node.left*node.radius, angle=node.angle))
-                pushln('painter.Markpoint()')
+                pushln('painter.Markpoint("Turning")')
             if node.type == self.repeatStart:
                 pushln('for _index{n} in range({times}):'.format(
                     n=npre(), times=node.times))
@@ -357,8 +377,8 @@ class LinePainter(Painter):
         self.outputlist = []
         self.marks = []
 
-    def Markpoint(self):
-        self.marks.append([self.pointl,self.pointr])
+    def Markpoint(self,content=''):
+        self.marks.append([self.pointl,self.pointr,content])
 
     def Straight(self, length, centerline=True):
         if length < -10 and self.warning and IO.warning.minus_stright:

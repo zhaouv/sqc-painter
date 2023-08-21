@@ -102,7 +102,6 @@ class Combiner(Component):
         if content['type']=='component':
             args={}
             if content['args']:
-                print(content,self.render(content["args"],content["using"]))
                 args=eval(self.render(content["args"],content["using"]))
                 self.addComponent(outids,content['componentType'],brush,args,content['collection'])
         elif content['type']=='attachmentTree':
