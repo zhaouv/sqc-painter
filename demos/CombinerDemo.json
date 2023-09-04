@@ -49,7 +49,7 @@
             "content": {
                 "type": "component",
                 "componentType": "Electrode",
-                "collection": 1,
+                "collection": "1",
                 "args": "{\"length\":aa2+300000}",
                 "using": "aa2"
             }
@@ -74,7 +74,7 @@
             "content": {
                 "type": "component",
                 "componentType": "Narrow",
-                "collection": 1,
+                "collection": "1",
                 "args": "{\"widout\":20000,\"widin\":10000,\"length\":30000}",
                 "using": ""
             }

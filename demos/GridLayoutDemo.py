@@ -22,25 +22,51 @@ layer2 = layout.layer(10, 2)
 cell = layout.create_cell("C1")  
 top.insert(pya.CellInstArray(cell.cell_index(), pya.Trans()))
 
-paintlib.GridLayout.Griditem.width=100000
-paintlib.GridLayout.Griditem.height=200000
-class typea(paintlib.GridLayout.Griditem):
-    args=[3]
-    def Draw(self):
-        paintlib.BasicPainter.Draw(cell,layer,pya.Polygon(paintlib.BasicPainter.arc(self.position('rd'), 100000/self.args[0], 8, 0, 360)))
-class types(paintlib.GridLayout.Griditem):
-    args=[4]
-    def Draw(self):
-        paintlib.BasicPainter.Draw(cell,layer,pya.Polygon(paintlib.BasicPainter.arc(self.position(), 100000/self.args[0], 8, 0, 360)))
-class typed(paintlib.GridLayout.Griditem):
-    args=[4]
-    def Draw(self):
-        paintlib.BasicPainter.Draw(cell,layer,pya.Polygon(paintlib.BasicPainter.arc(self.position(), 100000/self.args[0], 32, 0, 360)))
-class typef(paintlib.GridLayout.Griditem):
-    args=[8]
-    height=50000
-    def Draw(self):
-        paintlib.BasicPainter.Draw(cell,layer,pya.Polygon(paintlib.BasicPainter.arc(self.position(), 100000/self.args[0], 32, 0, 360)))
+false=False
+true=True
+typea={
+    "type": "combiner",
+    "statement": [
+        {
+            "type": "variableDefine",
+            "id": "a",
+            "value": 50000,
+            "description": ""
+        },
+        {
+            "type": "dispatch",
+            "keytype": "variable",
+            "id": "a,a",
+            "value": "c1@xx,c1@yy"
+        },
+        {
+            "type": "brushDefine",
+            "id": "brush1",
+            "x": 0,
+            "y": 0,
+            "angle": 0,
+            "widout": 8000,
+            "widin": 4000,
+            "description": ""
+        },
+        {
+            "type": "structureAt",
+            "id": "c1",
+            "brushid": "brush1",
+            "reverse": false,
+            "content": {
+                "type": "attachmentTree",
+                "id": "cycle"
+            }
+        },
+        {
+            "type": "dispatch",
+            "keytype": "collection",
+            "id": "c1@0,c1@1",
+            "value": "0,1"
+        }
+    ]
+}
 
 g1=paintlib.GridLayout(
     '''
@@ -51,16 +77,131 @@ g1=paintlib.GridLayout(
     as dd #sdf
     ''',
     {
-    'a':typea,
-    's':types,
-    'd':typed,
-    'f':typef,
-    }
-)
-paintlib.GridLayout.Griditem.offsetx=-g1.width/2
-paintlib.GridLayout.Griditem.offsety=-g1.height/2
-g1.items[0][0].args=[0.5]
-print(g1.Draw())
+    'a':{"width":100000,"height":200000,"id":'typea'},
+    's':{"width":100000,"height":200000,"id":'types'},
+    'd':{"width":100000,"height":200000,"id":'typed'},
+    'f':{"width":100000,"height":50000,"id":'typef'},
+    },
+    [
+        {
+            "condition":"1",
+            "export":[["collection.merge","0,1","0_0,10_0"]],
+        },
+        {
+            "condition":"{mark}=='s'",
+            "vars":{"a":80000}
+        },
+        {
+            "condition":"{mark}=='d'",
+            "vars":{"a":60000}
+        },
+        {
+            "condition":"{xindex}==0 and {yindex}==0",
+            "vars":{"a":25000}
+        },
+    ]
+).load( {"type": "combiner","statement": []}, metal={
+    "cycle":{
+            "type": "attachmentTree",
+            "define": [
+                {
+                    "type": "variable",
+                    "id": "xx",
+                    "value": 50000,
+                    "description": ""
+                },
+                {
+                    "type": "variable",
+                    "id": "yy",
+                    "value": 50000,
+                    "description": ""
+                }
+            ],
+            "structure": [
+                {
+                    "type": "structure",
+                    "side": "ul",
+                    "collection": "0",
+                    "width": "xx",
+                    "height": "yy",
+                    "shape": {
+                        "type": "arc",
+                        "side": "dr"
+                    },
+                    "attachment": [
+                        {
+                            "type": "attachmentnone"
+                        }
+                    ]
+                },
+                {
+                    "type": "structure",
+                    "side": "ur",
+                    "collection": "1",
+                    "width": "xx",
+                    "height": "yy",
+                    "shape": {
+                        "type": "arc",
+                        "side": "dl"
+                    },
+                    "attachment": [
+                        {
+                            "type": "attachmentnone"
+                        }
+                    ]
+                },
+                {
+                    "type": "structure",
+                    "side": "dr",
+                    "collection": "1",
+                    "width": "xx",
+                    "height": "yy",
+                    "shape": {
+                        "type": "arc",
+                        "side": "ul"
+                    },
+                    "attachment": [
+                        {
+                            "type": "attachmentnone"
+                        }
+                    ]
+                },
+                {
+                    "type": "structure",
+                    "side": "dl",
+                    "collection": "1",
+                    "width": "xx",
+                    "height": "yy",
+                    "shape": {
+                        "type": "arc",
+                        "side": "ur"
+                    },
+                    "attachment": [
+                        {
+                            "type": "attachmentnone"
+                        }
+                    ]
+                }
+            ]
+        },
+    "typea":typea,
+    "types":typea,
+    "typed":typea,
+    "typef":typea,
+})
+painter=paintlib.ComponentPainter().update(g1).Draw({
+    "type": "componentPainter",
+    "statement": [
+        {
+            "type": "drawCollection",
+            "op": "regex",
+            "collection": "(\\d+)_(\\d+)",
+            "cell": "TOP",
+            "l1": "$1",
+            "l2": "$2"
+        }
+    ]
+})
 
 # %%输出
 # print(TBD.isFinish())

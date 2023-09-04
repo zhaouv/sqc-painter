@@ -18,7 +18,7 @@
         {
             "type": "structure",
             "side": "ur",
-            "collection": 0,
+            "collection": "0",
             "width": 200000,
             "height": 150000,
             "shape": {
@@ -32,7 +32,7 @@
                         {
                             "type": "structure",
                             "side": "ul",
-                            "collection": 1,
+                            "collection": "1",
                             "width": "xx",
                             "height": "yy",
                             "shape": {
@@ -48,7 +48,7 @@
                         {
                             "type": "structure",
                             "side": "ur",
-                            "collection": 1,
+                            "collection": "1",
                             "width": "xx",
                             "height": "yy",
                             "shape": {
@@ -64,7 +64,7 @@
                         {
                             "type": "structure",
                             "side": "dr",
-                            "collection": 1,
+                            "collection": "1",
                             "width": "xx",
                             "height": "yy",
                             "shape": {
@@ -80,7 +80,7 @@
                         {
                             "type": "structure",
                             "side": "dl",
-                            "collection": 1,
+                            "collection": "1",
                             "width": "xx",
                             "height": "yy",
                             "shape": {
@@ -102,7 +102,7 @@
                         {
                             "type": "structure",
                             "side": "ul",
-                            "collection": 1,
+                            "collection": "1",
                             "width": "yy",
                             "height": "xx",
                             "shape": {
@@ -118,7 +118,7 @@
                         {
                             "type": "structure",
                             "side": "ur",
-                            "collection": 1,
+                            "collection": "1",
                             "width": "yy",
                             "height": "xx",
                             "shape": {
@@ -134,7 +134,7 @@
                         {
                             "type": "structure",
                             "side": "dr",
-                            "collection": 1,
+                            "collection": "1",
                             "width": "yy",
                             "height": "xx",
                             "shape": {
@@ -150,7 +150,7 @@
                         {
                             "type": "structure",
                             "side": "dl",
-                            "collection": 1,
+                            "collection": "1",
                             "width": "yy",
                             "height": "xx",
                             "shape": {
@@ -170,7 +170,7 @@
         {
             "type": "structure",
             "side": "ur",
-            "collection": 0,
+            "collection": "0",
             "width": 60000,
             "height": 50000,
             "shape": {
@@ -184,7 +184,7 @@
                         {
                             "type": "structure",
                             "side": "ul",
-                            "collection": 2,
+                            "collection": "2",
                             "width": "xx",
                             "height": "yy",
                             "shape": {
@@ -200,7 +200,7 @@
                         {
                             "type": "structure",
                             "side": "ur",
-                            "collection": 2,
+                            "collection": "2",
                             "width": "xx",
                             "height": "yy",
                             "shape": {
@@ -216,7 +216,7 @@
                         {
                             "type": "structure",
                             "side": "dr",
-                            "collection": 2,
+                            "collection": "2",
                             "width": "xx",
                             "height": "yy",
                             "shape": {
@@ -232,7 +232,7 @@
                         {
                             "type": "structure",
                             "side": "dl",
-                            "collection": 2,
+                            "collection": "2",
                             "width": "xx",
                             "height": "yy",
                             "shape": {
@@ -252,7 +252,7 @@
         {
             "type": "structure",
             "side": "ur",
-            "collection": 0,
+            "collection": "0",
             "width": 80000,
             "height": 130000,
             "shape": {
@@ -266,7 +266,7 @@
                         {
                             "type": "structure",
                             "side": "ul",
-                            "collection": 1,
+                            "collection": "1",
                             "width": 0,
                             "height": 0,
                             "shape": {
@@ -285,7 +285,7 @@
                         {
                             "type": "structure",
                             "side": "ur",
-                            "collection": 3,
+                            "collection": "3",
                             "width": 50000,
                             "height": 60000,
                             "shape": {
@@ -304,7 +304,7 @@
                         {
                             "type": "structure",
                             "side": "ur",
-                            "collection": 3,
+                            "collection": "3",
                             "width": 50000,
                             "height": 60000,
                             "shape": {
@@ -323,7 +323,7 @@
                         {
                             "type": "structure",
                             "side": "ur",
-                            "collection": 3,
+                            "collection": "3",
                             "width": 50000,
                             "height": 60000,
                             "shape": {
@@ -345,7 +345,7 @@
         },
         {
             "type": "structurefrompts",
-            "collection": 4,
+            "collection": "4",
             "scale": 1000,
             "absolute": true,
             "points": "0 0 100 0 180 200",
@@ -356,7 +356,7 @@
                     "structure": [
                         {
                             "type": "structurefrompts",
-                            "collection": 4,
+                            "collection": "4",
                             "scale": 1000,
                             "absolute": false,
                             "points": "0 0 0 -100 -60 -100",

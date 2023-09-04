@@ -13,7 +13,7 @@ from .AutoRoute import BrushLinker
 class Combiner(Component):
     def __init__(self):
         super().__init__()
-        self.dispatchedvars = {}
+        self.dispatchedObj = {}
         self.metal = {}
 
     def load(self, root, metal={}, args={}):
@@ -34,13 +34,6 @@ class Combiner(Component):
         self.transform(pya.CplxTrans.from_dtrans(brush.DCplxTrans))
         return self
 
-    def render(self, rawString, using):
-        if not using:
-            return rawString
-        words='|'.join(sorted(using.split(','),key=lambda x:-len(x)))
-        pa=re.compile(r'(?!")\b('+words+r')\b(?!")')
-        return re.sub(pa,lambda ii: str(self.vars.get(ii.group(0),self.trace.get(ii.group(0),0))),rawString)
-
     def execStatement(self,statement):
         # todo: split complex cases to function
         if statement['type']=='variableDefine':
@@ -59,16 +52,7 @@ class Combiner(Component):
             else:
                 self.trace[statement["id"]] = self.render(statement["value"],statement["using"])
         elif statement['type']=='dispatch':
-            pairs=zip(statement['id'].split(','),statement['value'].split(','))
-            if statement['keytype'] == 'trace.length':
-                for k,v in pairs:
-                    self.vars[v]=TraceRunner.calculatePath(self.trace[k])
-            else:
-                key = statement['keytype']
-                if statement['keytype'] == 'variable':
-                    key = 'vars'
-                for k,v in pairs:
-                    self.dispatchOne(key,k,v)
+            self.dispatch(statement['keytype'],statement['id'],statement['value'])
                     
         elif statement['type']=='structureAt':
             outids=statement['id'].split(',')
@@ -81,21 +65,63 @@ class Combiner(Component):
         elif statement['type']=='evalStatement':
             exec(statement['content'])
     
-    def dispatchOne(self,key,pairs):
-        if '.' in k:
-            k0,k1=k.split('.')
+    def dispatch(self,key,inids,outids):
+        op='set'
+        if '.' in key:
+            key,op=key.split('.')
+        
+        if ',' not in outids:
+            pairs=[]
+            # try use re to find pairs
+            k0,k1='',inids
+            tomatchdict=self.__getattribute__(key)
+            if '@' in inids:
+                k0,k1=inids.split('@')
+                tomatchdict=self.structure[k0].__getattribute__(key)
+                k0=k0+'@'
+            pa=re.compile(k1+'$')
+            for kk in tomatchdict:
+                ma=re.match(pa,kk)
+                if not ma:
+                    continue
+                pairs.append([k0+kk,self.regexfill(outids,kk,ma.groups())])
+        else:
+            pairs=zip(inids.split(','),outids.split(','))
+
+        if key == 'variable':
+            key = 'vars'
+        for k,v in pairs:
+            self.dispatchOne(key,op,k,v)
+
+    def dispatchOne(self,key,op,k,v):
+
+        if '@' in k:
+            k0,k1=k.split('@')
             todispatch=self.structure[k0].__getattribute__(key)[k1]
         else:
             todispatch=self.__getattribute__(key)[k]
-        if '.' in v:
-            v0,v1=v.split('.')
+        if op=='length':
+            key='vars'
+        if '@' in v:
+            v0,v1=v.split('@')
             if v0 in self.structure:
-                self.structure[v0].__getattribute__(key)[v1]=todispatch
+                tok,tov=self.structure[v0].__getattribute__(key),v1
             else:
-                self.dispatchedvars[v0] = self.dispatchedvars.get(v0,Component())
-                self.dispatchedvars[v0].__getattribute__(key)[v1]=todispatch
+                self.dispatchedObj[v0] = self.dispatchedObj.get(v0,Component())
+                tok,tov=self.dispatchedObj[v0].__getattribute__(key),v1
         else:
-            self.__getattribute__(key)[v]=todispatch
+            tok,tov=self.__getattribute__(key),v
+        if op=='length':
+            tok[tov]=TraceRunner.calculatePath(todispatch)
+        elif op=='set' or tov not in tok:
+            tok[tov]=todispatch
+        else: # op=='merge'
+            # collection.merge marks.merge centerlines.merge
+            if key=='collection':
+                tok[tov].insert(todispatch)
+            else:
+                tok[tov].extend(todispatch)
+
 
 
     def structureAt(self,outids,content,brush):
@@ -105,11 +131,11 @@ class Combiner(Component):
                 args=eval(self.render(content["args"],content["using"]))
                 self.addComponent(outids,content['componentType'],brush,args,content['collection'])
         elif content['type']=='attachmentTree':
-            self.structure[outids[0]]=AttachmentTree().attachAtBrush(self.metal[content['id']],brush,args=self.dispatchedvars.get(outids[0],Component()).vars)
+            self.structure[outids[0]]=AttachmentTree().update(self.dispatchedObj.get(outids[0],Component())).attachAtBrush(self.metal[content['id']],brush)
         elif content['type']=='gdsLoader':
             self.structure[outids[0]]=GDSLoader().attachAtBrush(self.metal[content['id']],brush)
         elif content['type']=='combinercontent':
-            self.structure[outids[0]]=Combiner().attachAtBrush(self.metal[content['id']],brush,metal=self.metal,args=self.dispatchedvars.get(outids[0],Component()).vars)
+            self.structure[outids[0]]=Combiner().update(self.dispatchedObj.get(outids[0],Component())).attachAtBrush(self.metal[content['id']],brush,metal=self.metal)
         elif content['type']=='linkBrush':
             brush2=self.brush[content['id']]
             if content['reverse']:

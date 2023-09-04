@@ -12,6 +12,16 @@ class Component:
         self.vars = {}
         self.trace = {}
         self.structure = {}
+        self.centerlines = {}
+        self.marks = {}
+    
+    def update(self,**aa,**kk):
+        if len(aa)>=1: # and type(aa[0])==Component
+            for key in ['collection','brush','vars','trace','structure','centerlines','marks']:
+                self.__getattribute__(key).update(aa[0].__getattribute__(key))
+        for key in kk:
+            self.__getattribute__(key).update(kk[key])
+        return self
 
     def loadifjson(self,filename):
         ret=filename
@@ -27,6 +37,19 @@ class Component:
             return eval(re.sub(r'[a-zA-Z_]+\w+',lambda ii: str(self.vars[ii.group(0)]),number))
         return number
     
+    def render(self, rawString, using):
+        if not using:
+            return rawString
+        words='|'.join(sorted(using.split(','),key=lambda x:-len(x)))
+        pa=re.compile(r'(?!")\b('+words+r')\b(?!")')
+        return re.sub(pa,lambda ii: str(self.vars.get(ii.group(0),self.trace.get(ii.group(0),0))),rawString)
+
+    def regexfill(self,tofill,g0,groups):
+        gs=[g0,*groups]
+        for ii,gi in [*enumerate(gs)][::-1]:
+            tofill=tofill.replace(f'${ii}',gi)
+        return tofill
+
     def transform(self, tr):
         for k in self.brush:
             self.brush[k].transform(tr)
@@ -34,5 +57,6 @@ class Component:
             self.collection[k].transform(tr)
         for k in self.structure:
             self.structure[k].transform(tr)
+        # todo: centerlines marks
         return self
         

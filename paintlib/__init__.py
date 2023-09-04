@@ -16,5 +16,6 @@ from .Interactive import Interactive
 from .SpecialPainter import SpecialPainter
 from .AutoRoute import AutoRoute, BrushLinker
 from .Combiner import Combiner
+from .ComponentPainter import ComponentPainter
 from .CascadeRoute import CascadeRoute
 from .GridLayout import GridLayout
