@@ -30,7 +30,7 @@ config
         "vars":{"a":1}
     },
     {
-        "condition":"{mark}=='a' and {xindex}<=4",
+        "condition":"'{mark}'=='a' and {xindex}<=4",
         "export":[["brush","b1,b2","b1_{xindex}_{yindex}_{mark},b2"],["collection.merge","1,2,10_0","1,2,3"],...]
     },
 ]
@@ -69,7 +69,7 @@ class Griditem(Combiner):
             y+=self.height/2
         if 'd' in posstr:
             y-=self.height/2
-        return pya.DPoint(x,y)
+        return [x,y]
 
 GridNone=Griditem()
 GridNone.mark='None'
@@ -104,9 +104,9 @@ class GridLayout(Combiner):
         for yy in range(self.ylength):
             for xx in range(self.xlength):
                 mark=self.grid[yy][xx]
-                newitemtype=self.types[mark]
                 if mark== ' ':
                     continue
+                newitemtype=self.types[mark]
                 if self.innerX[xx] < 0:
                     self.innerX[xx]=newitemtype["width"]
                 elif self.innerX[xx]!=newitemtype["width"]:
@@ -136,7 +136,7 @@ class GridLayout(Combiner):
                 mark=self.grid[yy][xx]
                 if mark== ' ':
                     continue
-                item=items[yy][xx]
+                item=self.items[yy][xx]
                 item.export=[]
                 item.name=self.GridNameTemplate.format(xindex=xx,yindex=yy,mark=mark)
                 for cc in self.config:
@@ -171,8 +171,8 @@ class GridLayout(Combiner):
                 mark=self.grid[yy][xx]
                 if mark== ' ':
                     continue
-                item=items[yy][xx]
-                self.structure[item.name]=Combiner().update(item).load(self.metal[self.types[mark]['id']],metal=self.metal).transform(pya.Trans(item.position()))
+                item=self.items[yy][xx]
+                self.structure[item.name]=Combiner().update(item).load(self.metal[self.types[mark]['id']],metal=self.metal).transform(pya.DCplxTrans(1, 0, False, item.position()[0], item.position()[1]))
                 for export in item.export:
                     key,inids,outids=export
                     outids=outids.format(xindex=xx,yindex=yy,mark=mark)

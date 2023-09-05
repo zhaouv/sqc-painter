@@ -24,9 +24,9 @@ class ComponentPainter(Component, Painter):
                         continue
                     l1=statement['l1']
                     l1=l1 if type(l1)!=str else int(self.regexfill(l1,key,ma.groups()))
-                    l1=statement['l2']
+                    l2=statement['l2']
                     l2=l2 if type(l2)!=str else int(self.regexfill(l2,key,ma.groups()))
-                    cell=regexfill(statement['cell'],key,ma.groups())
+                    cell=self.regexfill(statement['cell'],key,ma.groups())
                     cell=IO.layout.cell(cell)
                     layer=IO.layout.layer(l1, l2)
                     BasicPainter.Draw(cell,layer,self.collection[key])

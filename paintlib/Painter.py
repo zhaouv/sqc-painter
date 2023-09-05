@@ -15,7 +15,7 @@ class Component:
         self.centerlines = {}
         self.marks = {}
     
-    def update(self,**aa,**kk):
+    def update(self,*aa,**kk):
         if len(aa)>=1: # and type(aa[0])==Component
             for key in ['collection','brush','vars','trace','structure','centerlines','marks']:
                 self.__getattribute__(key).update(aa[0].__getattribute__(key))

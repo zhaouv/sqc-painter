@@ -72,6 +72,9 @@ g1=paintlib.GridLayout(
     '''
     # aaa
     as d
+       a
+       s
+       d
        f
      a sddd
     as dd #sdf
@@ -88,11 +91,11 @@ g1=paintlib.GridLayout(
             "export":[["collection.merge","0,1","0_0,10_0"]],
         },
         {
-            "condition":"{mark}=='s'",
+            "condition":"'{mark}'=='s'",
             "vars":{"a":80000}
         },
         {
-            "condition":"{mark}=='d'",
+            "condition":"'{mark}'=='d'",
             "vars":{"a":60000}
         },
         {
