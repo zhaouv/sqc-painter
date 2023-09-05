@@ -55,8 +55,22 @@ class Component:
             self.brush[k].transform(tr)
         for k in self.collection:
             self.collection[k].transform(tr)
-        for k in self.structure:
-            self.structure[k].transform(tr)
-        # todo: centerlines marks
+        # for k in self.structure: # 会出现多次引用的问题
+        #     self.structure[k].transform(tr)
+        
+        # painter.Getcenterlineinfo()
+        # [[[pya.DPoint],CavityBrush],]
+        for k in self.centerlines:
+            for l in self.centerlines[k]:
+                for p in l[0]:
+                    p.transform(tr)
+                l[1].transform(tr)
+        # painter.Getmarks()
+        # [[[pya.DPoint,pya.DPoint,str],],[[pya.DPoint,pya.DPoint,str],]]
+        for k in self.marks:
+            for l in self.marks[k]:
+                for p in l[0:2]:
+                    p.transform(tr)
+        
         return self
         

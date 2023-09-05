@@ -688,6 +688,13 @@ class CavityPainter(Painter):
         cptinfos = self.centerlineinfos
         self.centerlineinfos = []
         return cptinfos
+    
+    def Getmarks(self):
+        ''' 路径的[外部,内部]标记 '''
+        marks = [self.painterout.marks,self.painterin.marks]
+        self.painterout.marks = []
+        self.painterin.marks = []
+        return marks
 
 
 class TriCavityPainter(CavityPainter):

@@ -251,7 +251,7 @@ with open(filepath+'AttachmentTreeDemo.json') as fid:
 walker=paintlib.AttachmentTree().load(root,{'yy':90000}).transform(pya.Trans(-904000,728000))
 
 for k in walker.collection:
-    paintlib.BasicPainter.Draw(cell7,layout.layer(13, k),walker.collection[k])
+    paintlib.BasicPainter.Draw(cell7,layout.layer(13, int(k)),walker.collection[k])
 
 # %% 组合器
 
