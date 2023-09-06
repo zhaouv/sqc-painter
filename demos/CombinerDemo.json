@@ -22,6 +22,8 @@
             "id": "trace1",
             "value": "s aa1",
             "using": "aa1",
+            "reverse": false,
+            "mirror": false,
             "description": ""
         },
         {
@@ -29,6 +31,8 @@
             "id": "trace2",
             "value": "s aa1 r 30000,90 trace1",
             "using": "aa1,trace1",
+            "reverse": false,
+            "mirror": false,
             "description": ""
         },
         {
@@ -56,7 +60,7 @@
         },
         {
             "type": "structureAt",
-            "id": "brush2",
+            "id": "brush2,1,2,l1,,",
             "brushid": "brush1",
             "reverse": false,
             "content": {

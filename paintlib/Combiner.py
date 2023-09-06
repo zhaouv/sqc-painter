@@ -50,7 +50,12 @@ class Combiner(Component):
             if statement["id"] in self.trace:
                 pass
             else:
-                self.trace[statement["id"]] = self.render(statement["value"],statement["using"])
+                path = self.render(statement["value"],statement["using"])
+                if statement['reverse']:
+                    path=TraceRunner.reversePath(path)
+                if statement['mirror']:
+                    path=TraceRunner.mirrorPath(path)
+                self.trace[statement["id"]] = path
         elif statement['type']=='dispatch':
             self.dispatch(statement['keytype'],statement['id'],statement['value'])
                     
@@ -140,7 +145,22 @@ class Combiner(Component):
             brush2=self.brush[content['id']]
             if content['reverse']:
                 brush2=brush2.reversed()
-            self.trace[outids[0]] = BrushLinker.link(brush, brush2, linktype=content['linktype'])
+            path = BrushLinker.link(brush, brush2, linktype=content['linktype'])
+            painter=CavityPainter(brush)
+            painter.Run(path)
+            if outids[0]:
+                self.trace[outids[0]] = path
+            painter.Output_Region(notmerge=True)
+            if outids[1]:
+                self.collection[outids[1]]=painter.regionout
+            if outids[2]:
+                self.collection[outids[2]]=painter.regionin
+            if outids[3]:
+                self.centerlines[outids[3]]=painter.Getcenterlineinfo()
+            if outids[4]:
+                self.marks[outids[4]]=painter.Getmarks()
+            if outids[5]:
+                self.vars[outids[5]]=painter._length
         elif content['type']=='trace':
             path=self.trace[content['traceid']]
             if content['reverse']:
@@ -149,7 +169,19 @@ class Combiner(Component):
                 path=TraceRunner.mirrorPath(path)
             painter=CavityPainter(brush)
             painter.Run(path)
-            self.brush[outids[0]]=painter.brush
+            if outids[0]:
+                self.brush[outids[0]]=painter.brush
+            painter.Output_Region(notmerge=True)
+            if outids[1]:
+                self.collection[outids[1]]=painter.regionout
+            if outids[2]:
+                self.collection[outids[2]]=painter.regionin
+            if outids[3]:
+                self.centerlines[outids[3]]=painter.Getcenterlineinfo()
+            if outids[4]:
+                self.marks[outids[4]]=painter.Getmarks()
+            if outids[5]:
+                self.vars[outids[5]]=painter._length
 
 
     def addComponent(self,outids,componentType,brush,args,collection):
