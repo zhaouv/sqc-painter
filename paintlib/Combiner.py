@@ -118,16 +118,21 @@ class Combiner(Component):
             tok,tov=self.__getattribute__(key),v
         if op=='length':
             tok[tov]=TraceRunner.calculatePath(todispatch)
-        elif op=='set' or tov not in tok:
+        elif op=='set':
             tok[tov]=todispatch
         else: # op=='merge'
             # collection.merge marks.merge centerlines.merge
+            self.mergeOne(tok,tov,todispatch,key)
+    
+    def mergeOne(self,tok,tov,todispatch,key):
+        # todo在同一层merge后transform仍可能会触发多次调用的问题, 以后还是要引入tr计数的机制才能完美解决
+        if tov not in tok:
+            tok[tov]=todispatch
+        else:
             if key=='collection':
                 tok[tov].insert(todispatch)
             else:
                 tok[tov].extend(todispatch)
-
-
 
     def structureAt(self,outids,content,brush):
         if content['type']=='component':
@@ -152,13 +157,13 @@ class Combiner(Component):
                 self.trace[outids[0]] = path
             painter.Output_Region(notmerge=True)
             if outids[1]:
-                self.collection[outids[1]]=painter.regionout
+                self.mergeOne(self.collection,outids[1],painter.regionout,'collection')
             if outids[2]:
-                self.collection[outids[2]]=painter.regionin
+                self.mergeOne(self.collection,outids[2],painter.regionin,'collection')
             if outids[3]:
-                self.centerlines[outids[3]]=painter.Getcenterlineinfo()
+                self.mergeOne(self.centerlines,outids[3],painter.Getcenterlineinfo(),'centerlines')
             if outids[4]:
-                self.marks[outids[4]]=painter.Getmarks()
+                self.mergeOne(self.marks,outids[4],painter.Getmarks(),'marks')
             if outids[5]:
                 self.vars[outids[5]]=painter._length
         elif content['type']=='trace':
@@ -173,13 +178,13 @@ class Combiner(Component):
                 self.brush[outids[0]]=painter.brush
             painter.Output_Region(notmerge=True)
             if outids[1]:
-                self.collection[outids[1]]=painter.regionout
+                self.mergeOne(self.collection,outids[1],painter.regionout,'collection')
             if outids[2]:
-                self.collection[outids[2]]=painter.regionin
+                self.mergeOne(self.collection,outids[2],painter.regionin,'collection')
             if outids[3]:
-                self.centerlines[outids[3]]=painter.Getcenterlineinfo()
+                self.mergeOne(self.centerlines,outids[3],painter.Getcenterlineinfo(),'centerlines')
             if outids[4]:
-                self.marks[outids[4]]=painter.Getmarks()
+                self.mergeOne(self.marks,outids[4],painter.Getmarks(),'marks')
             if outids[5]:
                 self.vars[outids[5]]=painter._length
 
@@ -189,11 +194,8 @@ class Combiner(Component):
             painter=CavityPainter(brush)
             eval(f'painter.{componentType}(**args)')
             self.brush[outids[0]]=painter.brush
-            self.addto(painter.Output_Region(),collection)
-    
-    def addto(self, region, collection):
-        self.collection[collection] = self.collection.get(collection, pya.Region())
-        self.collection[collection].insert(region)
+            self.mergeOne(self.collection,collection,painter.Output_Region(),'collection')
+
 
 
 

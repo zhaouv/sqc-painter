@@ -57,6 +57,7 @@ class Component:
             self.collection[k].transform(tr)
         # for k in self.structure: # 会出现多次引用的问题
         #     self.structure[k].transform(tr)
+        # todo在同一层merge后transform仍可能会触发多次调用的问题, 以后还是要引入tr计数的机制才能完美解决
         
         # painter.Getcenterlineinfo()
         # [[[pya.DPoint],CavityBrush],]
