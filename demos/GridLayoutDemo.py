@@ -51,11 +51,11 @@ typea={
         },
         {
             "type": "structureAt",
-            "id": "c1",
             "brushid": "brush1",
             "reverse": false,
             "content": {
                 "type": "attachmentTree",
+                "outputid": "c1",
                 "id": "cycle"
             }
         },

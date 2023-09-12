@@ -15,6 +15,7 @@ class Combiner(Component):
         super().__init__()
         self.dispatchedObj = {}
         self.metal = {}
+        self.increasingIndexForStatement=0
 
     def load(self, root, metal={}, args={}):
         root=self.loadifjson(root)
@@ -60,16 +61,53 @@ class Combiner(Component):
             self.dispatch(statement['keytype'],statement['id'],statement['value'])
                     
         elif statement['type']=='structureAt':
-            outids=statement['id'].split(',')
             content=statement['content']
+            outids=content['outputid'].split(',')
             brush=self.brush[statement['brushid']]
             if statement['reverse']:
                 brush=brush.reversed()
-            self.structureAt(outids,content,brush)
+            self.structureAt(content,brush)
             
+        elif statement['type']=='forStatement':
+            # 1.用递归处理不定层数的循环->效率太低, 改为最多2层, 想再多手动嵌套 
+            # 2.叶子函数内部处理导入导出执行内容
+            ids=statement['ids'].split(',')
+            svars=statement['svars'].split(',')
+            evars=statement['evars'].split(',')
+            if len(ids)>=3:
+                raise RuntimeError('loop vars of forStatement more that 2')
+            loopvars={}
+            s1,e1,id1=self.eval(svars[0]),self.eval(evars[0])+1,ids[0]
+            for ii in range(s1,e1):
+                self.vars[id1]=loopvars[id1]=ii
+                if len(ids)==2:
+                    s2,e2,id2=self.eval(svars[1]),self.eval(evars[1])+1,ids[1]
+                else:
+                    s2,e2,id2=0,1,'a_will_not_used_name'
+                for jj in range(s2,e2):
+                    self.vars[id2]=loopvars[id2]=jj
+                    self.forStatementOne(loopvars,statement['imports'],statement['statement'],statement['exports'])
+
         elif statement['type']=='evalStatement':
             exec(statement['content'])
     
+    def forStatementOne(self,loopvars,imports,statements,exports):
+        self.increasingIndexForStatement+=1
+        thisid='forstructure_'+str(self.increasingIndexForStatement)
+        self.structure[thisid]=Combiner().update(vars=loopvars,metal=self.metal)
+        for statement in imports:
+            key,inids,outids=statement['keytype'],statement['id'],statement['value']
+            inids=eval(f'f"""{inids}"""',{},loopvars)
+            outids=','.join([thisid+'@'+inid for outids in outids.split(',')])
+            self.dispatch(key,inids,outids)
+        for statement in statements:
+            self.structure[thisid].execStatement(statement)
+        for statement in exports:
+            key,inids,outids=statement['keytype'],statement['id'],statement['value']
+            inids=','.join([thisid+'@'+inid for inids in inids.split(',')])
+            outids=eval(f'f"""{outids}"""',{},loopvars)
+            self.dispatch(key,inids,outids)
+
     def dispatch(self,key,inids,outids):
         op='set'
         if '.' in key:
@@ -134,7 +172,8 @@ class Combiner(Component):
             else:
                 tok[tov].extend(todispatch)
 
-    def structureAt(self,outids,content,brush):
+    def structureAt(self,content,brush):
+        outids=content['outputid'].split(',')
         if content['type']=='component':
             args={}
             if content['args']:
