@@ -675,7 +675,7 @@ class CavityPainter(Painter):
         self.regionlistin = []
         if notmerge:
             self.regionin=pya.Region(polygonsin)
-            self.regionout=pya.Region(polygonsin)
+            self.regionout=pya.Region(polygonsout)
             return self.regionout,self.regionin
         self.region = pya.Region(polygonsout)-pya.Region(polygonsin)
         return self.region

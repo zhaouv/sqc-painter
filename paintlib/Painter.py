@@ -52,6 +52,10 @@ class Component:
         return tofill
 
     def transform(self, tr):
+        if type(tr)==pya.Trans:
+            tr=pya.DCplxTrans(tr,1)
+        if not type(tr)==pya.DCplxTrans:
+            tr=pya.DCplxTrans(tr)
         for k in self.brush:
             self.brush[k].transform(tr)
         ctr=pya.CplxTrans.from_dtrans(tr)
