@@ -97,6 +97,7 @@ class Combiner(Component):
         self.structure[thisid]=Combiner().update(vars=loopvars,metal=self.metal)
         for statement in imports:
             key,inids,outids=statement['keytype'],statement['id'],statement['value']
+            # https://stackoverflow.com/questions/47339121/how-do-i-convert-a-string-into-an-f-string
             inids=eval(f'f"""{inids}"""',{},loopvars)
             outids=','.join([thisid+'@'+inid for outids in outids.split(',')])
             self.dispatch(key,inids,outids)

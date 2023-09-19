@@ -44,11 +44,11 @@ painter2.DrawAirbridge(cell2,painter1.Getcenterlineinfo(),"Airbridge")
 paintlib.IO.Show()
 ```
 
-![](img_md/tmp1.png)
+![](img_md/absdistancechange.png)
 
 ## 辐射状状排布的14bit
 
-![](img_md/tmp2.png)
+![](img_md/star14.png)
 
 ## 超出中心线绘制全包裹的airbridge
 

@@ -117,7 +117,7 @@ class Interactive:
         return deltaangle,maxlength,boundAngle,gridAngle,extendlength,turningr
 
     @staticmethod
-    def link(brush1=None, brush2=None, spts=None, print_=True, direct=False, pre_straight=0):
+    def link(brush1=None, brush2=None, spts=None, print_=True, direct=False, return_all=False, pre_straight=0):
         '''
         输入两个CavityBrush作为参数, 并点击图中的一个路径, 生成一个连接两个brush的路径的函数  
         缺省时会在Interactive.searchr内搜索最近的brush
@@ -170,6 +170,9 @@ class Interactive:
             print(ss)
             print('##################################')
             Interactive._show_path(IO.link, IO.layer, brush1, ss)
+        
+        if return_all:
+            return ss,brush1,brush2,spts
         return ss
 
     @staticmethod

@@ -35,7 +35,7 @@ class ComponentPainter(Component, Painter):
                     layer=IO.layout.layer(l1, l2)
                     BasicPainter.Draw(cell,layer,self.collection[key])
             elif statement['op']=='operation':
-                region=eval(re.sub(r'\w+',lambda ii: "self.collection["+ii.group(0)+"]"),statement['collection']))
+                region=eval(re.sub(r'\w+',lambda ii: "self.collection["+ii.group(0)+"]"),statement['collection'])
                 l1=statement['l1']
                 l2=statement['l2']
                 cell=statement['cell']
