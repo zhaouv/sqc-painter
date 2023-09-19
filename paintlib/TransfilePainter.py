@@ -227,7 +227,7 @@ class GDSLoader(Component): # gds version of AttachmentTree
 
     def attachAtBrush(self,filename,brush):
         self.load(filename)
-        self.transform(pya.CplxTrans.from_dtrans(brush.DCplxTrans))
+        self.transform(brush.DCplxTrans)
         return self
 
     def addto(self, shape, collection):

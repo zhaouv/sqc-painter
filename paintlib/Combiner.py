@@ -32,7 +32,7 @@ class Combiner(Component):
         self.vars.update({"widin":brush.widin,"widout":brush.widout})
         for statement in root['statement']:
             self.execStatement(statement)
-        self.transform(pya.CplxTrans.from_dtrans(brush.DCplxTrans))
+        self.transform(brush.DCplxTrans)
         return self
 
     def execStatement(self,statement):

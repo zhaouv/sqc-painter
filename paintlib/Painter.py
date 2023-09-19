@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import re
 import json
+import pya
 
 class Painter:
     pass
@@ -53,8 +54,9 @@ class Component:
     def transform(self, tr):
         for k in self.brush:
             self.brush[k].transform(tr)
+        ctr=pya.CplxTrans.from_dtrans(tr)
         for k in self.collection:
-            self.collection[k].transform(tr)
+            self.collection[k].transform(ctr)
         # for k in self.structure: # 会出现多次引用的问题
         #     self.structure[k].transform(tr)
         # todo在同一层merge后transform仍可能会触发多次调用的问题, 以后还是要引入tr计数的机制才能完美解决
@@ -63,15 +65,15 @@ class Component:
         # [[[pya.DPoint],CavityBrush],]
         for k in self.centerlines:
             for l in self.centerlines[k]:
-                for p in l[0]:
-                    p.transform(tr)
+                l[0]=[pya.DEdge(pya.DPoint(),p).transformed(tr).p2 for p in l[0]]
                 l[1].transform(tr)
         # painter.Getmarks()
         # [[[pya.DPoint,pya.DPoint,str],],[[pya.DPoint,pya.DPoint,str],]]
         for k in self.marks:
             for l in self.marks[k]:
-                for p in l[0:2]:
-                    p.transform(tr)
+                edge=pya.DEdge(l[0],l[1]).transformed(tr)
+                l[0]=edge.p1
+                l[1]=edge.p2
         
         return self
         

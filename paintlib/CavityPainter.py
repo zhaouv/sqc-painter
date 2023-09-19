@@ -582,7 +582,7 @@ class CavityPainter(Painter):
         self.painterin.outputlist = []
         # 把中心线的(点列表,笔刷)成组添加
         self.centerlineinfos.append(
-            (self.painterin.Getcenterline(), self.brush))
+            [self.painterin.Getcenterline(), self.brush])
         #
         self._length=result
         return result
