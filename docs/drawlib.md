@@ -33,9 +33,9 @@
 + centerlines : 轨迹的中心线
 + marks : 轨迹的标记
 
-+ 方法`update(vars={"a":1}, trace={"t1":"s 50000"})` 更新数据, 可以同时使用多个数据
-+ 方法`update(anotherComponent)` 从另一个Component更新其所有数据
-+ 方法`transform(tr)` 执行转换
++ 方法`update(vars={"a":1}, trace={"t1":"s 50000"})` 更新数据, 可以同时使用多个数据.
++ 方法`update(anotherComponent)` 从另一个Component更新其所有数据.
++ 方法`transform(tr)` 执行转换, 目前不会对子结构执行转换, 只对自己拥有的所有内容各执行一次. 要避免一个图形被同一个Component拥有多个引用, 会导致被执行多次转换, 进而发生位置角度的错误.
 
 ## GDSLoader
 
@@ -116,7 +116,30 @@
 
 ## Combiner
 
+![](img_md/combinerblocks.png)
 
+通过组件+笔刷+轨迹的方式来组合出器件层级的图形. 例如量子比特, 读取腔等等.  
+借助笔刷的角度能够实现AttachmentTree中做不到的旋转的结构.  
+
+### 定义图块
+
+变量定义和笔刷定义类似AttachmentTree, 其中可以使用变量来计算.
+
+路径定义图块中可以使用变量, 但是不做计算, 且要把用到的变量都填在using中
+
+### 派发图块
+
+### 子结构图块
+
+### 连接图块
+
+### 路径运动图块
+
+### 循环图块
+
+## GridLayout
+
+## ComponentPainter
 
 - - -
 
