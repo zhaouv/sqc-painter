@@ -680,8 +680,13 @@ class CavityPainter(Painter):
         self.region = pya.Region(polygonsout)-pya.Region(polygonsin)
         return self.region
 
-    def Draw(self, cell, layer):
-        cell.shapes(layer).insert(self.Output_Region())
+    def Draw(self, cell, layer, layer2):
+        if layer2==None:
+            cell.shapes(layer).insert(self.Output_Region())
+        else:
+            self.Output_Region(notmerge=True)
+            cell.shapes(layer).insert(self.regionout)
+            cell.shapes(layer2).insert(self.regionin)
 
     def Getcenterlineinfo(self):
         ''' 中心线的(点列表,笔刷)成组添加 '''

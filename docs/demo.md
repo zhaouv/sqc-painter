@@ -83,4 +83,5 @@ paintlib.SpecialPainter.DrawContinueAirbridgePainter(
 
 - [Start Page](README.md)  
 - [脚本绘图基础](base.md)  
+- [绘制库的建立和使用](drawlib.md)  
 - **demo**  
