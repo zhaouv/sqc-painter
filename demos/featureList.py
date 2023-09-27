@@ -248,10 +248,21 @@ import json
 with open(filepath+'AttachmentTreeDemo.json') as fid:
     root=json.load(fid)
 
-walker=paintlib.AttachmentTree().load(root,{'yy':90000}).transform(pya.DCplxTrans(1,0,False,-904000,728000))
+component=paintlib.AttachmentTree().load(root,{'yy':90000}).transform(pya.DCplxTrans(1,0,False,-904000,728000))
 
-for k in walker.collection:
-    paintlib.BasicPainter.Draw(cell7,layout.layer(13, int(k)),walker.collection[k])
+painter=paintlib.ComponentPainter().update(component).Draw({
+    "type": "componentPainter",
+    "statement": [
+        {
+            "type": "drawCollection",
+            "op": "regex",
+            "collection": "\\d+",
+            "cell": "AttachmentTree",
+            "l1": "13",
+            "l2": "$0"
+        }
+    ]
+})
 
 # %% 组合器
 
@@ -260,9 +271,19 @@ combiner=paintlib.Combiner()
 
 combiner.attachAtBrush(paintlib.IO.path+'/demos/CombinerDemo.json',paintlib.CavityBrush(pointc=pya.DPoint(-904000, 1428000), angle=45),metal={"sub1":paintlib.IO.path+'/demos/crossover.gds'})
 
-for collection in [combiner.collection]+[combiner.structure[k].collection for k in combiner.structure]:
-    for k in collection:
-        paintlib.BasicPainter.Draw(cell7,layer1,collection[k])
+painter=paintlib.ComponentPainter().update(combiner).Draw({
+    "type": "componentPainter",
+    "statement": [
+        {
+            "type": "drawCollection",
+            "op": "regex",
+            "collection": ".*",
+            "cell": "AttachmentTree",
+            "l1": "10",
+            "l2": "10"
+        }
+    ]
+})
 
 # %% 输出
 print(TBD.isFinish())

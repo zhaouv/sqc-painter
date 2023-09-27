@@ -680,7 +680,7 @@ class CavityPainter(Painter):
         self.region = pya.Region(polygonsout)-pya.Region(polygonsin)
         return self.region
 
-    def Draw(self, cell, layer, layer2):
+    def Draw(self, cell, layer, layer2=None):
         if layer2==None:
             cell.shapes(layer).insert(self.Output_Region())
         else:

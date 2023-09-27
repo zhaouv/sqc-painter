@@ -51,8 +51,8 @@
             "reverse": true,
             "content": {
                 "type": "component",
-                "outputid": "",
                 "componentType": "Electrode",
+                "outputid": "",
                 "collection": "1",
                 "args": "{\"length\":aa2+300000}",
                 "using": "aa2"
@@ -64,10 +64,10 @@
             "reverse": false,
             "content": {
                 "type": "trace",
-                "outputid": "brush2,1,2,l1,,",
                 "traceid": "trace1",
                 "reverse": false,
-                "mirror": false
+                "mirror": false,
+                "outputid": "brush2,1,2,l1,,"
             }
         },
         {
@@ -76,8 +76,8 @@
             "reverse": false,
             "content": {
                 "type": "component",
-                "outputid": "brush3",
                 "componentType": "Narrow",
+                "outputid": "brush3",
                 "collection": "1",
                 "args": "{\"widout\":20000,\"widin\":10000,\"length\":30000}",
                 "using": ""
@@ -89,9 +89,16 @@
             "reverse": false,
             "content": {
                 "type": "gdsLoader",
+                "id": "sub1",
                 "outputid": "sub1",
-                "id": "sub1"
+                "description": ""
             }
+        },
+        {
+            "type": "dispatch",
+            "keytype": "collection.merge",
+            "id": "sub1@.*",
+            "value": "$0"
         }
     ]
 }
