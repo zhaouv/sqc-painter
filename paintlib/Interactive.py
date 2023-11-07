@@ -117,7 +117,7 @@ class Interactive:
         return deltaangle,maxlength,boundAngle,gridAngle,extendlength,turningr
 
     @staticmethod
-    def link(brush1=None, brush2=None, spts=None, print_=True, direct=False, return_all=False, pre_straight=0):
+    def link(brush1=None, brush2=None, spts=None, print_=True, direct=False, return_all=False, pre_straight=0, brush_widout=20000, brush_widin=10000):
         '''
         输入两个CavityBrush作为参数, 并点击图中的一个路径, 生成一个连接两个brush的路径的函数  
         缺省时会在Interactive.searchr内搜索最近的brush
@@ -132,10 +132,14 @@ class Interactive:
 
         if brush1 == None:
             brush1 = Interactive._get_nearest_brush(spts[0].x, spts[0].y)
-        if not isinstance(brush1, CavityBrush):
-            IO.warning.warning("paintlib.Interactive.link",
-                                "Argument 1 must be CavityBrush", pya.MessageBox.Ok)
-            return
+            if brush1==None:
+                brush1=CavityBrush(pointc=pya.DPoint(spts[0].x,spts[0].y), angle=gridAngle(atan2(spts[1].y-spts[0].y, spts[1].x-spts[0].x)/pi*180),widout=brush_widout,widin=brush_widin,bgn_ext=0)
+                spts.pop(0)
+        # # change behavier. brush1 also created from pts
+        # if not isinstance(brush1, CavityBrush):
+        #     IO.warning.warning("paintlib.Interactive.link",
+        #                         "Argument 1 must be CavityBrush", pya.MessageBox.Ok)
+        #     return
         if brush2 == None:
             brush2 = Interactive._get_nearest_brush(spts[-1].x, spts[-1].y)
             if brush2==None:
