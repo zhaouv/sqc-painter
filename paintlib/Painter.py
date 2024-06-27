@@ -74,10 +74,11 @@ class Component:
         # painter.Getmarks()
         # [[[pya.DPoint,pya.DPoint,str],],[[pya.DPoint,pya.DPoint,str],]]
         for k in self.marks:
-            for l in self.marks[k]:
-                edge=pya.DEdge(l[0],l[1]).transformed(tr)
-                l[0]=edge.p1
-                l[1]=edge.p2
+            for oi in self.marks[k]:
+                for l in oi:
+                    edge=pya.DEdge(l[0],l[1]).transformed(tr)
+                    l[0]=edge.p1
+                    l[1]=edge.p2
         
         return self
         
